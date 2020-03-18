@@ -14,31 +14,35 @@ public class CameraDrone : MonoBehaviour
 {
 
     [SerializeField]
-    float _KeyboardHorSpeed = 1f;
+    float _KeyboardHorSpeed = 1.0f;
+
+    //[SerializeField]
+    //float _KeyboardVertSpeed = 1f;
+
+    //[SerializeField]
+    //float _KeyboardYawSpeed = 1f;
 
     [SerializeField]
-    float _KeyboardVertSpeed = 1f;
+    float _MouseHorSpeed = 1.0f;
 
     [SerializeField]
-    float _KeyboardYawSpeed = 1f;
+    float _MouseVertSpeed = 1.0f;
 
     [SerializeField]
-    float _MouseHorSpeed = 1f;
+    float _MouseYawSpeed = 1.0f;
 
     [SerializeField]
-    float _MouseVertSpeed = 1f;
+    float _HorSpeedDivider = 0.2f;
+    float _HorSpeedParentDivider = 1.0f;
 
-    [SerializeField]
-    float _MouseYawSpeed = 1f;
+    //[SerializeField]
+    //float _JoystickHorSpeed = 1f;
 
-    [SerializeField]
-    float _JoystickHorSpeed = 1f;
+    //[SerializeField]
+    //float _JoystickVertSpeed = 1f;
 
-    [SerializeField]
-    float _JoystickVertSpeed = 1f;
-
-    [SerializeField]
-    float _JoystickYawSpeed = 1f;
+    //[SerializeField]
+    //float _JoystickYawSpeed = 1f;
 
     [SerializeField]
     float _HMin = 0f;
@@ -98,7 +102,8 @@ public class CameraDrone : MonoBehaviour
         _HomeEu = transform.eulerAngles;
 
         // Основная яхта
-        _Yacht = transform.Find("Archimedes");
+        _Yacht = GameObject.Find("TrainingVessel").transform;
+
     }
 
     // Update is called once per frame
@@ -123,6 +128,7 @@ public class CameraDrone : MonoBehaviour
             if (Input.GetKeyDown("h"))
             {
                 transform.parent = null; // Выйти в корень иерархии сцены
+                _HorSpeedParentDivider = 1f;
                 _StartTime = Time.time;
                 _StartPos = transform.position;
                 _StartEu = transform.eulerAngles;
@@ -135,6 +141,7 @@ public class CameraDrone : MonoBehaviour
             else if (Input.GetKeyDown("b"))
             {
                 transform.parent = null; // Выйти в корень иерархии сцены
+                _HorSpeedParentDivider = 1f;
                 _StartTime = Time.time;
                 _StartPos = transform.position;
                 _StartEu = transform.eulerAngles;
@@ -150,7 +157,8 @@ public class CameraDrone : MonoBehaviour
                 {
                     // Перейти в дети яхты
                     transform.parent = _Yacht;
-                    // Перелететь "на хвост" ближайшего самолета
+                    _HorSpeedParentDivider = _HorSpeedDivider;
+                    // Перелететь в позицию "за штурвалом"
                     _StartPos = transform.localPosition;
                     _StartEu = transform.localEulerAngles;
                     _StartEu.y = NormalizeAngle(_StartEu.y); // нормализовать курсовой угол в диапазоне +/- 180 градусов
@@ -163,6 +171,7 @@ public class CameraDrone : MonoBehaviour
                 else // Вернуться в корень (слезть с хвоста)
                 {
                     transform.parent = null; // Выйти в корень иерархии сцены
+                    _HorSpeedParentDivider = 1f;
                 }
             }
             // Управление перемещением и поворотом
@@ -198,8 +207,8 @@ public class CameraDrone : MonoBehaviour
                 if (Input.GetMouseButton(0))
                 {
                     Vector3 myCurMousePos = Input.mousePosition;
-                    x = x + (myCurMousePos.x - _oldMousePos.x) * _MouseHorSpeed;
-                    z = z + (myCurMousePos.y - _oldMousePos.y) * _MouseHorSpeed;
+                    x = x + (myCurMousePos.x - _oldMousePos.x) * _MouseHorSpeed * _HorSpeedParentDivider;
+                    z = z + (myCurMousePos.y - _oldMousePos.y) * _MouseHorSpeed * _HorSpeedParentDivider;
                 }
 
                 // Перемещение по колесику мыши
@@ -224,10 +233,10 @@ public class CameraDrone : MonoBehaviour
                 }
 
                 // Теперь получим сигналы от клавиатуры
-                if (Input.GetKey("up") || Input.GetKey("w")) z = z + _KeyboardHorSpeed;
-                if (Input.GetKey("left") || Input.GetKey("a")) x = x - _KeyboardHorSpeed;
-                if (Input.GetKey("down") || Input.GetKey("s")) z = z - _KeyboardHorSpeed;
-                if (Input.GetKey("right") || Input.GetKey("d")) x = x + _KeyboardHorSpeed;
+                if (Input.GetKey("up") || Input.GetKey("w")) z = z + _KeyboardHorSpeed * _HorSpeedParentDivider;
+                if (Input.GetKey("left") || Input.GetKey("a")) x = x - _KeyboardHorSpeed * _HorSpeedParentDivider;
+                if (Input.GetKey("down") || Input.GetKey("s")) z = z - _KeyboardHorSpeed * _HorSpeedParentDivider;
+                if (Input.GetKey("right") || Input.GetKey("d")) x = x + _KeyboardHorSpeed * _HorSpeedParentDivider;
 
                 // Если нажат shift, трансформируем сигналы
                 if (Input.GetKey("left shift") || Input.GetKey("right shift"))
