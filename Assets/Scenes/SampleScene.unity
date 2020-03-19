@@ -761,6 +761,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Marina
       objectReference: {fileID: 0}
+    - target: {fileID: 8385758451827806692, guid: eebf4970516e54b4f8a96d96108aa017,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8385758451827806693, guid: eebf4970516e54b4f8a96d96108aa017,
         type: 3}
       propertyPath: m_LocalPosition.x
