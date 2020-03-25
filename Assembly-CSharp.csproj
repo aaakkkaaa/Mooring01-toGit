@@ -63,7 +63,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\CameraDrone.cs" />
+    <Compile Include="Assets\Mooring\Scripts\CameraDrone.cs" />
     <None Include="Assets\Crest\Crest\Shaders\Underwater\UnderwaterMeniscus.shader" />
     <None Include="Assets\Crest\Crest\Shaders\OceanFoam.hlsl" />
     <None Include="Assets\Crest\Crest\Shaders\OceanInputs\AnimWavesRemoveGeometry.shader" />
@@ -97,7 +97,7 @@
     <None Include="Assets\Crest\Crest\Shaders\ShadergraphFramework\CrestNodeApplyFresnel.hlsl" />
     <None Include="Assets\Crest\Crest\Shaders\ShadergraphFramework\CrestNodeOceanGlobals.hlsl" />
     <None Include="Assets\Crest\Crest\Shaders\OceanConstants.hlsl" />
-    <None Include="Assets\Models\Tivat Bay\Wispy Sky\ReadMe.txt" />
+    <None Include="Assets\Mooring\Models\Tivat Bay\Wispy Sky\ReadMe.txt" />
     <None Include="Assets\Crest\Crest\Shaders\OceanNormalMapping.hlsl" />
     <None Include="Assets\Crest\Crest\Shaders\ShadergraphFramework\CrestNodeGeoMorph.hlsl" />
     <None Include="Assets\Crest\Crest\Shaders\OceanLODData.hlsl" />
