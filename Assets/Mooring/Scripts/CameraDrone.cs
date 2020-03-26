@@ -233,10 +233,15 @@ public class CameraDrone : MonoBehaviour
                 }
 
                 // Теперь получим сигналы от клавиатуры
-                if (Input.GetKey("up") || Input.GetKey("w")) z = z + _KeyboardHorSpeed * _HorSpeedParentDivider;
-                if (Input.GetKey("left") || Input.GetKey("a")) x = x - _KeyboardHorSpeed * _HorSpeedParentDivider;
-                if (Input.GetKey("down") || Input.GetKey("s")) z = z - _KeyboardHorSpeed * _HorSpeedParentDivider;
-                if (Input.GetKey("right") || Input.GetKey("d")) x = x + _KeyboardHorSpeed * _HorSpeedParentDivider;
+                //if (Input.GetKey("up") || Input.GetKey("w")) z = z + _KeyboardHorSpeed * _HorSpeedParentDivider;
+                //if (Input.GetKey("left") || Input.GetKey("a")) x = x - _KeyboardHorSpeed * _HorSpeedParentDivider;
+                //if (Input.GetKey("down") || Input.GetKey("s")) z = z - _KeyboardHorSpeed * _HorSpeedParentDivider;
+                //if (Input.GetKey("right") || Input.GetKey("d")) x = x + _KeyboardHorSpeed * _HorSpeedParentDivider;
+
+                if (Input.GetKey("up")) z = z + _KeyboardHorSpeed * _HorSpeedParentDivider;
+                if (Input.GetKey("left")) x = x - _KeyboardHorSpeed * _HorSpeedParentDivider;
+                if (Input.GetKey("down")) z = z - _KeyboardHorSpeed * _HorSpeedParentDivider;
+                if (Input.GetKey("right")) x = x + _KeyboardHorSpeed * _HorSpeedParentDivider;
 
                 // Если нажат shift, трансформируем сигналы
                 if (Input.GetKey("left shift") || Input.GetKey("right shift"))
