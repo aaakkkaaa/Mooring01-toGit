@@ -137,7 +137,7 @@ public class CameraDrone : MonoBehaviour
 
                 _Flight = true;
             }
-            // Команда на перелет к башне
+            // Команда на перелет в положение "Вид на залив"
             else if (Input.GetKeyDown("b"))
             {
                 transform.parent = null; // Выйти в корень иерархии сцены
