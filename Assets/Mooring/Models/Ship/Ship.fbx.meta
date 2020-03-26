@@ -62,8 +62,28 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: Ship_Rope 3
+    second: {fileID: 2100000, guid: f16d2d2bc0e3e0542be404f7f62d1b96, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Ship_Rope 4
+    second: {fileID: 2100000, guid: cafedd7f404993441ad3e9e38fb4fdf5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Ship_Rope 5
+    second: {fileID: 2100000, guid: acc21caa5040ed640b5bca8ea580b623, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Ship_Rope 6
+    second: {fileID: 2100000, guid: 50f16ef0567a9c4469c3a730ed61fb8c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: Ship_Rope2
-    second: {fileID: 2100000, guid: 5c29366012c0f2a49b4481ef9cd226e6, type: 2}
+    second: {fileID: 2100000, guid: cd77340e4c6ad3f40a2f1449cf9c7518, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -88,7 +108,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: Ship_corps
-    second: {fileID: 2100000, guid: d7b30e2785e66b14485050f0e45ea759, type: 2}
+    second: {fileID: 2100000, guid: aad7778b3a7b7af4e9d13e7a3cf62c6a, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
