@@ -90,6 +90,7 @@ public class YachtSolver : MonoBehaviour
 
     // Объекты сцены
     Transform _HelmWheel;                   // Штурвал
+    Transform _HelmWheelLeft;               // Вспомогательный штурвал
     Transform _ThrottleLever;               // Ручка газ-реверс
     Text _SpeedText;                        // Дисплей - скорость
     Text _RudderAngleText;                  // Дислей - положение руля
@@ -120,6 +121,7 @@ public class YachtSolver : MonoBehaviour
 
         // Объекты сцены
         _HelmWheel = GameObject.Find("HelmWheel").transform;                         // Штурвал
+        _HelmWheelLeft = GameObject.Find("HelmWheel2").transform;                         // Штурвал
         _ThrottleLever = GameObject.Find("ThrottleLever").transform;                 // Ручка газ-реверс
         //_SpeedText = GameObject.Find("SpeedText").GetComponent<Text>();              // Дисплей - скорость
         //_RudderAngleText = GameObject.Find("RudderAngleText").GetComponent<Text>();  // Дислей - положение руля
@@ -157,9 +159,10 @@ public class YachtSolver : MonoBehaviour
 
         // Повернуть штурвал на 3d модели
         myVect = _HelmWheel.localEulerAngles;
-        myVect.z = -steeringWheel;
+        myVect.z = steeringWheel;
         //myVect.z = - Mathf.Lerp(-540, 540, (steeringWheel + 35) / 70.0f);  
         _HelmWheel.localEulerAngles = myVect;
+        _HelmWheelLeft.localEulerAngles = myVect;
 
         // Вывести данные на дисплеи на 3d модели
         //_SpeedText.text = (Vz * _MeterSecToKnot).ToString("F2", CultureInfo.InvariantCulture);
