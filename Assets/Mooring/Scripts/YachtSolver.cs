@@ -41,8 +41,10 @@ public class YachtSolver : MonoBehaviour
     public float Tzanos = 1.5f;             // подбором, влияет на время (обратно) действия силы заноса после увеличения мощности 
 
     // рассчитывается один раз
-    private float _KresZ;                   // коэффициент перед V*V при рассчете силы сопротивления по Z
-    private float _KresX;                   // коэффициент перед V*V при рассчете силы сопротивления по X
+    private float _KresZ2;                  // коэффициент перед V*V при рассчете силы сопротивления по Z
+    private float _KresZ1;                  // коэффициент перед V при рассчете силы сопротивления по Z
+    private float _KresX2;                  // коэффициент перед V*V при рассчете силы сопротивления по X
+    private float _KresX1;                  // коэффициент перед V при рассчете силы сопротивления по X
     private float _KresOmega1;              // коэффициент перед силой сопротивления воды вращению линейный по омега
     private float _KresOmega2;              // коэффициент перед силой сопротивления воды вращению квадратичный по омега
     private float _Mzz;                     // Масса с учетом присоединенной
@@ -59,7 +61,7 @@ public class YachtSolver : MonoBehaviour
     public float FrudVzZ;                   // сила сопротивления руля от движения яхты относительно воды
     public float FrudVzX;                   // боковая сила на руле от движения яхты относительно воды
     public float MrudVzX;                   // Момент возникающий от силы FrudVzX на руле
-    public float FrudEnZ;                   // доп. сила сопротивления (от винта) из-за поворота руля 
+    public float FrudEnZ;                   // доп. сила (от винта) из-за поворота руля 
     public float FrudEnX;                   // боковая сила (от движения яхты) из-за поворота руля 
     public float MrudEnX;                   // Момент возникающий от силы FrudEnX на руле
     public float MrudResZ;                  // Момент на руле от сопротивления воды, когда есть Beta
@@ -90,7 +92,6 @@ public class YachtSolver : MonoBehaviour
 
     // Объекты сцены
     Transform _HelmWheel;                   // Штурвал
-    Transform _HelmWheelLeft;               // Вспомогательный штурвал
     Transform _ThrottleLever;               // Ручка газ-реверс
     Text _SpeedText;                        // Дисплей - скорость
     Text _RudderAngleText;                  // Дислей - положение руля
@@ -110,10 +111,12 @@ public class YachtSolver : MonoBehaviour
     void Start()
     {
         // рассчет коэффициента перед силой сопротивления в ур. динамики (1-8)
-        _KresZ = Mathf.Pow(M0, 2.0f / 3.0f) / Ca;
-        _KresX = _KresZ * 20;                // примерно, подбором
-        _KresOmega2 = _KresZ * 30;           // примерно, подбором
-        _KresOmega1 = _KresZ;                // примерно, подбором
+        _KresZ2 = Mathf.Pow(M0, 2.0f / 3.0f) / Ca;
+        _KresZ1 = _KresZ2 * 2.0f;             // подбором 
+        _KresX2 = _KresZ2 * 20;               // подбором
+        _KresX1 = _KresX2 * 2.0f;             // подбором 
+        _KresOmega2 = _KresZ2 * 30;           // подбором
+        _KresOmega1 = _KresZ2;                // подбором
         // массы и момент инерции с учетом присоединенных масс
         _Mzz = (1 + K11) * M0;
         _Mxx = (1 + K66) * M0;
@@ -121,11 +124,10 @@ public class YachtSolver : MonoBehaviour
 
         // Объекты сцены
         _HelmWheel = GameObject.Find("HelmWheel").transform;                         // Штурвал
-        _HelmWheelLeft = GameObject.Find("HelmWheel2").transform;                         // Штурвал
         _ThrottleLever = GameObject.Find("ThrottleLever").transform;                 // Ручка газ-реверс
-        //_SpeedText = GameObject.Find("SpeedText").GetComponent<Text>();              // Дисплей - скорость
-        //_RudderAngleText = GameObject.Find("RudderAngleText").GetComponent<Text>();  // Дислей - положение руля
-        //_TrackAngleText = GameObject.Find("TrackAngleText").GetComponent<Text>();    // Дисплей - курсовой угол
+        _SpeedText = GameObject.Find("SpeedText").GetComponent<Text>();              // Дисплей - скорость
+        _RudderAngleText = GameObject.Find("RudderAngleText").GetComponent<Text>();  // Дислей - положение руля
+        _TrackAngleText = GameObject.Find("TrackAngleText").GetComponent<Text>();    // Дисплей - курсовой угол
 
     }
 
@@ -159,15 +161,14 @@ public class YachtSolver : MonoBehaviour
 
         // Повернуть штурвал на 3d модели
         myVect = _HelmWheel.localEulerAngles;
-        myVect.z = steeringWheel;
+        myVect.z = -steeringWheel;
         //myVect.z = - Mathf.Lerp(-540, 540, (steeringWheel + 35) / 70.0f);  
         _HelmWheel.localEulerAngles = myVect;
-        _HelmWheelLeft.localEulerAngles = myVect;
 
         // Вывести данные на дисплеи на 3d модели
-        //_SpeedText.text = (Vz * _MeterSecToKnot).ToString("F2", CultureInfo.InvariantCulture);
-        //_RudderAngleText.text = RuderValue.ToString("F2", CultureInfo.InvariantCulture);
-        //_TrackAngleText.text = NormalizeAngle(transform.localEulerAngles.y).ToString("F0", CultureInfo.InvariantCulture);
+        _SpeedText.text = (Vz * _MeterSecToKnot).ToString("F2", CultureInfo.InvariantCulture);
+        _RudderAngleText.text = RuderValue.ToString("F2", CultureInfo.InvariantCulture);
+        _TrackAngleText.text = NormalizeAngle(transform.localEulerAngles.y).ToString("F0", CultureInfo.InvariantCulture);
 
     }
 
@@ -182,8 +183,9 @@ public class YachtSolver : MonoBehaviour
         Feng = enginePower * engineValue / maxV;
 
         // сила сопротивления корпуса
-        FresZ = -Mathf.Sign(Vz) * _KresZ * Vz * Vz;
-        FresX = -Mathf.Sign(Vx) * _KresX * Vx * Vx;
+        FresZ = -Mathf.Sign(Vz) * _KresZ2 * Vz * Vz - _KresZ1 * Vz;
+        FresX = -Mathf.Sign(Vx) * _KresX2 * Vx * Vx - _KresX1 * Vx;
+        //print("Квадрат: " + (-Mathf.Sign(Vz) * _KresZ2 * Vz * Vz) + "   Линейное: " + (-_KresZ1 * Vz) );
 
         // силы и момент на руле от движения яхты
         FrudVzZ = -Mathf.Sign(Vz) * FruderZ(RuderValue - Beta, Vz);
@@ -211,6 +213,7 @@ public class YachtSolver : MonoBehaviour
         {
             // сделал только при движении вперед, чтобы не попадать в штопор на заднем ходу
             MrudResZ = -(FrudVzZ + FrudEnZ) * Mathf.Sin(Beta * Mathf.PI / 180) * Lbody / 2;
+            //print(MrudResZ);
         }
         else
         {
@@ -237,7 +240,7 @@ public class YachtSolver : MonoBehaviour
         Vector3 wLocal = transform.InverseTransformVector(wGlobal);
         wLocal.x -= Vx;
         wLocal.z -= Vz;
-        float wAngle = Vector3.Angle( Vector3.forward, wLocal ) * Mathf.Sign(wLocal.x);  // направление отсчитываем от носа
+        float wAngle = Vector3.Angle(Vector3.forward, wLocal) * Mathf.Sign(wLocal.x);  // направление отсчитываем от носа
         wAngle = NormalizeAngle(wAngle);
         //print("Локально: " + wLocal + "   wAngle = " + wAngle);
         float wValue = wLocal.magnitude;
@@ -252,11 +255,11 @@ public class YachtSolver : MonoBehaviour
 
         // Натяжение канатов
         FropeX = 0;
-        FropeZ = 0;                    
-        Mrope = 0;                     
-        for(int i=0; i< _cleats.Length; i++)
+        FropeZ = 0;
+        Mrope = 0;
+        for (int i = 0; i < _cleats.Length; i++)
         {
-            Vector3 localF = transform.InverseTransformDirection( _cleats[i].getForce() );
+            Vector3 localF = transform.InverseTransformDirection(_cleats[i].getForce());
             FropeX += localF.x;
             FropeZ += localF.z;
             Mrope += localF.x * (_cleats[i].transform.localPosition.z);
@@ -380,18 +383,10 @@ public class YachtSolver : MonoBehaviour
     }
 
     // Получение силы в зависимости от угла и скорости ветра
-    private float  WindForce( float alfa, float v)
+    private float WindForce(float alfa, float v)
     {
         float x = Mathf.Abs(alfa);
 
-        //y = 9E-08x4 - 3E-05x3 + 0,002x2 + 0,008x + 1,042
-        //float wingf = 1.042f + x * (0.008f + x * (0.002f + x * (-0.00003f + x * 0.00000009f)));
-        //return wingf * v * v * KwindF * Mathf.Sign(alfa);
-
-        // y = 7E-08x4 - 3E-05x3 + 0,002x2 - 0,007x   + для смещения кривой вверх 0,5 
-        //float wingf = x * (x * (x * (x * 0.00000007f - 0.00003f) + 0.002f) - 0.007f)+0.5f;
-        //wingf = 10;
-        //print("WindForce: x = " + x);
         float wingf = Mathf.Sin(Mathf.PI * x / 180) * 4 + 0.5f;
         return wingf * v * v * KwindF;
     }
@@ -400,12 +395,6 @@ public class YachtSolver : MonoBehaviour
     private float WindMoment(float alfa, float v)
     {
         float x = Mathf.Abs(alfa);
-        //y = 1E-09x5 - 5E-07x4 + 7E-05x3 - 0,005x2 + 0,186x - 0,152
-        //float wingm = -0.152f + x * (0.186f + x * (-0.005f + x * (0.00007f + x * (-0.0000005f + x * 0.000000001f))));
-        //return wingm * v * v * KwindM * Mathf.Sign(alfa); 
-
-        // y = 7E-08x4 - 3E-05x3 + 0,002x2 - 0,007x 
-        //float wingm = x * (x * (x * (x * 0.00000007f - 0.00003f) + 0.002f) - 0.007f);
         float wingm = Mathf.Sin(Mathf.PI * x / 180) * 4;
         return wingm * v * v * KwindM * Mathf.Sign(alfa);
     }
