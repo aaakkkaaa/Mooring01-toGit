@@ -125,9 +125,9 @@ public class YachtSolver : MonoBehaviour
         // Объекты сцены
         _HelmWheel = GameObject.Find("HelmWheel").transform;                         // Штурвал
         _ThrottleLever = GameObject.Find("ThrottleLever").transform;                 // Ручка газ-реверс
-        _SpeedText = GameObject.Find("SpeedText").GetComponent<Text>();              // Дисплей - скорость
-        _RudderAngleText = GameObject.Find("RudderAngleText").GetComponent<Text>();  // Дислей - положение руля
-        _TrackAngleText = GameObject.Find("TrackAngleText").GetComponent<Text>();    // Дисплей - курсовой угол
+        //_SpeedText = GameObject.Find("SpeedText").GetComponent<Text>();              // Дисплей - скорость
+        //_RudderAngleText = GameObject.Find("RudderAngleText").GetComponent<Text>();  // Дислей - положение руля
+        //_TrackAngleText = GameObject.Find("TrackAngleText").GetComponent<Text>();    // Дисплей - курсовой угол
 
     }
 
@@ -166,9 +166,9 @@ public class YachtSolver : MonoBehaviour
         _HelmWheel.localEulerAngles = myVect;
 
         // Вывести данные на дисплеи на 3d модели
-        _SpeedText.text = (Vz * _MeterSecToKnot).ToString("F2", CultureInfo.InvariantCulture);
-        _RudderAngleText.text = RuderValue.ToString("F2", CultureInfo.InvariantCulture);
-        _TrackAngleText.text = NormalizeAngle(transform.localEulerAngles.y).ToString("F0", CultureInfo.InvariantCulture);
+        //_SpeedText.text = (Vz * _MeterSecToKnot).ToString("F2", CultureInfo.InvariantCulture);
+        //_RudderAngleText.text = RuderValue.ToString("F2", CultureInfo.InvariantCulture);
+        //_TrackAngleText.text = NormalizeAngle(transform.localEulerAngles.y).ToString("F0", CultureInfo.InvariantCulture);
 
     }
 

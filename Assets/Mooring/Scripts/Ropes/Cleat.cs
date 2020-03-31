@@ -63,10 +63,10 @@ public class Cleat : MonoBehaviour
                 curDist += Vector3.Distance(sortCol[sortCol.Count - 1].pos, Ropes[i].Pos);
             }
 
-            foreach (ActiveCollider ac in sortCol)
-            {
-                print(ac.actor.name + "  " + ac.idxInAct + "  " + ac.pos + "  " + ac.col.name + "  curDist = " + curDist);
-            }
+            //foreach (ActiveCollider ac in sortCol)
+            //{
+            //    print(ac.actor.name + "  " + ac.idxInAct + "  " + ac.pos + "  " + ac.col.name + "  curDist = " + curDist);
+            //}
 
             direct = Vector3.zero;
             // проверка, не лопнул ли канат
