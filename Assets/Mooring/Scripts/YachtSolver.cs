@@ -17,6 +17,7 @@ public class YachtSolver : MonoBehaviour
     public float engineValue = 0;           // -1..+1, для получения текущей мощности умножается на enginePower
     [Range(-540.0f, 540.0f)]
     public float steeringWheel = 0;         // угол поворота штурвала
+
     [SerializeField]
     private bool _GameWheel = false;        // управление от игрового руля
 
@@ -100,6 +101,14 @@ public class YachtSolver : MonoBehaviour
     //float _Knot = 0.5144f;                  // Скорость 1 узел = 0.514... метр/сек.
     float _MeterSecToKnot = 1.944f;            // Скорость 1 метр/сек. = 1,943844492440605 узла
 
+    // Группа величин для обработки сигнала от ручки газа
+    private float _ThrottleSinal;
+    private float _middleThrottle = 0.46f;
+    private float _ZeroThrottle = 0.03f;
+    private float _PositiveMultiplier;
+    private float _NegativeMultiplier;
+
+
     private void Awake()
     {
         GameObject windField = GameObject.Find("WindField");
@@ -129,25 +138,48 @@ public class YachtSolver : MonoBehaviour
         //_RudderAngleText = GameObject.Find("RudderAngleText").GetComponent<Text>();  // Дислей - положение руля
         //_TrackAngleText = GameObject.Find("TrackAngleText").GetComponent<Text>();    // Дисплей - курсовой угол
 
-    }
+        // Группа величин для обработки сигнала от ручки газа
+        // При запуске программы должна стоять в среднем положении
+        _middleThrottle = Input.GetAxis("VerticalJoy");
+        _PositiveMultiplier = 1.0f / (1.0f - _middleThrottle);
+        _NegativeMultiplier = 1.0f / _middleThrottle;
 
-    private void Update()
+}
+
+private void Update()
     {
         // получить управление с клавиатуры
         if (Input.GetKeyDown("up"))
             engineValue += 0.1f;
         else if (Input.GetKeyDown("down"))
             engineValue -= 0.1f;
+        if (Input.GetKey("right"))
+            steeringWheel += 1.0f;
+        else if (Input.GetKey("left"))
+            steeringWheel -= 1.0f;
 
-        // получить управление от руля
-        if (_GameWheel)
-            steeringWheel = Mathf.Lerp(-540.0f, 540.0f, (Input.GetAxis("HorizontalJoy") + 1.0f) / 2.0f);
-        else
+        if (_GameWheel) // получить управление от руля
         {
-            if (Input.GetKey("right"))
-                steeringWheel += 1.0f;
-            else if (Input.GetKey("left"))
-                steeringWheel -= 1.0f;
+            // Положение штурвала
+            steeringWheel = Mathf.Lerp(-540.0f, 540.0f, (Input.GetAxis("HorizontalJoy") + 1.0f) / 2.0f);
+
+            // Положение ручки газа. Приводится из диапазона 0/1 в диапазон -1/1
+            _ThrottleSinal = Input.GetAxis("VerticalJoy") - _middleThrottle;
+            // Малые значения обнуляем
+            if (Mathf.Abs(_ThrottleSinal) < _ZeroThrottle)
+            {
+                _ThrottleSinal = 0.0f;
+            }
+            // Положительное значение
+            if (_ThrottleSinal >= 0.0f)
+            {
+                engineValue = _ThrottleSinal * _PositiveMultiplier;
+            }
+            // Отрицательное значение
+            else
+            {
+                engineValue = _ThrottleSinal * _NegativeMultiplier;
+            }
         }
 
         engineValue = Mathf.Clamp(engineValue, -1.0f, 1.0f);
@@ -161,7 +193,7 @@ public class YachtSolver : MonoBehaviour
 
         // Повернуть штурвал на 3d модели
         myVect = _HelmWheel.localEulerAngles;
-        myVect.z = -steeringWheel;
+        myVect.z = steeringWheel + 30;
         //myVect.z = - Mathf.Lerp(-540, 540, (steeringWheel + 35) / 70.0f);  
         _HelmWheel.localEulerAngles = myVect;
 

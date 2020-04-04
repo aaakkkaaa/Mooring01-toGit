@@ -5,7 +5,7 @@ using UnityEngine;
 public class CameraDrone : MonoBehaviour
 
 // Предназначен для обзора пространства в режиме "дрона"
-// Перемещается вместе с камерой с помощью клавиатуры, мыши, джойстика
+// Перемещается вместе с камерой с помощью клавиатуры (при нажатом Control), мыши, джойстика
 // Имеет также выделенные точки для быстрого позиционирования горячими клавишами:
 //    h - перелет в начальное положение, установленное в редакторе
 //    b - вид на залив
@@ -238,36 +238,41 @@ public class CameraDrone : MonoBehaviour
                 //if (Input.GetKey("down") || Input.GetKey("s")) z = z - _KeyboardHorSpeed * _HorSpeedParentDivider;
                 //if (Input.GetKey("right") || Input.GetKey("d")) x = x + _KeyboardHorSpeed * _HorSpeedParentDivider;
 
-                if (Input.GetKey("up")) z = z + _KeyboardHorSpeed * _HorSpeedParentDivider;
-                if (Input.GetKey("left")) x = x - _KeyboardHorSpeed * _HorSpeedParentDivider;
-                if (Input.GetKey("down")) z = z - _KeyboardHorSpeed * _HorSpeedParentDivider;
-                if (Input.GetKey("right")) x = x + _KeyboardHorSpeed * _HorSpeedParentDivider;
 
-                // Если нажат shift, трансформируем сигналы
-                if (Input.GetKey("left shift") || Input.GetKey("right shift"))
+                // Управление с клавиатуры при нажатом Ctrl
+                if (Input.GetKey("left ctrl") || Input.GetKey("right ctrl"))
                 {
-                    // Если нет сигнала от оси "Throttle", то возьмем высоту от оси z ("Vertical")
-                    if (y == 0.0f)
+
+                    if (Input.GetKey("up")) z = z + _KeyboardHorSpeed * _HorSpeedParentDivider;
+                    if (Input.GetKey("left")) x = x - _KeyboardHorSpeed * _HorSpeedParentDivider;
+                    if (Input.GetKey("down")) z = z - _KeyboardHorSpeed * _HorSpeedParentDivider;
+                    if (Input.GetKey("right")) x = x + _KeyboardHorSpeed * _HorSpeedParentDivider;
+
+                    // Если нажат shift, трансформируем сигналы
+                    if (Input.GetKey("left shift") || Input.GetKey("right shift"))
                     {
-                        y = z;
-                        z = 0.0f;
-                    }
-                    else // Если есть - усилим сигнал
-                    {
-                        y = y * 10f;
-                    }
-                    // Если нет сигнала от оси "Twist" и мыши то возьмем поворот от оси x ("Horizontal")
-                    if (w == 0.0f)
-                    {
-                        w = x;
-                        x = 0.0f;
+                        // Если нет сигнала от оси "Throttle", то возьмем высоту от оси z ("Vertical")
+                        if (y == 0.0f)
+                        {
+                            y = z;
+                            z = 0.0f;
+                        }
+                        else // Если есть - усилим сигнал
+                        {
+                            y = y * 10f;
+                        }
+                        // Если нет сигнала от оси "Twist" и мыши то возьмем поворот от оси x ("Horizontal")
+                        if (w == 0.0f)
+                        {
+                            w = x;
+                            x = 0.0f;
+                        }
                     }
                 }
-
                 // Если был сигнал поворота, поворачиваем
                 if (!(w == 0.0f))
                 {
-                   RotateAvatar(w);
+                    RotateAvatar(w);
                 }
                 // Если был сигнал перемещения, перемещаем
                 if (x != 0.0f || y != 0.0f || z != 0.0f)
@@ -283,7 +288,6 @@ public class CameraDrone : MonoBehaviour
                     //Применить
                     transform.localPosition = myPos;
                 }
-
             }
         }
     }
