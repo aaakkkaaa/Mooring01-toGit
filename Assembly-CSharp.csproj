@@ -65,6 +65,7 @@
   <ItemGroup>
     <Compile Include="Assets\Mooring\Scripts\BoatAlignNormal_Mooring.cs" />
     <Compile Include="Assets\Mooring\Scripts\CameraDrone.cs" />
+    <Compile Include="Assets\Mooring\Scripts\Kranec.cs" />
     <Compile Include="Assets\Mooring\Scripts\Ropes\Cleat.cs" />
     <Compile Include="Assets\Mooring\Scripts\Ropes\DetectCol.cs" />
     <Compile Include="Assets\Mooring\Scripts\Ropes\RopeDemp.cs" />
