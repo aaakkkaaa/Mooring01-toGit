@@ -19,7 +19,7 @@ public class Kranec : MonoBehaviour
         _ballon = transform.Find("Ballon").gameObject;
         _rope = transform.Find("Rope").GetComponent<ObiRope>();
         _bluePrint = _rope.blueprint as ObiRopeBlueprint;
-        _zero = transform.Find("ZeroPoint").gameObject;
+        //_zero = transform.Find("ZeroPoint").gameObject;
     }
 
     private void Update()
@@ -47,9 +47,9 @@ public class Kranec : MonoBehaviour
 
     private IEnumerator MoveToLayer()
     {
-        while ((Layer.transform.position - _zero.transform.position).magnitude > 0.01f)
+        while ((Layer.transform.position - transform.position).magnitude > 0.01f)
         {
-            _zero.transform.position = Vector3.Lerp(_zero.transform.position, Layer.transform.position, 0.05f);
+            transform.position = Vector3.Lerp(transform.position, Layer.transform.position, 0.05f);
             yield return new WaitForFixedUpdate();
         }
     }
