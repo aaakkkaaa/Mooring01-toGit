@@ -4,7 +4,6 @@ using System.Xml.Schema;
 using UnityEngine;
 using UnityEngine.UI;
 using System;
-using System.Globalization;
 
 // Движение МПО в гор плоск (1)
 // Лукомский Чугунов Системы управления МПО (2)

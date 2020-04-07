@@ -5,13 +5,13 @@ using System;
 
 public class Wind : MonoBehaviour
 { 
-    public WindWirections[] WindDir;
+    public WindDirections[] WindDir;
 
 }
 
 
 [Serializable]
-public struct WindWirections
+public struct WindDirections
 {
     public float posX;
     public float posZ;
