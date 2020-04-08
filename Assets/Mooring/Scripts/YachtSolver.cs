@@ -94,12 +94,8 @@ public class YachtSolver : MonoBehaviour
     // Объекты сцены
     Transform _HelmWheel;                   // Штурвал
     Transform _ThrottleLever;               // Ручка газ-реверс
-    Text _SpeedText;                        // Дисплей - скорость
-    Text _RudderAngleText;                  // Дислей - положение руля
-    Text _TrackAngleText;                   // Дисплей - курсовой угол
     //float _Mile = 1852.0f;                  // Морская миля = 1852 метра
     //float _Knot = 0.5144f;                  // Скорость 1 узел = 0.514... метр/сек.
-    float _MeterSecToKnot = 1.944f;            // Скорость 1 метр/сек. = 1,943844492440605 узла
 
     // Группа величин для обработки сигнала от ручки газа
     private float _ThrottleSinal;
@@ -134,9 +130,6 @@ public class YachtSolver : MonoBehaviour
         // Объекты сцены
         _HelmWheel = GameObject.Find("HelmWheel").transform;                         // Штурвал
         _ThrottleLever = GameObject.Find("ThrottleLever").transform;                 // Ручка газ-реверс
-        //_SpeedText = GameObject.Find("SpeedText").GetComponent<Text>();              // Дисплей - скорость
-        //_RudderAngleText = GameObject.Find("RudderAngleText").GetComponent<Text>();  // Дислей - положение руля
-        //_TrackAngleText = GameObject.Find("TrackAngleText").GetComponent<Text>();    // Дисплей - курсовой угол
 
         // Группа величин для обработки сигнала от ручки газа
         // При запуске программы должна стоять в среднем положении
@@ -144,9 +137,9 @@ public class YachtSolver : MonoBehaviour
         _PositiveMultiplier = 1.0f / (1.0f - _middleThrottle);
         _NegativeMultiplier = 1.0f / _middleThrottle;
 
-}
+    }
 
-private void Update()
+    private void Update()
     {
         // получить управление с клавиатуры
         if (Input.GetKeyDown("up"))
@@ -190,17 +183,11 @@ private void Update()
         myVect.x = Mathf.Lerp(-50, 50, (engineValue + 1) / 2.0f);
         _ThrottleLever.localEulerAngles = myVect;
 
-
         // Повернуть штурвал на 3d модели
         myVect = _HelmWheel.localEulerAngles;
         myVect.z = steeringWheel + 30;
         //myVect.z = - Mathf.Lerp(-540, 540, (steeringWheel + 35) / 70.0f);  
         _HelmWheel.localEulerAngles = myVect;
-
-        // Вывести данные на дисплеи на 3d модели
-        //_SpeedText.text = (Vz * _MeterSecToKnot).ToString("F2", CultureInfo.InvariantCulture);
-        //_RudderAngleText.text = RuderValue.ToString("F2", CultureInfo.InvariantCulture);
-        //_TrackAngleText.text = NormalizeAngle(transform.localEulerAngles.y).ToString("F0", CultureInfo.InvariantCulture);
 
     }
 
@@ -212,7 +199,7 @@ private void Update()
         RuderValue = -steeringWheel * 35 / 540;
         // сила тяги
         float FengOld = Feng; // для анализа, нужен ли занос кормы от работы винта
-        Feng = enginePower * engineValue / maxV * (0.1f + 0.8f*( Mathf.Abs(Vz/maxV)) + 0.8f*( Mathf.Abs(Vz*Vz/maxV/maxV)) );
+        Feng = enginePower * engineValue / maxV * (0.1f + 0.8f * (Mathf.Abs(Vz / maxV)) + 0.8f * (Mathf.Abs(Vz * Vz / maxV / maxV)));
         //print(Feng);
 
         // сила сопротивления корпуса
@@ -346,7 +333,7 @@ private void Update()
         }
 
         // коррекция для реалистичности влияния руля
-        if(Vz>0)
+        if (Vz > 0)
         {
             Beta *= KBetaForv;
         }
@@ -354,13 +341,13 @@ private void Update()
         {
             Beta *= KBetaBack;
         }
-        
+
         //Beta = 0;
-        
-         print("");
-         print("Vz = " + Vz + "   Vx = " + Vx);
-         print("ruder = " + RuderValue + "   Beta = " +Beta +  "   ruder - Beta = " + (RuderValue - Beta) );
-         
+
+        //print("");
+        //print("Vz = " + Vz + "   Vx = " + Vx);
+        //print("ruder = " + RuderValue + "   Beta = " + Beta + "   ruder - Beta = " + (RuderValue - Beta));
+
 
     }
 
