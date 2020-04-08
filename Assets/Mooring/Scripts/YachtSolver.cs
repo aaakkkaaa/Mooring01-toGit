@@ -30,7 +30,8 @@ public class YachtSolver : MonoBehaviour
     public float K11 = 0.3f;                // коеф. для расчета массы с учетом присоединенной Mzz = (1+K11)*M0
     public float K66 = 0.5f;                // коеф. для расчета массы и момента с учетом прис.  Jyy = (1+K66)*Jy; Mxx = (1+K66)*M0
     public float KFrudX = 0.5f;             // Подгонка, для реализма эффективности руля
-    public float KBeta = 0.2f;              // Чтобы уменьшить влияние Beta, так как руль обдувается водой винта (3 стр 55)
+    public float KBetaForv = 0.7f;          // Чтобы уменьшить влияние Beta, так как руль обдувается водой винта (3 стр 55)
+    public float KBetaBack = 0.2f;          // Чтобы уменьшить влияние Beta, так как руль обдувается водой винта (3 стр 55)
     public float KrudVzxContraEnx = 0.7f;   // Соотношение влияния руля в потоке воды и руля в потоке винта
     public float KwindF = 0.5f;             // Для подстройки влияния ветра на силу
     public float KwindM = 1.0f;             // Для подстройки влияния ветра на момент
@@ -120,9 +121,9 @@ public class YachtSolver : MonoBehaviour
     {
         // рассчет коэффициента перед силой сопротивления в ур. динамики (1-8)
         _KresZ2 = Mathf.Pow(M0, 2.0f / 3.0f) / Ca;
-        _KresZ1 = _KresZ2 * 2.0f;             // подбором 
+        _KresZ1 = _KresZ2 * 3.0f;             // подбором 
         _KresX2 = _KresZ2 * 20;               // подбором
-        _KresX1 = _KresX2 * 2.0f;             // подбором 
+        _KresX1 = _KresX2 * 3.0f;             // подбором 
         _KresOmega2 = _KresZ2 * 30;           // подбором
         _KresOmega1 = _KresZ2;                // подбором
         // массы и момент инерции с учетом присоединенных масс
@@ -211,7 +212,8 @@ private void Update()
         RuderValue = -steeringWheel * 35 / 540;
         // сила тяги
         float FengOld = Feng; // для анализа, нужен ли занос кормы от работы винта
-        Feng = enginePower * engineValue / maxV;
+        Feng = enginePower * engineValue / maxV * (0.1f + 0.8f*( Mathf.Abs(Vz/maxV)) + 0.8f*( Mathf.Abs(Vz*Vz/maxV/maxV)) );
+        //print(Feng);
 
         // сила сопротивления корпуса
         FresZ = -Mathf.Sign(Vz) * _KresZ2 * Vz * Vz - _KresZ1 * Vz;
@@ -342,13 +344,23 @@ private void Update()
         {
             Beta = Mathf.Atan(Vx / Vz) * 180 / Mathf.PI;
         }
-        Beta *= KBeta;
+
+        // коррекция для реалистичности влияния руля
+        if(Vz>0)
+        {
+            Beta *= KBetaForv;
+        }
+        else
+        {
+            Beta *= KBetaBack;
+        }
+        
         //Beta = 0;
-        /*
+        
          print("");
          print("Vz = " + Vz + "   Vx = " + Vx);
-         print("Beta = "+Beta + "   ruder = "+ ruderlValue + "   ruder + Beta = " + (ruderlValue + Beta) );
-         */
+         print("ruder = " + RuderValue + "   Beta = " +Beta +  "   ruder - Beta = " + (RuderValue - Beta) );
+         
 
     }
 
