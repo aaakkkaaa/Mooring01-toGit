@@ -22,6 +22,7 @@ public class YachtSolver : MonoBehaviour
 
     [Header("Разные исходные данные:")]
     private float enginePower = 30000f;      // 40 л.с примерно 30 КВт
+    private float engBack = 0.8f;            // назад эффективность винта ниже
     private float maxV = 4.1f;               // 4.1 м/с = 8 узлов
     private float Ca = 0.97f;                // адмиралтейский коэффициент после перевода рассчетов в Си
     private float Lbody = 11.99f;            // длинна корпуса
@@ -29,11 +30,11 @@ public class YachtSolver : MonoBehaviour
     private float Jy = 35000f;               // момент инерции относительно вертикальной оси
     public float K11 = 0.3f;                // коеф. для расчета массы с учетом присоединенной Mzz = (1+K11)*M0
     public float K66 = 0.5f;                // коеф. для расчета массы и момента с учетом прис.  Jyy = (1+K66)*Jy; Mxx = (1+K66)*M0
-    public float KFrudX = 0.5f;             // Подгонка, для реализма эффективности руля
+    public float KFrudX = 0.9f;             // Подгонка, для реализма эффективности руля
     public float KBetaForv = 0.7f;          // Чтобы уменьшить влияние Beta, так как руль обдувается водой винта (3 стр 55)
-    public float KBetaBack = 0.2f;          // Чтобы уменьшить влияние Beta, так как руль обдувается водой винта (3 стр 55)
+    public float KBetaBack = 1.0f;          // Чтобы уменьшить влияние Beta, так как руль обдувается водой винта (3 стр 55)
     public float KrudVzxContraEnx = 0.7f;   // Соотношение влияния руля в потоке воды и руля в потоке винта
-    public float KwindF = 0.5f;             // Для подстройки влияния ветра на силу
+    public float KwindF = 2.0f;            // Для подстройки влияния ветра на силу
     public float KwindM = 1.0f;             // Для подстройки влияния ветра на момент
 
     // занос кормы
@@ -200,6 +201,10 @@ public class YachtSolver : MonoBehaviour
         // сила тяги
         float FengOld = Feng; // для анализа, нужен ли занос кормы от работы винта
         Feng = enginePower * engineValue / maxV * (0.1f + 0.8f * (Mathf.Abs(Vz / maxV)) + 0.8f * (Mathf.Abs(Vz * Vz / maxV / maxV)));
+        if(Feng<0)
+        {
+            Feng *= engBack;
+        }
         //print(Feng);
 
         // сила сопротивления корпуса
@@ -210,9 +215,12 @@ public class YachtSolver : MonoBehaviour
         // силы и момент на руле от движения яхты
         FrudVzZ = -Mathf.Sign(Vz) * FruderZ(RuderValue - Beta, Vz);
         FrudVzX = Mathf.Sign(RuderValue - Beta) * Mathf.Sign(Vz) * FruderX(RuderValue - Beta, Vz);
-        FrudVzX *= KrudVzxContraEnx;    // доля влияния руля в потоке воды
+        if(Feng >0)
+        {
+            FrudVzX *= KrudVzxContraEnx;    // доля влияния руля в потоке воды
+        }
         MrudVzX = -FrudVzX * Lbody / 2;
-        //print("RuderValue = " + RuderValue + "   Beta = " + Beta + "   Итого = " + (RuderValue - Beta));
+        print("RuderValue = " + RuderValue + "   Beta = " + Beta + "   Итого = " + (RuderValue - Beta));
 
         // силы и момент на руле от работы винта - возникают только при кручении винта вперед
         if (Feng > 0)
@@ -220,7 +228,10 @@ public class YachtSolver : MonoBehaviour
             float VeffRud = Mathf.Sqrt(Feng / 440);
             FrudEnZ = -FruderZ(RuderValue, VeffRud);
             FrudEnX = Mathf.Sign(RuderValue) * FruderX(RuderValue, VeffRud);
-            FrudVzX *= (1 - KrudVzxContraEnx);    // доля влияния руля в потоке винта
+
+            //FrudVzX *= (1 - KrudVzxContraEnx);    // доля влияния руля в потоке винта
+            FrudEnX *= (1 - KrudVzxContraEnx);    // доля влияния руля в потоке винта
+
             MrudEnX = -FrudEnX * Lbody / 2;
         }
         else
@@ -228,6 +239,7 @@ public class YachtSolver : MonoBehaviour
             FrudEnZ = FrudEnX = MrudEnX = 0.0f;
 
         }
+
         // Момент на руле из-за сопротивления руля воде при наличии угла Beta
         if (Vz > 0)
         {
@@ -417,7 +429,10 @@ public class YachtSolver : MonoBehaviour
     {
         float x = Mathf.Abs(alfa);
 
-        float wingf = Mathf.Sin(Mathf.PI * x / 180) * 4 + 0.5f;
+        float wingf = Mathf.Sin(Mathf.PI * x / 180) * 4 + 2.0f + 4*(180-x)/180;
+
+        //print("v = " + v + "  alfa = " + x + "   wingf = " + wingf + "   сила = " + wingf * v * v * KwindF);
+
         return wingf * v * v * KwindF;
     }
 
