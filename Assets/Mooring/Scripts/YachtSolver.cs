@@ -220,7 +220,7 @@ public class YachtSolver : MonoBehaviour
             FrudVzX *= KrudVzxContraEnx;    // доля влияния руля в потоке воды
         }
         MrudVzX = -FrudVzX * Lbody / 2;
-        print("RuderValue = " + RuderValue + "   Beta = " + Beta + "   Итого = " + (RuderValue - Beta));
+        // print("RuderValue = " + RuderValue + "   Beta = " + Beta + "   Итого = " + (RuderValue - Beta));
 
         // силы и момент на руле от работы винта - возникают только при кручении винта вперед
         if (Feng > 0)
