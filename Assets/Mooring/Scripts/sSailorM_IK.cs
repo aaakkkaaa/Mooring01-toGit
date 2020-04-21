@@ -8,6 +8,7 @@ public class sSailorM_IK : MonoBehaviour
 
     public bool ikActive = false;
     public Transform leftHandObj = null;
+    public Transform rightHandObj = null;
     public Transform lookObj = null;
 
     void Start()
@@ -32,13 +33,21 @@ public class sSailorM_IK : MonoBehaviour
                     animator.SetLookAtPosition(lookObj.position);
                 }
 
-                // Set the right hand target position and rotation, if one has been assigned
+                // Set the left hand target position and rotation, if one has been assigned
                 if (leftHandObj != null)
                 {
                     animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 1);
                     animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 1);
                     animator.SetIKPosition(AvatarIKGoal.LeftHand, leftHandObj.position);
                     animator.SetIKRotation(AvatarIKGoal.LeftHand, leftHandObj.rotation);
+                }
+                // Set the right hand target position and rotation, if one has been assigned
+                if (rightHandObj != null)
+                {
+                    animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 1);
+                    animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 1);
+                    animator.SetIKPosition(AvatarIKGoal.RightHand, rightHandObj.position);
+                    animator.SetIKRotation(AvatarIKGoal.RightHand, rightHandObj.rotation);
                 }
 
             }
@@ -48,6 +57,8 @@ public class sSailorM_IK : MonoBehaviour
             {
                 animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0);
                 animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 0);
+                animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 0);
+                animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 0);
                 animator.SetLookAtWeight(0);
             }
         }

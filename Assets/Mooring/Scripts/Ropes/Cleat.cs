@@ -51,7 +51,7 @@ public class Cleat : MonoBehaviour
             // вычислим текущую длинну каната - она состоит из длинн отрезков 
             if(sortCol.Count == 0)
             {
-                curDist = Vector3.Distance(transform.position, Ropes[i].Pos);
+                curDist = Vector3.Distance(transform.position, Ropes[i].Bollard.position);
             }
             else
             {
@@ -60,7 +60,7 @@ public class Cleat : MonoBehaviour
                 {
                     curDist += Vector3.Distance(sortCol[j].pos, sortCol[j+1].pos);
                 }
-                curDist += Vector3.Distance(sortCol[sortCol.Count - 1].pos, Ropes[i].Pos);
+                curDist += Vector3.Distance(sortCol[sortCol.Count - 1].pos, Ropes[i].Bollard.position);
             }
 
             //foreach (ActiveCollider ac in sortCol)
@@ -72,6 +72,7 @@ public class Cleat : MonoBehaviour
             // проверка, не лопнул ли канат
             if (curDist / Ropes[i].Len > Ropes[i].Stretch)
             {
+                print("curDist = " + curDist + "  Ropes[i].Len = " + Ropes[i].Len + "   Ropes[i].Stretch = " + Ropes[i].Stretch);
                 print("Канат лопнул! Утка " + gameObject.name + "   канат " + i);
                 Ropes[i].obiRope.gameObject.SetActive(false);
             }
@@ -88,7 +89,7 @@ public class Cleat : MonoBehaviour
                     if (sortCol.Count == 0)
                     {
                         // если нет коллайдеров на канате, направление - от утки к точке закрепления
-                        direct = (Ropes[i].Pos - transform.position).normalized;
+                        direct = (Ropes[i].Bollard.position - transform.position).normalized;
                     }
                     else
                     {
@@ -105,7 +106,7 @@ public class Cleat : MonoBehaviour
                         if (ac == null)
                         {
                             // если коллайдеры только с корпусом яхты, направление - от утки к точке закрепления (временно!)
-                            direct = (Ropes[i].Pos - transform.position).normalized;
+                            direct = (Ropes[i].Bollard.position - transform.position).normalized;
                         }
                         else
                         {
@@ -153,7 +154,7 @@ public class Cleat : MonoBehaviour
                 if (Ropes[i].actCol == null) return;
                 if(Ropes[i].actCol.Count == 0)
                 {
-                    Gizmos.DrawLine(transform.position, Ropes[i].Pos);
+                    Gizmos.DrawLine(transform.position, Ropes[i].Bollard.position);
                 }
                 else
                 {
@@ -162,7 +163,7 @@ public class Cleat : MonoBehaviour
                     {
                         Gizmos.DrawLine(Ropes[i].actCol[j-1].pos, Ropes[i].actCol[j].pos);
                     }
-                    Gizmos.DrawLine(Ropes[i].actCol[Ropes[i].actCol.Count-1].pos, Ropes[i].Pos);
+                    Gizmos.DrawLine(Ropes[i].actCol[Ropes[i].actCol.Count-1].pos, Ropes[i].Bollard.position);
                 }
 
             }
@@ -172,7 +173,7 @@ public class Cleat : MonoBehaviour
     // определение цвета для рисования гизмо
     private Color detectRopeColor(Rope r)
     {
-        float curDist = Vector3.Distance(transform.position, r.Pos);
+        float curDist = Vector3.Distance(transform.position, r.Bollard.position);
         Color col = Color.black;
         if (curDist < r.Len)
         {
@@ -201,7 +202,8 @@ public class Cleat : MonoBehaviour
 [Serializable]
 public class Rope
 {
-    public Vector3 Pos;
+    public Transform Bollard;
+    //public Vector3 Pos;
     // столкновения, зафиксированные на этом канате, передается из DetectCol
     [NonSerialized]
     public List<ActiveCollider> actCol;
