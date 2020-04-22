@@ -84,7 +84,7 @@ public class CameraDrone : MonoBehaviour
     Vector3 _BayEu;
     // Положение "за штурвалом" - локальный сдвиг относительно центра яхты
     [SerializeField]
-    Vector3 _SkipperPos = new Vector3(1, 2, -5);
+    Vector3 _SkipperPos = new Vector3(0.77f, 1.8f, -5.4f);
 
     // Вспомогательный объект - точка проекции камеры на горизонтальную плоскость аватара
     Transform _CameraPlumb;
@@ -162,7 +162,7 @@ public class CameraDrone : MonoBehaviour
                     _StartPos = transform.localPosition;
                     _StartEu = transform.localEulerAngles;
                     _StartEu.y = NormalizeAngle(_StartEu.y); // нормализовать курсовой угол в диапазоне +/- 180 градусов
-                    _EndPos = _SkipperPos;
+                    _EndPos = _SkipperPos - _referenceCamera.transform.localPosition;
                     _EndEu = Vector3.zero;
                     _StartTime = Time.time;
 

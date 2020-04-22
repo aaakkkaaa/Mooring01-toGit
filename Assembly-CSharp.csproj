@@ -71,8 +71,11 @@
     <Compile Include="Assets\Mooring\Scripts\Ropes\RopeDemp.cs" />
     <Compile Include="Assets\Mooring\Scripts\Ropes\RopeSave.cs" />
     <Compile Include="Assets\Mooring\Scripts\Ropes\RopeThrow.cs" />
+    <Compile Include="Assets\Mooring\Scripts\UI_World\UI_TextMessage.cs" />
     <Compile Include="Assets\Mooring\Scripts\Wind.cs" />
     <Compile Include="Assets\Mooring\Scripts\YachtSolver.cs" />
+    <Compile Include="Assets\Mooring\Scripts\sAssist.cs" />
+    <Compile Include="Assets\Mooring\Scripts\sBerthingDraft.cs" />
     <Compile Include="Assets\Mooring\Scripts\sDevices.cs" />
     <Compile Include="Assets\Mooring\Scripts\sSailorM_IK.cs" />
     <Compile Include="Assets\Mooring\Scripts\sTimeLerp.cs" />

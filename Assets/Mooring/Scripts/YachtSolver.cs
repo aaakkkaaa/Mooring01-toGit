@@ -92,12 +92,6 @@ public class YachtSolver : MonoBehaviour
     // канаты
     private Cleat[] _cleats;
 
-    // Объекты сцены
-    Transform _HelmWheel;                   // Штурвал
-    Transform _ThrottleLever;               // Ручка газ-реверс
-    //float _Mile = 1852.0f;                  // Морская миля = 1852 метра
-    //float _Knot = 0.5144f;                  // Скорость 1 узел = 0.514... метр/сек.
-
     // Группа величин для обработки сигнала от ручки газа
     private float _ThrottleSinal;
     private float _middleThrottle = 0.46f;
@@ -105,13 +99,13 @@ public class YachtSolver : MonoBehaviour
     private float _PositiveMultiplier;
     private float _NegativeMultiplier;
 
-
     private void Awake()
     {
         GameObject windField = GameObject.Find("WindField");
         _wind = windField.GetComponent<Wind>();
 
         _cleats = GameObject.FindObjectsOfType<Cleat>();
+
     }
 
     void Start()
@@ -128,13 +122,20 @@ public class YachtSolver : MonoBehaviour
         _Mxx = (1 + K66) * M0;
         _Jyy = (1 + K66) * Jy;
 
-        // Объекты сцены
-        _HelmWheel = GameObject.Find("HelmWheel").transform;                         // Штурвал
-        _ThrottleLever = GameObject.Find("ThrottleLever").transform;                 // Ручка газ-реверс
 
         // Группа величин для обработки сигнала от ручки газа
         // При запуске программы должна стоять в среднем положении
-        _middleThrottle = Input.GetAxis("VerticalJoy");
+        float middleThrottle = Input.GetAxis("VerticalJoy");
+        print("Положение ручки в центре (middleThrottle) = " + middleThrottle);
+        if (middleThrottle < 0.4f || middleThrottle > 0.6f)
+        {
+            print("Значение middleThrottle вне допустимого диапазона. Неправильная калибровка при включении рулевой системы или при запуске программы ручка управления газом не находится в центральном положении. Устаноалено значение по умолчанию, но работа системы не гарантируется");
+        }
+        else
+        {
+            _middleThrottle = middleThrottle;
+        }
+        print("Окончательно установлено положение ручки в центре _middleThrottle = " + _middleThrottle);
         _PositiveMultiplier = 1.0f / (1.0f - _middleThrottle);
         _NegativeMultiplier = 1.0f / _middleThrottle;
 
@@ -178,17 +179,6 @@ public class YachtSolver : MonoBehaviour
 
         engineValue = Mathf.Clamp(engineValue, -1.0f, 1.0f);
         steeringWheel = Mathf.Clamp(steeringWheel, -540.0f, 540.0f);
-
-        // Повернуть ручку газ-реверс на 3d модели
-        Vector3 myVect = _ThrottleLever.localEulerAngles;
-        myVect.x = Mathf.Lerp(-50, 50, (engineValue + 1) / 2.0f);
-        _ThrottleLever.localEulerAngles = myVect;
-
-        // Повернуть штурвал на 3d модели
-        myVect = _HelmWheel.localEulerAngles;
-        myVect.z = steeringWheel + 30;
-        //myVect.z = - Mathf.Lerp(-540, 540, (steeringWheel + 35) / 70.0f);  
-        _HelmWheel.localEulerAngles = myVect;
 
     }
 
