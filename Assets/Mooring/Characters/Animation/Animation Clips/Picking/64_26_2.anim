@@ -109203,8 +109203,8 @@ AnimationClip:
   m_HasGenericRootTransform: 0
   m_HasMotionFloatCurves: 0
   m_Events:
-  - time: 2
-    functionName: myMessage
+  - time: 2.625
+    functionName: TakeRopeHank
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
