@@ -16,6 +16,10 @@ public class sAssist : MonoBehaviour
     {
         // Запустить корутину Регулировки громкости
         StartCoroutine(ChangeVolume());
+
+        // Выключить обработку каната
+        StartCoroutine(FreezeRope());
+
     }
 
     // Update is called once per frame
@@ -89,6 +93,14 @@ public class sAssist : MonoBehaviour
             // Переждать время 0.2 секунды
             yield return new WaitForSeconds(0.2f);
         }
+    }
+
+    // Выключить обработку каната
+    IEnumerator FreezeRope()
+    {
+        // Переждать время 0.1 секунды
+        yield return new WaitForSeconds(0.1f);
+        GameObject.Find("Obi Rope").GetComponent<Obi.ObiPathSmoother>().enabled = false;
     }
 
 

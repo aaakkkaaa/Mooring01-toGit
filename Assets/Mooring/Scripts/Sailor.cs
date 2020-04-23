@@ -113,6 +113,7 @@ public class Sailor : MonoBehaviour
     private void TakeRopeHank()
     {
         print("TakeRopeHank");
+        GameObject.Find("Obi Rope").GetComponent<Obi.ObiPathSmoother>().enabled = true;
 
         if (WorkRope == null)
         {

@@ -173,6 +173,7 @@ public class sDevices : MonoBehaviour
 
         // Держать флюгер по ветру, крутить чашки анемометра
         float WindSpeed = _WindScript.WindDir[0].value;
+        // Если ветер дует
         if (WindSpeed > 0)
         {
             // Флюгер
@@ -207,7 +208,14 @@ public class sDevices : MonoBehaviour
                     _WindSound.Stop(); // Выключить звук
                 }
             }
-
+        }
+        else // Вообще не дует
+        {
+            if (_WindSound.isPlaying) // Звук есть
+            {
+                print("Звук ветра выключаем");
+                _WindSound.Stop(); // Выключить звук
+            }
         }
 
         // Спидометр --------------------
