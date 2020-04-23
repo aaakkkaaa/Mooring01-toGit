@@ -11,6 +11,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace Crest
 {
@@ -179,10 +180,18 @@ namespace Crest
                 _camDepthCache.backgroundColor = Color.white * 1000f;
                 _camDepthCache.enabled = false;
                 _camDepthCache.allowMSAA = false;
+                _camDepthCache.allowDynamicResolution = false;
+                
                 // Stops behaviour from changing in VR. I tried disabling XR before/after camera render but it makes the editor
                 // go bonkers with split windows.
                 _camDepthCache.cameraType = CameraType.Reflection;
                 _camDepthCache.gameObject.SetActive(false);
+
+                var additionalCameraData = _camDepthCache.gameObject.AddComponent<UniversalAdditionalCameraData>();
+                additionalCameraData.renderShadows = false;
+                additionalCameraData.requiresColorTexture = false;
+                additionalCameraData.requiresDepthTexture = false;
+                additionalCameraData.renderPostProcessing = false;
             }
 
             if (_camDepthCache.targetTexture == null)

@@ -2,20 +2,20 @@
 
 // Copyright 2020 Wave Harmonic Ltd
 
-// solve 2D wave equation
+// Solves 2D wave equation
 
 #pragma kernel UpdateDynWaves
 
 #define MIN_DT 0.00001
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-#include "../OceanConstants.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
+#include "../OceanGlobals.hlsl"
+#include "../OceanInputsDriven.hlsl"
+#include "../OceanLODData.hlsl"
+#include "../OceanHelpersNew.hlsl"
 
 RWTexture2DArray<float2> _LD_TexArray_Target;
-Texture2DArray _LD_TexArray_Flow;
-Texture2DArray _LD_TexArray_SeaFloorDepth;
-Texture2DArray _LD_TexArray_DynamicWaves_Source;
-SamplerState LODData_linear_clamp_sampler;
 
 CBUFFER_START(CrestPerMaterial)
 float _Damping;
@@ -23,20 +23,7 @@ float2 _LaplacianAxisX;
 float _Gravity;
 float _SimDeltaTime;
 float _LODChange;
-// How many samples we want in one wave. trade quality for perf.
-float _TexelsPerWave;
-
-float4 _LD_Params[MAX_LOD_COUNT + 1];
-float3 _LD_Pos_Scale[MAX_LOD_COUNT + 1];
-float _LD_SliceIndex;
-float _SliceCount;
-float4 _LD_Params_Source[MAX_LOD_COUNT + 1];
-float3 _LD_Pos_Scale_Source[MAX_LOD_COUNT + 1];
-float3 _OceanCenterPosWorld;
 CBUFFER_END
-
-#include "../OceanLODData.hlsl"
-
 
 float ComputeWaveSpeed(float wavelength, float g)
 {
@@ -47,7 +34,7 @@ float ComputeWaveSpeed(float wavelength, float g)
 	return sqrt(wavelength*g*one_over_2pi);
 }
 
-[numthreads(THREAD_GROUP_SIZE_X,THREAD_GROUP_SIZE_Y,1)]
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, 1)]
 void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 {
 	const float sliceIndex = id.z;

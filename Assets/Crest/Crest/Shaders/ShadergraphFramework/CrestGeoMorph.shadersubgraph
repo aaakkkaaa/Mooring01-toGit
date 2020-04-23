@@ -65,7 +65,23 @@
         }
     ],
     "m_Groups": [],
-    "m_StickyNotes": [],
+    "m_StickyNotes": [
+        {
+            "m_GuidSerialized": "10a33730-732e-4b8c-991e-66dc99dc88ca",
+            "m_Title": "",
+            "m_Content": "Geo morph - morph position so that vertices in one LOD blend to make a perfect match to vertices in the surrounding LODs. This gives the appearance of smooth tessellation and eliminates any pops.",
+            "m_TextSize": 0,
+            "m_Theme": 0,
+            "m_Position": {
+                "serializedVersion": "2",
+                "x": -222.0,
+                "y": -277.0,
+                "width": 667.0,
+                "height": 100.0
+            },
+            "m_GroupGuidSerialized": "00000000-0000-0000-0000-000000000000"
+        }
+    ],
     "m_SerializableEdges": [
         {
             "typeInfo": {

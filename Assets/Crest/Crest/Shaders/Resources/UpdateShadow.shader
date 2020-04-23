@@ -21,10 +21,7 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 			#include "../OceanConstants.hlsl"
-
-			Texture2DArray _LD_TexArray_Shadow_Source;
-
-			SamplerState LODData_linear_clamp_sampler;
+			#include "../OceanGlobals.hlsl"
 
 			CBUFFER_START(CrestPerMaterial)
 			// Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard
@@ -35,21 +32,14 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 			float3 _Scale;
 			float _LD_SliceIndex_Source;
 			float4x4 _MainCameraProjectionMatrix;
-
-			float3 _OceanCenterPosWorld;
-
-			float3 _LD_Pos_Scale[MAX_LOD_COUNT + 1];
-			float3 _LD_Pos_Scale_Source[MAX_LOD_COUNT + 1];
-			float _LD_SliceIndex;
-			float _SliceCount;
-			float4 _LD_Params[MAX_LOD_COUNT + 1];
-			float4 _LD_Params_Source[MAX_LOD_COUNT + 1];
 			CBUFFER_END
 
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanLODData.hlsl"
+			#include "../OceanHelpersNew.hlsl"
 			// noise functions used for jitter
 			#include "../GPUNoise/GPUNoise.hlsl"
 

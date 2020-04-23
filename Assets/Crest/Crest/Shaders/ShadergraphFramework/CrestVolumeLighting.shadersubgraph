@@ -221,7 +221,23 @@
         }
     ],
     "m_Groups": [],
-    "m_StickyNotes": [],
+    "m_StickyNotes": [
+        {
+            "m_GuidSerialized": "b4a318f7-89a2-4d39-b3ad-fc81f464d887",
+            "m_Title": "",
+            "m_Content": "Computes light scattered out of the water volume.",
+            "m_TextSize": 0,
+            "m_Theme": 0,
+            "m_Position": {
+                "serializedVersion": "2",
+                "x": 118.0,
+                "y": -290.0,
+                "width": 397.0,
+                "height": 100.0
+            },
+            "m_GroupGuidSerialized": "00000000-0000-0000-0000-000000000000"
+        }
+    ],
     "m_SerializableEdges": [
         {
             "typeInfo": {

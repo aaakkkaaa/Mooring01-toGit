@@ -23,10 +23,10 @@ Shader "Crest/Inputs/Foam/Add From Texture"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
-			sampler2D _MainTex;
-
 			#include "UnityCG.cginc"
 
+			sampler2D _MainTex;
+			
 			CBUFFER_START(CrestPerOceanInput)
 			float4 _MainTex_ST;
 			float _Radius;

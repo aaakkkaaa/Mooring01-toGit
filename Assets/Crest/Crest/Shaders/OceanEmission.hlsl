@@ -30,9 +30,9 @@ half3 ScatterColour(
 		// Pick lower res data for shadowing, helps to smooth out artifacts slightly
 		const float minSliceIndex = 4.0;
 		uint slice0, slice1; float lodAlpha;
-		PosToSliceIndices(samplePoint, _InstanceData.x, minSliceIndex, slice0, slice1, lodAlpha);
+		PosToSliceIndices(samplePoint, minSliceIndex, _InstanceData.x, _LD_Pos_Scale[0].z, slice0, slice1, lodAlpha);
 
-		float2 shadowSoftHard = 0.0;
+		half2 shadowSoftHard = 0.0;
 		// TODO - fix data type of slice index in WorldToUV - #343
 		SampleShadow(_LD_TexArray_Shadow, WorldToUV(samplePoint, slice0), 1.0 - lodAlpha, shadowSoftHard);
 		SampleShadow(_LD_TexArray_Shadow, WorldToUV(samplePoint, slice1), lodAlpha, shadowSoftHard);
@@ -82,17 +82,6 @@ half3 ScatterColour(
 	}
 #endif // _SUBSURFACESCATTERING_ON
 
-	// outscatter light - attenuate the final colour by the camera depth under the water, to approximate less
-	// throughput due to light scatter as the camera gets further under water.
-	if (i_outscatterLight)
-	{
-		half camDepth = max(_OceanCenterPosWorld.y - _WorldSpaceCameraPos.y, 0.0);
-		if (i_underwater)
-		{
-			col *= exp(-_DepthFogDensity.xyz * camDepth * DEPTH_OUTSCATTER_CONSTANT);
-		}
-	}
-
 	return col;
 }
 
@@ -113,7 +102,7 @@ void ApplyCaustics(in const float3 scenePos, in const half3 i_lightDir, in const
 	// Compute mip index manually, with bias based on sea floor depth. We compute it manually because if it is computed automatically it produces ugly patches
 	// where samples are stretched/dilated. The bias is to give a focusing effect to caustics - they are sharpest at a particular depth. This doesn't work amazingly
 	// well and could be replaced.
-	float mipLod = log2(i_sceneZ) + abs(sceneDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
+	float mipLod = log2(max(i_sceneZ, 1.0)) + abs(sceneDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
 	// project along light dir, but multiply by a fudge factor reduce the angle bit - compensates for fact that in real life
 	// caustics come from many directions and don't exhibit such a strong directonality
 	float2 surfacePosXZ = scenePos.xz + i_lightDir.xz * sceneDepth / (4.*i_lightDir.y);

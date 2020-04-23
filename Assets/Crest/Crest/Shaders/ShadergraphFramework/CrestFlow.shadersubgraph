@@ -205,7 +205,23 @@
             }
         }
     ],
-    "m_StickyNotes": [],
+    "m_StickyNotes": [
+        {
+            "m_GuidSerialized": "ecbad432-dad3-44d6-8fda-370f788baf73",
+            "m_Title": "",
+            "m_Content": "Flow technique. Takes flow velocity and position and generates two animated offset positions with blend weights.",
+            "m_TextSize": 0,
+            "m_Theme": 0,
+            "m_Position": {
+                "serializedVersion": "2",
+                "x": -1312.0,
+                "y": -1211.0,
+                "width": 435.0,
+                "height": 100.0
+            },
+            "m_GroupGuidSerialized": "00000000-0000-0000-0000-000000000000"
+        }
+    ],
     "m_SerializableEdges": [
         {
             "typeInfo": {

@@ -107,7 +107,23 @@
         }
     ],
     "m_Groups": [],
-    "m_StickyNotes": [],
+    "m_StickyNotes": [
+        {
+            "m_GuidSerialized": "6133457f-8b2f-463d-89eb-b98e18c0ae48",
+            "m_Title": "",
+            "m_Content": "Returns any ocean data. This can be used in any pixel shader and does not rely on data from the vertex shader (whereas CrestNodeUnpackData uses data from vertex shader, and is therefore cheaper).\n",
+            "m_TextSize": 0,
+            "m_Theme": 0,
+            "m_Position": {
+                "serializedVersion": "2",
+                "x": 2.0,
+                "y": -567.0,
+                "width": 668.0,
+                "height": 107.0
+            },
+            "m_GroupGuidSerialized": "00000000-0000-0000-0000-000000000000"
+        }
+    ],
     "m_SerializableEdges": [
         {
             "typeInfo": {

@@ -36,7 +36,7 @@ Shader "Crest/Inputs/Dynamic Waves/Object Interaction"
 			float _Strength;
 			float _Weight;
 			CBUFFER_END
-
+			
 			struct Attributes
 			{
 				float3 positionOS : POSITION;

@@ -34,30 +34,16 @@ Shader "Crest/Ocean Surface Alpha"
 			#pragma multi_compile_fog
 
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-			#include "OceanConstants.hlsl"
+
+			#include "OceanGlobals.hlsl"
+			#include "OceanInputsDriven.hlsl"
+			#include "OceanLODData.hlsl"
+			#include "OceanHelpersNew.hlsl"
+			#include "OceanHelpers.hlsl"
 
 			sampler2D _MainTex;
-			Texture2DArray _LD_TexArray_AnimatedWaves;
-			SamplerState LODData_linear_clamp_sampler;
-
-			CBUFFER_START(CrestPerObject)
-			float3 _OceanCenterPosWorld;
-			half _Alpha;
 			float4 _MainTex_ST;
-
-			float4 _GeomData;
-			float3 _InstanceData;
-
-			float4 _LD_Params[MAX_LOD_COUNT + 1];
-			float3 _LD_Pos_Scale[MAX_LOD_COUNT + 1];
-			float _LD_SliceIndex;
-			float _SliceCount;
-			float4 _LD_Params_Source[MAX_LOD_COUNT + 1];
-			float3 _LD_Pos_Scale_Source[MAX_LOD_COUNT + 1];
-			CBUFFER_END
-
-			#include "OceanHelpers.hlsl"
-			#include "OceanLODData.hlsl"
+			half _Alpha;
 
 			struct Attributes
 			{
@@ -69,6 +55,8 @@ Shader "Crest/Ocean Surface Alpha"
 			{
 				float4 positionCS : SV_POSITION;
 				float3 uv_fogFactor : TEXCOORD0;
+				float3 worldPos : TEXCOORD1;
+				float lodAlpha : TEXCOORD2;
 			};
 
 			Varyings Vert(Attributes input)
@@ -101,6 +89,10 @@ Shader "Crest/Ocean Surface Alpha"
 				// view-projection
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
 
+				// For clip surface sampling
+				o.worldPos = worldPos;
+				o.lodAlpha = lodAlpha;
+
 				o.uv_fogFactor.xy = TRANSFORM_TEX(input.uv, _MainTex);
 
 				o.uv_fogFactor.z = ComputeFogFactor(o.positionCS.z);
@@ -110,6 +102,9 @@ Shader "Crest/Ocean Surface Alpha"
 
 			real4 Frag(Varyings input) : SV_Target
 			{
+				// We don't want decals etc floating on nothing
+				ApplyOceanClipSurface(input.worldPos, input.lodAlpha);
+
 				real4 col = tex2D(_MainTex, input.uv_fogFactor.xy);
 
 				col.rgb = MixFog(col.rgb, input.uv_fogFactor.z);

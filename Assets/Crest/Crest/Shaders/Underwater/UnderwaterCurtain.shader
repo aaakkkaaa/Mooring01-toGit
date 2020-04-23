@@ -46,9 +46,12 @@ Shader "Crest/Underwater Curtain"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
+			#include "../OceanGlobals.hlsl"
+			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanInput.hlsl"
 
 			#include "../OceanLODData.hlsl"
+			#include "../OceanHelpersNew.hlsl"
 			#include "UnderwaterShared.hlsl"
 
 			#include "../OceanEmission.hlsl"

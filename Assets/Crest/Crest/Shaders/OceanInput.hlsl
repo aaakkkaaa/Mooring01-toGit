@@ -29,37 +29,10 @@ sampler2D _ReflectionTex;
 sampler2D _FoamTexture;
 sampler2D _CausticsTexture;
 
-Texture2DArray _LD_TexArray_AnimatedWaves;
-Texture2DArray _LD_TexArray_WaveBuffer;
-Texture2DArray _LD_TexArray_SeaFloorDepth;
-Texture2DArray _LD_TexArray_ClipSurface;
-Texture2DArray _LD_TexArray_Foam;
-Texture2DArray _LD_TexArray_Flow;
-Texture2DArray _LD_TexArray_DynamicWaves;
-Texture2DArray _LD_TexArray_Shadow;
-
-// These are used in lods where we operate on data from
-// previously calculated lods. Used in simulations and
-// shadowing for example.
-Texture2DArray _LD_TexArray_AnimatedWaves_Source;
-Texture2DArray _LD_TexArray_WaveBuffer_Source;
-Texture2DArray _LD_TexArray_SeaFloorDepth_Source;
-Texture2DArray _LD_TexArray_ClipSurface_Source;
-Texture2DArray _LD_TexArray_Foam_Source;
-Texture2DArray _LD_TexArray_Flow_Source;
-Texture2DArray _LD_TexArray_DynamicWaves_Source;
-Texture2DArray _LD_TexArray_Shadow_Source;
-
-SamplerState LODData_linear_clamp_sampler;
-
-
 /////////////////////////////
 // Constant buffer: CrestPerMaterial
 
 CBUFFER_START(CrestInputsPerMaterial)
-float _CrestTime;
-float3 _OceanCenterPosWorld;
-
 half3 _Diffuse;
 half3 _DiffuseGrazing;
 
@@ -150,38 +123,6 @@ float _LODChange;
 half _Damping;
 float2 _LaplacianAxisX;
 half _Gravity;
-CBUFFER_END
-
-
-/////////////////////////////
-// Constant buffer: CrestInputsPerObject
-CBUFFER_START(CrestInputsPerObject)
-// MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
-float3 _InstanceData;
-
-// Geometry data
-// x: Grid size of lod data - size of lod data texel in world space.
-// y: Grid size of geometry - distance between verts in mesh.
-// zw: normalScrollSpeed0, normalScrollSpeed1
-float4 _GeomData;
-
-// Create two sets of LOD data, which have overloaded meaning depending on use:
-// * the ocean surface geometry always lerps from a more detailed LOD (0) to a less detailed LOD (1)
-// * simulations (persistent lod data) read last frame's data from slot 0, and any current frame data from slot 1
-// * any other use that does not fall into the previous categories can use either slot and generally use slot 0
-
-// _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
-float4 _LD_Params[MAX_LOD_COUNT + 1];
-float3 _LD_Pos_Scale[MAX_LOD_COUNT + 1];
-float _LD_SliceIndex;
-float4 _LD_Params_Source[MAX_LOD_COUNT + 1];
-float3 _LD_Pos_Scale_Source[MAX_LOD_COUNT + 1];
-
-float _GridSize;
-float _TexelsPerWave;
-float _MaxWavelength;
-float _ViewerAltitudeLevelAlpha;
-float _SliceCount;
 CBUFFER_END
 
 #endif // OCEAN_INPUT_INCLUDED

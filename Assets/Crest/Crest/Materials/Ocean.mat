@@ -10,9 +10,8 @@ Material:
   m_Name: Ocean
   m_Shader: {fileID: 4800000, guid: 986f7c6732e8a6e4881407d7f15f25c3, type: 3}
   m_ShaderKeywords: _APPLYNORMALMAPPING_ON _CAUSTICS_ON _CLIPSURFACE_ON _COMPUTEDIRECTIONALLIGHT_ON
-    _DEBUGMULTIPLYBYLIGHT0COLOR_ON _FOAM3DLIGHTING_ON _FOAM_ON _PLANARREFLECTIONS_ON
-    _SHADOWS_ON _SUBSURFACEHEIGHTLERP_ON _SUBSURFACESCATTERING_ON _SUBSURFACESHALLOWCOLOUR_ON
-    _TRANSPARENCY_ON _VARYSMOOTHNESSOVERDISTANCE_ON
+    _DEBUGMULTIPLYBYLIGHT0COLOR_ON _FOAM3DLIGHTING_ON _FOAM_ON _SUBSURFACEHEIGHTLERP_ON
+    _SUBSURFACESCATTERING_ON _SUBSURFACESHALLOWCOLOUR_ON _TRANSPARENCY_ON _VARYSMOOTHNESSOVERDISTANCE_ON
   m_LightmapFlags: 5
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -121,7 +120,7 @@ Material:
     - _OverrideReflectionCubemap: 0
     - _PlanarReflectionIntensity: 1
     - _PlanarReflectionNormalsStrength: 1
-    - _PlanarReflections: 1
+    - _PlanarReflections: 0
     - _ProceduralSky: 0
     - _ReflectionBlur: 0
     - _RefractAmt: 0
@@ -129,7 +128,7 @@ Material:
     - _RefractiveIndexOfAir: 1
     - _RefractiveIndexOfWater: 1.333
     - _S: 1
-    - _Shadows: 1
+    - _Shadows: 0
     - _ShorelineFoamMinDepth: 0.27
     - _SkyDirectionality: 0.875
     - _Smoothness: 0.8

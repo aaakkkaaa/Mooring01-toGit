@@ -13,9 +13,17 @@
 // C# code to check if any parameters are within the MAX_LOD_COUNT limits
 #define MAX_LOD_COUNT 15
 
+// How light is attenuated deep in water
 #define DEPTH_OUTSCATTER_CONSTANT 0.25
 
 // Bias ocean floor depth so that default (0) values in texture are not interpreted as shallow and generating foam everywhere
 #define CREST_OCEAN_DEPTH_BASELINE 1000.0
+
+// Background
+#define UNDERWATER_MASK_NO_MASK 1.0
+// Water rendered from above
+#define UNDERWATER_MASK_WATER_SURFACE_ABOVE 0.0
+// Water rendered from below
+#define UNDERWATER_MASK_WATER_SURFACE_BELOW 2.0
 
 #endif // CREST_CONSTANTS_H

@@ -125,7 +125,23 @@
         }
     ],
     "m_Groups": [],
-    "m_StickyNotes": [],
+    "m_StickyNotes": [
+        {
+            "m_GuidSerialized": "0b5f455d-195a-478e-9877-5c4db5824ebe",
+            "m_Title": "",
+            "m_Content": "In the patched/generated ocean shader, this node will unpack ocean sim data from the UV channels passed from vertex shader, this is the efficient path.\n\nThere is a fallback path for the non-generated case (when using the SG) which manually samples the ocean sim data, so this node can be used in any graph, but is more expensive this way (and currently has a discontinuity bug).",
+            "m_TextSize": 0,
+            "m_Theme": 0,
+            "m_Position": {
+                "serializedVersion": "2",
+                "x": -336.0,
+                "y": -318.0,
+                "width": 614.0,
+                "height": 109.0
+            },
+            "m_GroupGuidSerialized": "00000000-0000-0000-0000-000000000000"
+        }
+    ],
     "m_SerializableEdges": [
         {
             "typeInfo": {

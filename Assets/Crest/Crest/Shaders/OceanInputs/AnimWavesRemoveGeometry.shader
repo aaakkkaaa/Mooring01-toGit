@@ -19,8 +19,9 @@ Shader "Crest/Inputs/Animated Waves/Push Water Under Convex Hull"
 
 			#include "UnityCG.cginc"
 
+			#include "../OceanGlobals.hlsl"
+
 			CBUFFER_START(CrestPerOceanInput)
-			float3 _OceanCenterPosWorld;
 			float _Weight;
 			CBUFFER_END
 

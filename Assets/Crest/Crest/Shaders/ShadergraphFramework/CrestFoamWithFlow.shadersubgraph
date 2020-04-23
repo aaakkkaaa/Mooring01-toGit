@@ -497,7 +497,23 @@
             }
         }
     ],
-    "m_StickyNotes": [],
+    "m_StickyNotes": [
+        {
+            "m_GuidSerialized": "22b1e1b0-eac2-4bbe-8b96-d4296531be42",
+            "m_Title": "",
+            "m_Content": "Foam graph. Supports flow to give animated/moving foam.",
+            "m_TextSize": 0,
+            "m_Theme": 0,
+            "m_Position": {
+                "serializedVersion": "2",
+                "x": -556.0,
+                "y": -682.0,
+                "width": 565.0,
+                "height": 100.0
+            },
+            "m_GroupGuidSerialized": "00000000-0000-0000-0000-000000000000"
+        }
+    ],
     "m_SerializableEdges": [
         {
             "typeInfo": {

@@ -4,7 +4,7 @@
 
 #include "../OceanGlobals.hlsl"
 #include "../OceanConstants.hlsl"
-#include "../OceanHelpersNew.hlsl"
+#include "../OceanVertHelpers.hlsl"
 
 void GeoMorph_half
 (

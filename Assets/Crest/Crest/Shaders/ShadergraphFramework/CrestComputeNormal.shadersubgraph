@@ -167,7 +167,23 @@
         }
     ],
     "m_Groups": [],
-    "m_StickyNotes": [],
+    "m_StickyNotes": [
+        {
+            "m_GuidSerialized": "fbd7b189-ed4a-414a-bd56-da20ab3b6f8f",
+            "m_Title": "",
+            "m_Content": "Computes a normal from a combination of the wave shape (this is done on the pixel shader to get maximum definition for the waves) and panning normal maps.",
+            "m_TextSize": 0,
+            "m_Theme": 0,
+            "m_Position": {
+                "serializedVersion": "2",
+                "x": -221.0,
+                "y": -295.0,
+                "width": 663.0,
+                "height": 100.0
+            },
+            "m_GroupGuidSerialized": "00000000-0000-0000-0000-000000000000"
+        }
+    ],
     "m_SerializableEdges": [
         {
             "typeInfo": {

@@ -178,7 +178,12 @@ namespace Crest
             var drawList = RegisterLodDataInputBase.GetRegistrar(GetType());
             foreach (var draw in drawList)
             {
-                draw.Draw(buf, 1f, 0);
+                if (!draw.Value.Enabled)
+                {
+                    continue;
+                }
+
+                draw.Value.Draw(buf, 1f, 0, lodIdx);
             }
         }
 
@@ -192,16 +197,16 @@ namespace Crest
             var drawList = RegisterLodDataInputBase.GetRegistrar(GetType());
             foreach (var draw in drawList)
             {
-                if (!draw.Enabled)
+                if (!draw.Value.Enabled)
                 {
                     continue;
                 }
 
                 int isTransition;
-                float weight = filter.Filter(draw, out isTransition);
+                float weight = filter.Filter(draw.Value, out isTransition);
                 if (weight > 0f)
                 {
-                    draw.Draw(buf, weight, isTransition);
+                    draw.Value.Draw(buf, weight, isTransition, lodIdx);
                 }
             }
         }

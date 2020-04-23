@@ -20,6 +20,7 @@ void CrestNodeApplyCaustics_float
 	in const Texture2D<float4> i_distortion,
 	in const half i_distortionStrength,
 	in const half i_distortionScale,
+	in const bool i_underwater,
 	out half3 o_sceneColour
 )
 {

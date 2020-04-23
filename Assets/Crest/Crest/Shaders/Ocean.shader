@@ -241,14 +241,17 @@ Shader "Crest/Ocean URP"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
+			#include "OceanGlobals.hlsl"
+			#include "OceanInputsDriven.hlsl"
 			#include "OceanInput.hlsl"
-
 			#include "OceanLODData.hlsl"
+			#include "OceanHelpersNew.hlsl"
+			#include "OceanHelpers.hlsl"
+
 			#include "OceanEmission.hlsl"
 			#include "OceanNormalMapping.hlsl"
 			#include "OceanReflection.hlsl"
 			#include "OceanFoam.hlsl"
-			#include "OceanHelpers.hlsl"
 
 			struct Attributes
 			{
@@ -419,7 +422,7 @@ Shader "Crest/Ocean URP"
 
 				#if _CLIPSURFACE_ON
 				// Clip surface
-				float clipVal = 0.0;
+				half clipVal = 0.0;
 				if (wt_smallerLod > 0.001)
 				{
 					SampleClip(_LD_TexArray_ClipSurface, WorldToUV(input.positionWS_fogFactor.xz), wt_smallerLod, clipVal);
@@ -431,7 +434,7 @@ Shader "Crest/Ocean URP"
 				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
 				clip(-clipVal + 0.5);
 				#endif
-				
+
 				// Foam - underwater bubbles and whitefoam
 				real3 bubbleCol = (half3)0.;
 				#if _FOAM_ON

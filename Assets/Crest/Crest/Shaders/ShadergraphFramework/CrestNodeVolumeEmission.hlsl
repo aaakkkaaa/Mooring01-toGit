@@ -32,6 +32,7 @@ void CrestNodeSceneColour_half
 	in const float i_pixelZ,
 	in const half3 i_sceneColourUnrefracted,
 	in const float i_sceneZ,
+	in const bool i_underwater,
 	out half3 o_sceneColour,
 	out float o_sceneDistance,
 	out float3 o_scenePositionWS
@@ -41,7 +42,6 @@ void CrestNodeSceneColour_half
 
 	// View ray intersects geometry surface either above or below ocean surface
 
-	const bool i_underwater = false; // TODO
 
 	// Depth fog & caustics - only if view ray starts from above water
 	if (!i_underwater)

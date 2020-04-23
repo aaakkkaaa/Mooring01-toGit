@@ -19,7 +19,7 @@ void CrestComputeSamplingData_half
 	out float slice1
 )
 {
-	PosToSliceIndices(worldXZ, 0.0, _LD_Pos_Scale[0].z, slice0, slice1, lodAlpha);
+	PosToSliceIndices(worldXZ, 0.0, _LD_Pos_Scale[0].z, _LD_Pos_Scale[0].z, slice0, slice1, lodAlpha);
 	
 	uint si0 = (uint)slice0;
 	uint si1 = si0 + 1;

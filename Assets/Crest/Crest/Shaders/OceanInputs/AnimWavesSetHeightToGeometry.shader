@@ -24,8 +24,9 @@ Shader "Crest/Inputs/Animated Waves/Set Water Height To Geometry"
 
 			#include "UnityCG.cginc"
 
+			#include "../OceanGlobals.hlsl"
+
 			CBUFFER_START(CrestPerOceanInput)
-			float3 _OceanCenterPosWorld;
 			float _Weight;
 			CBUFFER_END
 

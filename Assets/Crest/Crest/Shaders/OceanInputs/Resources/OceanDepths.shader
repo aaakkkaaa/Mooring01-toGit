@@ -15,16 +15,9 @@ Shader "Crest/Inputs/Depth/Ocean Depth From Geometry"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
-			CBUFFER_START(CrestPerOceanInput)
-			float4 _LD_Params_0;
-			float4 _LD_Params_1;
-			float3 _LD_Pos_Scale_0;
-			float3 _LD_Pos_Scale_1;
-			float3 _GeomData;
-			float3 _OceanCenterPosWorld;
-			CBUFFER_END
-
 			#include "UnityCG.cginc"
+
+			#include "../../OceanGlobals.hlsl"
 
 			struct Attributes
 			{

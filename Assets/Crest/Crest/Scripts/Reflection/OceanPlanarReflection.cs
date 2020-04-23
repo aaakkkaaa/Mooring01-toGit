@@ -202,7 +202,7 @@ namespace Crest
 
             ForceDistanceCulling(_farClipPlane);
 
-            UnityEngine.Rendering.Universal.UniversalRenderPipeline.RenderSingleCamera(context, _camReflections);
+            UniversalRenderPipeline.RenderSingleCamera(context, _camReflections);
 
             GL.invertCulling = oldCulling;
 
@@ -238,7 +238,7 @@ namespace Crest
         /// <param name="farClipPlane">reflection far clip distance</param>
         private void ForceDistanceCulling(float farClipPlane)
         {
-            if (_cullDistances == null)
+            if (_cullDistances == null || _cullDistances.Length != 32)
                 _cullDistances = new float[32];
             for (var i = 0; i < _cullDistances.Length; i++)
             {
