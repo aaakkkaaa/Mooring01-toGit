@@ -136,9 +136,13 @@
     <None Include="Assets\Obi\Editor\Resources\PropertyGradientMaterial.shader" />
     <None Include="Assets\Obi\Editor\Resources\EditorParticle.shader" />
     <None Include="Assets\Obi\Editor\Resources\UVSpaceColor.shader" />
+    <None Include="Assets\UMotionEditor\Plugins\MacOS\Editor\x64\UnityFbxSdkNativeLicense.txt" />
     <None Include="Assets\Obi\Editor\Resources\DistanceFieldPreview.shader" />
     <None Include="Assets\Obi\Editor\Resources\TopologyBorders.shader" />
+    <None Include="Assets\UMotionEditor\Plugins\MacOS\Editor\x64\AutodeskFbxSdkLicense.txt" />
     <None Include="Assets\Obi\Editor\Resources\PaddingShader.shader" />
+    <None Include="Assets\UMotionEditor\Plugins\Windows\Editor\x64\UnityFbxSdkNativeLicense.txt" />
+    <None Include="Assets\UMotionEditor\Plugins\Windows\Editor\x64\AutodeskFbxSdkLicense.txt" />
     <Reference Include="UnityEditor.TestRunner">
       <HintPath>D:/00/Mooring/Warehouse/Mooring02-Anim/Library/ScriptAssemblies/UnityEditor.TestRunner.dll</HintPath>
     </Reference>
@@ -390,6 +394,12 @@
     </Reference>
     <Reference Include="SyntaxTree.VisualStudio.Unity.Bridge">
       <HintPath>C:/Program Files (x86)/Microsoft Visual Studio Tools for Unity/16.0/Editor/SyntaxTree.VisualStudio.Unity.Bridge.dll</HintPath>
+    </Reference>
+    <Reference Include="UMotionApplication">
+      <HintPath>D:/00/Mooring/Warehouse/Mooring02-Anim/Assets/UMotionEditor/Plugins/Application/UMotionApplication.dll</HintPath>
+    </Reference>
+    <Reference Include="UMotionEditor">
+      <HintPath>D:/00/Mooring/Warehouse/Mooring02-Anim/Assets/UMotionEditor/Plugins/Editor/UMotionEditor.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.NRefactory">
       <HintPath>D:/00/Mooring/Warehouse/Mooring02-Anim/Library/PackageCache/com.unity.render-pipelines.core@7.3.1/Editor/ShaderGenerator/ICSharpCode.NRefactory.dll</HintPath>
@@ -768,6 +778,14 @@
     <ProjectReference Include="Crest.csproj">
       <Project>{B3AF602B-AEE0-3A13-D19B-93414ECCD05E}</Project>
       <Name>Crest</Name>
+    </ProjectReference>
+    <ProjectReference Include="UMotionSourceApplication.csproj">
+      <Project>{5EBFC9BC-C2B5-B591-13BE-936F076DE311}</Project>
+      <Name>UMotionSourceApplication</Name>
+    </ProjectReference>
+    <ProjectReference Include="UMotionSourceEditor.csproj">
+      <Project>{4EFD9410-9757-920A-441C-EBBF7B2261A2}</Project>
+      <Name>UMotionSourceEditor</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

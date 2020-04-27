@@ -78,6 +78,7 @@
     <Compile Include="Assets\Mooring\Scripts\YachtSolver.cs" />
     <Compile Include="Assets\Mooring\Scripts\sAssist.cs" />
     <Compile Include="Assets\Mooring\Scripts\sBerthingDraft.cs" />
+    <Compile Include="Assets\Mooring\Scripts\sBump.cs" />
     <Compile Include="Assets\Mooring\Scripts\sDevices.cs" />
     <Compile Include="Assets\Mooring\Scripts\sSailorM_IK.cs" />
     <Compile Include="Assets\Mooring\Scripts\sTimeLerp.cs" />
@@ -107,6 +108,7 @@
     <Compile Include="Assets\Obi\Samples\RopeAndRod\SampleResources\Scripts\RuntimeRopeGenerator.cs" />
     <Compile Include="Assets\Obi\Samples\RopeAndRod\SampleResources\Scripts\RuntimeRopeGeneratorUse.cs" />
     <Compile Include="Assets\Obi\Samples\RopeAndRod\SampleResources\Scripts\SpiralCurve.cs" />
+    <Compile Include="Assets\UMotionExamples\Miscellaneous\Scripts\ResetPosition.cs" />
     <Compile Include="Assets\sHideSelf.cs" />
     <None Include="Assets\Crest\Crest\Shaders\Underwater\UnderwaterMeniscus.shader" />
     <None Include="Assets\Crest\Crest\Shaders\OceanFoam.hlsl" />
@@ -125,6 +127,7 @@
     <None Include="Assets\Crest\Crest\Shaders\ShadergraphFramework\CrestNodeLightData.hlsl" />
     <None Include="Assets\Crest\Crest\Shaders\OceanInputs\DynWavesSphereWaterInteraction.shader" />
     <None Include="Assets\Crest\Crest\Shaders\OceanInputs\AnimWavesSetHeightToGeometry.shader" />
+    <None Include="Assets\UMotionEditor\Shaders\WiresOnly.shader" />
     <None Include="Assets\Crest\Crest\Shaders\OceanInputs\FlowAddFlowMap.shader" />
     <None Include="Assets\Crest\Crest\Shaders\Underwater\UnderwaterShared.hlsl" />
     <None Include="Assets\Crest\Crest\Shaders\ShadergraphFramework\CrestNodeFoamBubbles.hlsl" />
@@ -134,6 +137,8 @@
     <None Include="Assets\Obi\Resources\ObiMaterials\ObiParticles.cginc" />
     <None Include="Assets\Crest\Crest\Shaders\ShadergraphFramework\OceanNormalMapping.hlsl" />
     <None Include="Assets\Crest\Crest\Shaders\GPUNoise\GPUNoise.hlsl" />
+    <None Include="Assets\UMotionEditor\Shaders\UnlitLine.shader" />
+    <None Include="Assets\UMotionEditor\Shaders\UnlitDashedLine.shader" />
     <None Include="Assets\Obi\Resources\ObiMaterials\StandardVertexColors.shader" />
     <None Include="Assets\Crest\Crest\Shaders\ShadergraphFramework\CrestNodeVolumeEmission.hlsl" />
     <None Include="Assets\Crest\Crest\Shaders\OceanInputs\Resources\OceanDepthsCache.shader" />
@@ -142,6 +147,7 @@
     <None Include="Assets\Obi\Resources\ObiMaterials\SimpleParticleShader.shader" />
     <None Include="Assets\Obi\Resources\ObiMaterials\ObiEllipsoids.cginc" />
     <None Include="Assets\Crest\Crest\Shaders\ShadergraphFramework\CrestNodeSampleClipSurfaceData.hlsl" />
+    <None Include="Assets\UMotionEditor\Shaders\CameraLit.shader" />
     <None Include="Assets\Crest\Crest\Shaders\OceanInputs\Resources\CopyDepthIntoCache.shader" />
     <None Include="Assets\Crest\Crest\Shaders\OceanInputs\FlowFixedDirection.shader" />
     <None Include="Assets\Crest\Crest\Shaders\OceanInputs\Resources\OceanDepths.shader" />
@@ -167,6 +173,7 @@
     <None Include="Assets\Crest\Crest\Shaders\OceanGlobals.hlsl" />
     <None Include="Assets\Crest\Crest\Shaders\ShadergraphFramework\OceanEmission.hlsl" />
     <None Include="Assets\Crest\Crest\Shaders\OceanHelpersDriven.hlsl" />
+    <None Include="Assets\UMotionEditor\Shaders\VertexColorUnlit.shader" />
     <None Include="Assets\Crest\Crest\Shaders\Underwater\UnderwaterCurtain.shader" />
     <None Include="Assets\Crest\Crest\Shaders\ShadergraphFramework\CrestNodeAmbientLight.hlsl" />
     <None Include="Assets\Crest\Crest\Shaders\Resources\QueryFlow.compute" />
@@ -177,6 +184,7 @@
     <None Include="Assets\Crest\Crest\Shaders\ShadergraphFramework\CrestNodeNormalMapping.hlsl" />
     <None Include="Assets\Crest\Crest\Shaders\Resources\ShapeCombine.shader" />
     <None Include="Assets\Crest\Crest\Shaders\OceanInputs\Resources\ClipSurfaceConvexHull.shader" />
+    <None Include="Assets\UMotionEditor\Shaders\ColorUnlit.shader" />
     <None Include="Assets\Crest\Crest\Shaders\ShadergraphFramework\CrestNodeSampleOceanData.hlsl" />
     <None Include="Assets\Crest\Crest\Shaders\OceanInputs\Resources\DynWavesDampenCircle.shader" />
     <None Include="Assets\Crest\Crest\Shaders\Resources\ClearToBlack.compute" />
@@ -191,6 +199,7 @@
     <None Include="Assets\Crest\Crest\Shaders\OceanInput.hlsl" />
     <None Include="Assets\Crest\Crest\Shaders\OceanEmission.hlsl" />
     <None Include="Assets\Crest\Crest\Shaders\OceanInputs\FoamAddFromVertCol.shader" />
+    <None Include="Assets\UMotionEditor\Shaders\ColorUnlitTransparent.shader" />
     <Reference Include="Unity.RenderPipeline.Universal.ShaderLibrary">
       <HintPath>D:/00/Mooring/Warehouse/Mooring02-Anim/Library/ScriptAssemblies/Unity.RenderPipeline.Universal.ShaderLibrary.dll</HintPath>
     </Reference>
@@ -421,6 +430,9 @@
     </Reference>
     <Reference Include="UnityEngine.XRModule">
       <HintPath>D:/Program Files/Unity/2019.3.10f1/Editor/Data/Managed/UnityEngine/UnityEngine.XRModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UMotionApplication">
+      <HintPath>D:/00/Mooring/Warehouse/Mooring02-Anim/Assets/UMotionEditor/Plugins/Application/UMotionApplication.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib">
       <HintPath>D:/Program Files/Unity/2019.3.10f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/mscorlib.dll</HintPath>
@@ -789,6 +801,14 @@
     <ProjectReference Include="Crest.csproj">
       <Project>{B3AF602B-AEE0-3A13-D19B-93414ECCD05E}</Project>
       <Name>Crest</Name>
+    </ProjectReference>
+    <ProjectReference Include="UMotionSourceApplication.csproj">
+      <Project>{5EBFC9BC-C2B5-B591-13BE-936F076DE311}</Project>
+      <Name>UMotionSourceApplication</Name>
+    </ProjectReference>
+    <ProjectReference Include="UMotionSourceEditor.csproj">
+      <Project>{4EFD9410-9757-920A-441C-EBBF7B2261A2}</Project>
+      <Name>UMotionSourceEditor</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

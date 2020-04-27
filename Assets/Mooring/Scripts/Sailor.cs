@@ -31,7 +31,7 @@ public class Sailor : MonoBehaviour
     private void Start()
     {
         CurState = "IDLE";
-        _animator.Play("m_idle_neutral_01");
+        //_animator.Play("m_idle_neutral_01");
     }
 
     void Update()
@@ -46,13 +46,17 @@ public class Sailor : MonoBehaviour
                 {
                     // воспроизведение анимации
                     CurState = "FIND_ROPE";
-                    _animator.Play("64_26_2");
+                    //_animator.Play("64_26_2");
+                    // "Разжать правую руку"
+                    _animator.SetTrigger("FindRope");
+                    _animator.SetLayerWeight(1, 1f);
                 }
                 else
                 {
                     // остановить анимации
                     CurState = "IDLE";
                     _animator.Play("m_idle_neutral_01");
+                    //_animator.SetBool("FindRope", false);
                 }
             }
         }
@@ -104,6 +108,7 @@ public class Sailor : MonoBehaviour
         {
             CurState = "IDLE";
             _animator.Play("m_idle_neutral_01");
+            //_animator.SetBool("FindRope", false);
         }
     }
 
@@ -113,7 +118,9 @@ public class Sailor : MonoBehaviour
     private void TakeRopeHank()
     {
         print("TakeRopeHank");
-        GameObject.Find("Obi Rope").GetComponent<Obi.ObiPathSmoother>().enabled = true;
+        // Find убрать при возможности
+        GameObject.Find("Obi Rope").transform.SetParent(GameObject.Find("Obi Solver").transform);
+        _animator.SetBool("TakeRope", true); // Сжать правую руку
 
         if (WorkRope == null)
         {
@@ -122,13 +129,13 @@ public class Sailor : MonoBehaviour
         }
 
         rContr = WorkRope.GetComponent<RopeController>();
-        int[] points = { 100, 200, 300, 400 };
+        int[] points = { 50, 100, 150, 200 };
         rContr.FixPoints.Clear();
         rContr.FixPoints.AddRange(points);
         rContr.Fixator = RHand;
         CurState = "TAKE_HANK_R";
         rContr.CurState = "MANYPOINTS";
-
+       //_animator.SetBool("FindRope", false);
     }
 
     private void ThrowRope()
@@ -158,6 +165,8 @@ public class Sailor : MonoBehaviour
         rContr.CurState = "FREE";
 
         CurState = "IDLE";
+
+        _animator.SetLayerWeight(1, 0f); // "Разжать правую руку"
     }
 
     private void CatchRope()

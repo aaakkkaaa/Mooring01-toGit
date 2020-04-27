@@ -11,6 +11,7 @@ public class sAssist : MonoBehaviour
     UI_TextMessage _MessageScr;
 
 
+
     // Start is called before the first frame update
     void Start()
     {
@@ -100,7 +101,9 @@ public class sAssist : MonoBehaviour
     {
         // Переждать время 0.1 секунды
         yield return new WaitForSeconds(0.1f);
-        GameObject.Find("Obi Rope").GetComponent<Obi.ObiPathSmoother>().enabled = false;
+        // Find - ликвидировать при возможности
+        GameObject.Find("Obi Rope").transform.SetParent(GameObject.Find("BakedRope").transform);
+
     }
 
 

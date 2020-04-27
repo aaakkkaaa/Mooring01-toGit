@@ -300,6 +300,12 @@
     <Reference Include="SyntaxTree.VisualStudio.Unity.Bridge">
       <HintPath>C:/Program Files (x86)/Microsoft Visual Studio Tools for Unity/16.0/Editor/SyntaxTree.VisualStudio.Unity.Bridge.dll</HintPath>
     </Reference>
+    <Reference Include="UMotionApplication">
+      <HintPath>D:/00/Mooring/Warehouse/Mooring02-Anim/Assets/UMotionEditor/Plugins/Application/UMotionApplication.dll</HintPath>
+    </Reference>
+    <Reference Include="UMotionEditor">
+      <HintPath>D:/00/Mooring/Warehouse/Mooring02-Anim/Assets/UMotionEditor/Plugins/Editor/UMotionEditor.dll</HintPath>
+    </Reference>
     <Reference Include="ICSharpCode.NRefactory">
       <HintPath>D:/00/Mooring/Warehouse/Mooring02-Anim/Library/PackageCache/com.unity.render-pipelines.core@7.3.1/Editor/ShaderGenerator/ICSharpCode.NRefactory.dll</HintPath>
     </Reference>
