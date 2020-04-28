@@ -1,6 +1,31 @@
 # Change Log
 All notable changes to “Obi - Advanced ropes for Unity” will be documented in this file.
 
+## [5.3]
+
+### Added
+- Added adaptive rendering decimation to ObiPathSmoother, controllable using a curvature threshold.
+- Greatly increased numerical precision for rigidbody interaction when solvers are far away from the origin.
+- 2D colliders now span infinitely in the Z axis.
+
+### Fixed
+- Issue in the ObiStitcher editor that picked up incorrect particles when adding stitches.
+- Issue that caused a 1-frame delay for collider geometry parented inside a solver.
+- Issue in ObiParticleDragger that caused incorrect behavior with multiple solvers.
+- Bug in particle advection, that assumed diffuse particle positions to be expreseed in world space. Now advection works correctly
+for solvers not positioned at 0,0,0.
+
+## [5.2]
+
+### Added
+- Rope tear callback (cloth.OnRopeTorn)
+- Function to reset particle positions orientations and and velocities in an actor (actor.ResetParticles())
+- Added support for ObiRopeLineRenderer in SRPs.
+
+### Fixed
+- Issue with inertia rotations, that caused wrong inertia tensors for complex compound colliders.
+- Issue in particle attachments, that forced to call Bind() manually after changing their target or particle group at runtime.
+
 
 ## [5.1]
 

@@ -43,7 +43,7 @@ public class ObiColliderGrabber : MonoBehaviour
     private ObiCollider localCollider;                                                           /**< the collider on this gameObject.*/
     private HashSet<GrabbedParticle> grabbedParticles = new HashSet<GrabbedParticle>();          /**< set to store all currently grabbed particles.*/
     private Matrix4x4 grabber2Solver;
-    private Matrix4x4 solver2Grabber;
+    private Matrix4x4 solver2Grabber; 
 
     private void Awake()
     {
@@ -117,8 +117,8 @@ public class ObiColliderGrabber : MonoBehaviour
                     // if the current contact references our collider, proceed to grab the particle.
                     if (contactCollider == localCollider.SourceCollider)
                     {
-                        // try to grab the particle, if not already grabbed.
-                        GrabParticle(contact.particle);
+						// try to grab the particle, if not already grabbed.
+						GrabParticle(contact.particle);
                     }
                 }
             }
@@ -138,8 +138,6 @@ public class ObiColliderGrabber : MonoBehaviour
 
         grabbedParticles.Clear();
 
-        // Also update rest shape matching:
-        UpdateRestShapeMatching();
     }
 
     /**

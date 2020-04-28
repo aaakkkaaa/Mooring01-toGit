@@ -864,6 +864,34 @@ namespace Obi
             }
         }
 
+        /**
+         * Resets the position and velocity (no other property is affected) of all particles, to the values stored in the blueprint. Note however
+         * that this does not affect constraints, so if you've torn a cloth/rope or resized a rope, calling ResetParticles won't restore
+         * the initial topology of the actor.
+         */
+        public void ResetParticles()
+        {
+            if (isLoaded)
+            {
+                Matrix4x4 l2sTransform = actorLocalToSolverMatrix;
+                Quaternion l2sRotation = l2sTransform.rotation;
+
+                for (int i = 0; i < particleCount; ++i)
+                {
+                    int solverIndex = solverIndices[i];
+
+                    solver.positions[solverIndex] = l2sTransform.MultiplyPoint3x4(blueprint.positions[i]);
+                    solver.velocities[solverIndex] = l2sTransform.MultiplyVector(blueprint.velocities[i]);
+
+                    if (usesOrientedParticles)
+                    {
+                        solver.orientations[solverIndex] = l2sRotation * blueprint.orientations[i];
+                        solver.angularVelocities[solverIndex] = l2sTransform.MultiplyVector(blueprint.angularVelocities[i]);
+                    }
+                }
+            }
+        }
+
         #endregion
 
         #region State

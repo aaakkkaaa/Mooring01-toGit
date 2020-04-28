@@ -44,8 +44,8 @@ namespace Obi
                 if (value != m_Target)
                 {
                     Disable(m_AttachmentType);
-                    Bind();
                     m_Target = value;
+                    Bind();
                     UpdateEnabledState();
                 }
             }
@@ -63,8 +63,8 @@ namespace Obi
                 if (value != m_ParticleGroup)
                 {
                     Disable(m_AttachmentType);
-                    Bind();
                     m_ParticleGroup = value;
+                    Bind();
                     UpdateEnabledState();
                 }
             }

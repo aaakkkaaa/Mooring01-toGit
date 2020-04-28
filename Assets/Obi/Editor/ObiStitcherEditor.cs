@@ -127,7 +127,7 @@ namespace Obi{
 			if (stitcher.Actor1 == stitcher.Actor2){
 				float minDistance2 = float.MaxValue;
                 for (int i = 0; i < stitcher.Actor1.particleCount;++i){
-					Vector3 pos = stitcher.Actor1.GetParticlePosition(i);
+					Vector3 pos = stitcher.Actor1.GetParticlePosition(stitcher.Actor1.solverIndices[i]);
 					float distance1 = (pos - sewingToolHandle1).sqrMagnitude;
 					float distance2 = (pos - sewingToolHandle2).sqrMagnitude;
 					if (distance1 < minDistance){
@@ -143,7 +143,7 @@ namespace Obi{
 
 				// find closest particle to each end of the sewing tool:
                 for (int i = 0; i < stitcher.Actor1.particleCount;++i){
-					Vector3 pos = stitcher.Actor1.GetParticlePosition(i);
+					Vector3 pos = stitcher.Actor1.GetParticlePosition(stitcher.Actor1.solverIndices[i]);
 					float distance1 = (pos - sewingToolHandle1).sqrMagnitude;
 					float distance2 = (pos - sewingToolHandle2).sqrMagnitude;
 					float min = Mathf.Min(distance1,distance2);
@@ -155,7 +155,7 @@ namespace Obi{
 		
 				minDistance = float.MaxValue;
                 for (int i = 0; i < stitcher.Actor2.particleCount;++i){
-					Vector3 pos = stitcher.Actor2.GetParticlePosition(i);
+					Vector3 pos = stitcher.Actor2.GetParticlePosition(stitcher.Actor2.solverIndices[i]);
 					float distance1 = (pos - sewingToolHandle1).sqrMagnitude;
 					float distance2 = (pos - sewingToolHandle2).sqrMagnitude;
 					float min = Mathf.Min(distance1,distance2);
@@ -194,8 +194,8 @@ namespace Obi{
 
 				foreach(ObiStitcher.Stitch stitch in stitcher.Stitches){
 					
-					Vector3 pos1 = stitcher.Actor1.GetParticlePosition(stitch.particleIndex1);
-					Vector3 pos2 = stitcher.Actor2.GetParticlePosition(stitch.particleIndex2);
+					Vector3 pos1 = stitcher.Actor1.GetParticlePosition(stitcher.Actor1.solverIndices[stitch.particleIndex1]);
+					Vector3 pos2 = stitcher.Actor2.GetParticlePosition(stitcher.Actor2.solverIndices[stitch.particleIndex2]);
 	
 					switch (Event.current.GetTypeForControl(controlID)){
 						case EventType.MouseDown: 

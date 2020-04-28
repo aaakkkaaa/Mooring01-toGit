@@ -53,12 +53,16 @@ namespace Obi{
 					float closestMu		  = float.MaxValue;
 					float closestDistance = float.MaxValue;
 
+                    Matrix4x4 solver2World = solver.transform.localToWorldMatrix;
+
 					// Find the closest particle hit by the ray:
                     for (int i = 0; i < solver.renderablePositions.count; ++i){
-	
-						float mu;
-						Vector3 projected = ObiUtils.ProjectPointLine(solver.renderablePositions[i],ray.origin,ray.origin+ray.direction,out mu,false);
-						float distanceToRay = Vector3.SqrMagnitude((Vector3)solver.renderablePositions[i] - projected);
+
+                        Vector3 worldPos = solver2World.MultiplyPoint3x4(solver.renderablePositions[i]);
+
+                        float mu;
+						Vector3 projected = ObiUtils.ProjectPointLine(worldPos, ray.origin,ray.origin+ray.direction,out mu,false);
+						float distanceToRay = Vector3.SqrMagnitude(worldPos - projected);
 
 						// Disregard particles behind the camera:
 						mu = Mathf.Max(0,mu);
@@ -74,7 +78,7 @@ namespace Obi{
 			
 					if (pickedParticleIndex >= 0){
 
-						pickedParticleDepth = Camera.main.transform.InverseTransformVector((Vector3)solver.renderablePositions[pickedParticleIndex] - Camera.main.transform.position).z;
+						pickedParticleDepth = Camera.main.transform.InverseTransformVector(solver2World.MultiplyPoint3x4(solver.renderablePositions[pickedParticleIndex]) - Camera.main.transform.position).z;
 		
 						if (OnParticlePicked != null){
 							Vector3 worldPosition = Camera.main.ScreenToWorldPoint (new Vector3 (Input.mousePosition.x, Input.mousePosition.y, pickedParticleDepth));

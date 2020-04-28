@@ -1240,6 +1240,9 @@ namespace Obi
             if (!isActiveAndEnabled || oniSolver == IntPtr.Zero)
                 return IntPtr.Zero;
 
+            // Update inertial frame:
+            UpdateTransformFrame(stepTime);
+
             // Copy positions / orientations at the start of the step, for interpolation:
             startPositions.CopyFrom(positions);
             startOrientations.CopyFrom(orientations);
@@ -1274,9 +1277,6 @@ namespace Obi
 
                 foreach (ObiActor actor in actors)
                     actor.Substep(substepTime);
-
-                // Update inertial frame:
-                UpdateTransformFrame(substepTime);
 
                 // Update the solver (this is internally split in tasks so multiple solvers can be updated in parallel)
                 return Oni.Step(oniSolver, substepTime);

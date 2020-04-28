@@ -53,8 +53,8 @@ namespace Obi
 
 					if (drawSpring){
 						lineRenderer.positionCount = 2;
-						lineRenderer.SetPosition(0,targetPosition);
-						lineRenderer.SetPosition(1,position);
+						lineRenderer.SetPosition(0, pickArgs.worldPosition);
+						lineRenderer.SetPosition(1, solver.transform.TransformPoint(position));
 					}else{
 						lineRenderer.positionCount = 0;
 					}

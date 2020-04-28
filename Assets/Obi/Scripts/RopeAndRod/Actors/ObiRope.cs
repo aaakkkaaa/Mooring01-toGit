@@ -93,6 +93,21 @@ namespace Obi
             }
         }
 
+        public delegate void RopeTornCallback(ObiRope rope, ObiRopeTornEventArgs tearInfo);
+        public event RopeTornCallback OnRopeTorn;  /**< Called when a constraint is torn.*/
+
+        public class ObiRopeTornEventArgs
+        {
+            public ObiStructuralElement element;    /**< info about the element being torn.*/
+            public int particleIndex;               /**< index of the particle being torn*/
+
+            public ObiRopeTornEventArgs(ObiStructuralElement element, int particle)
+            {
+                this.element = element;
+                this.particleIndex = particle;
+            }
+        }
+
         protected override void OnValidate()
         {
             base.OnValidate();
@@ -205,6 +220,9 @@ namespace Obi
                 return false;
 
             element.particle1 = SplitParticle(element.particle1);
+
+            if (OnRopeTorn != null)
+                OnRopeTorn(this, new ObiRopeTornEventArgs(element, element.particle1));
 
             return true;
         }

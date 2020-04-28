@@ -30,7 +30,7 @@ namespace Obi
     public class ObiConstraints<T> : IObiConstraints where T : class, IObiConstraintsBatch
     {
         protected ObiActor actor;
-        protected ObiConstraints<T> source;
+        [NonSerialized] protected ObiConstraints<T> source;
 
         protected bool inSolver;
         [HideInInspector] public List<T> batches = new List<T>();

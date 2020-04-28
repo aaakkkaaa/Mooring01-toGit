@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Unity.Profiling;
 
 namespace Obi
@@ -24,6 +25,10 @@ namespace Obi
         ObiRopeBase rope;
         ObiPathSmoother smoother;
 
+#if (UNITY_2019_1_OR_NEWER)
+        System.Action<ScriptableRenderContext, Camera> renderCallback;
+#endif
+
         [HideInInspector] [NonSerialized] public Mesh lineMesh;
 
         [Range(0, 1)]
@@ -40,6 +45,10 @@ namespace Obi
 
             CreateMeshIfNeeded();
 
+#if (UNITY_2019_1_OR_NEWER)
+            renderCallback = new System.Action<ScriptableRenderContext, Camera>((cntxt, cam) => { UpdateRenderer(cam); });
+            RenderPipelineManager.beginCameraRendering += renderCallback;
+#endif
             Camera.onPreCull += UpdateRenderer;
 
             rope = GetComponent<ObiRopeBase>();
@@ -48,7 +57,12 @@ namespace Obi
 
         void OnDisable()
         {
+
+#if (UNITY_2019_1_OR_NEWER)
+            RenderPipelineManager.beginCameraRendering -= renderCallback;
+#endif
             Camera.onPreCull -= UpdateRenderer;
+
             GameObject.DestroyImmediate(lineMesh);
         }
 

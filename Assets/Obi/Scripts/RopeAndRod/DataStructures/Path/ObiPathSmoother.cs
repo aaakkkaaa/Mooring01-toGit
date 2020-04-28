@@ -2,6 +2,7 @@ using UnityEngine;
 using Unity.Profiling;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Obi
 {
@@ -15,8 +16,15 @@ namespace Obi
         private Matrix4x4 w2l;
         private Quaternion w2lRotation;
 
+        [Range(0, 1)]
+        [Tooltip("Curvature threshold below which the path will be decimated. A value of 0 won't apply any decimation. As you increase the value, decimation will become more aggresive.")]
+        public float decimation = 0;
+
         [Range(0, 3)]
+        [Tooltip("Smoothing iterations applied to the path. A smoothing value of 0 won't perform any smoothing at all. Note that smoothing is applied after decimation.")]
         public uint smoothing = 0;
+
+        [Tooltip("Twist in degrees applied to each sucessive path section.")]
         public float twist = 0;
 
         public event ObiActor.ActorCallback OnCurveGenerated;
@@ -26,6 +34,7 @@ namespace Obi
 
         [HideInInspector] public ObiList<ObiList<ObiPathFrame>> rawChunks = new ObiList<ObiList<ObiPathFrame>>();
         [HideInInspector] public ObiList<ObiList<ObiPathFrame>> smoothChunks = new ObiList<ObiList<ObiPathFrame>>();
+        private Stack<Vector2Int> stack = new Stack<Vector2Int>();
 
         public float SmoothLength
         {
@@ -206,6 +215,15 @@ namespace Obi
                     // increment chunkStart by the amount of elements in this chunk:
                     chunkStart += elementCount;
 
+                    // adaptive curvature-based decimation:
+                    if (Decimate(rawChunks[i], smoothChunks[i], decimation))
+                    {
+                        // if any decimation took place, swap raw and smooth chunks:
+                        var aux = rawChunks[i];
+                        rawChunks[i] = smoothChunks[i];
+                        smoothChunks[i] = aux;
+                    }
+
                     // get smooth curve points:
                     Chaikin(rawChunks[i], smoothChunks[i], smoothingLevels);
 
@@ -242,11 +260,67 @@ namespace Obi
             return (1 - sectionMu) * s1 + sectionMu * s2;
         }
 
-        /** 
-         * This method uses a variant of Chainkin's algorithm to produce a smooth curve from a set of control points. It is specially fast
-         * because it directly calculates subdivision level k, instead of recursively calculating levels 1..k.
+        /**
+         * Iterative version of the Ramer-Douglas-Peucker path decimation algorithm. 
          */
-        public static void Chaikin(ObiList<ObiPathFrame> input, ObiList<ObiPathFrame> output, uint k)
+        private bool Decimate(ObiList<ObiPathFrame> input, ObiList<ObiPathFrame> output, float threshold)
+        {
+            // no decimation, no work to do, just return:
+            if (threshold < 0.00001f || input.Count < 3)
+                return false;
+
+            float scaledThreshold = threshold * threshold * 0.01f;
+
+            stack.Push(new Vector2Int(0, input.Count - 1));
+            var bitArray = new BitArray(input.Count, true);
+
+            while (stack.Count > 0)
+            {
+                var range = stack.Pop();
+
+                float dmax = 0;
+                int index = range.x;
+                float mu = 0;
+
+                for (int i = index + 1; i < range.y; ++i)
+                {
+                    if (bitArray[i])
+                    {
+                        float d = Vector3.SqrMagnitude(ObiUtils.ProjectPointLine(input[i].position, input[range.x].position, input[range.y].position, out mu) - input[i].position);
+
+                        if (d > dmax)
+                        {
+                            index = i;
+                            dmax = d;
+                        }
+                    }
+                }
+
+                if (dmax > scaledThreshold)
+                {
+                    stack.Push(new Vector2Int(range.x, index));
+                    stack.Push(new Vector2Int(index, range.y));
+                }
+                else
+                {
+                    for (int i = range.x + 1; i < range.y; ++i)
+                        bitArray[i] = false;
+                }
+            }
+
+            output.Clear();
+            for (int i = 0; i < bitArray.Count; ++i)
+                if (bitArray[i])
+                    output.Add(input[i]);
+
+            return true;
+        }
+
+        /** 
+        * This method uses a variant of Chainkin's algorithm to produce a smooth curve from a set of control points. It is specially fast
+        * because it directly calculates subdivision level k, instead of recursively calculating levels 1..k.
+        */
+        private void Chaikin(ObiList<ObiPathFrame> input, ObiList<ObiPathFrame> output, uint k)
         {
             // no subdivision levels, no work to do. just copy the input to the output:
             if (k == 0 || input.Count < 3)
@@ -293,5 +367,6 @@ namespace Obi
             output[0] = input[0];
             output[output.Count - 1] = input[input.Count - 1];
         }
+        
     }
 }
