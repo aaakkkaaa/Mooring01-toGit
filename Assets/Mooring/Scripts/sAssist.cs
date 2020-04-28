@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Obi;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -10,7 +11,8 @@ public class sAssist : MonoBehaviour
     [SerializeField]
     UI_TextMessage _MessageScr;
 
-
+    // канаты для выключения моделирования
+    private ObiRope[] _ropes;
 
     // Start is called before the first frame update
     void Start()
@@ -101,9 +103,13 @@ public class sAssist : MonoBehaviour
     {
         // Переждать время 0.1 секунды
         yield return new WaitForSeconds(0.1f);
-        // Find - ликвидировать при возможности
-        GameObject.Find("Obi Rope").transform.SetParent(GameObject.Find("BakedRope").transform);
 
+        // Find - ликвидировать при возможности
+        _ropes = FindObjectsOfType<ObiRope>();
+        for(int i=0; i< _ropes.Length; i++)
+        {
+            _ropes[i].transform.SetParent(GameObject.Find("BakedRope").transform);
+        }
     }
 
 

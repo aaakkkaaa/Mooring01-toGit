@@ -63,8 +63,7 @@ public class Sailor : MonoBehaviour
     }
 
 
-
-    // после вытягивания впереде левой руки притягивает к руке ближайший шарик рабочего каната
+    // после вытягивания вперед правой руки притягивает к руке ближайший шарик рабочего каната
     public void FindRope()
     {
         print("FindRope");
@@ -113,8 +112,7 @@ public class Sailor : MonoBehaviour
     }
 
 
-
-    // Взять бухту каната
+    // Взять бухту каната в правую руку
     private void TakeRopeHank()
     {
         print("TakeRopeHank");
@@ -129,13 +127,12 @@ public class Sailor : MonoBehaviour
         }
 
         rContr = WorkRope.GetComponent<RopeController>();
-        int[] points = { 50, 100, 150, 200 };
+       int[] points = { 50, 90, 130 };
         rContr.FixPoints.Clear();
         rContr.FixPoints.AddRange(points);
         rContr.Fixator = RHand;
         CurState = "TAKE_HANK_R";
         rContr.CurState = "MANYPOINTS";
-       //_animator.SetBool("FindRope", false);
     }
 
     private void ThrowRope()
@@ -161,12 +158,16 @@ public class Sailor : MonoBehaviour
         {
             startPoint = LHand.transform.position;
         }
-        rContr.ThrowTo(RopeTarget.transform.position - startPoint);
+        rContr.ThrowTo(RopeTarget.transform.position - startPoint, 2.5f);
         rContr.CurState = "FREE";
 
         CurState = "IDLE";
 
         _animator.SetLayerWeight(1, 0f); // "Разжать правую руку"
+
+        // сообщим маринеро, чтобы принял позу ловца
+        Marinero marinero = RopeTarget.GetComponent<Marinero>();
+        marinero.CatchRope();
     }
 
     private void CatchRope()
