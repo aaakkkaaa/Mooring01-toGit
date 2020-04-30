@@ -21,6 +21,9 @@ public class Marinero : MonoBehaviour
     public ObiRope WorkRope;
     // направление броска каната
     public GameObject RopeTarget;
+    // индекс рабочей частицы
+    private int _ropeIdx;
+    private int _ropeDragStep=5;
 
     private ObiSolver _solver;
     private Collider _coll;
@@ -49,7 +52,8 @@ public class Marinero : MonoBehaviour
             _solver.OnCollision += SolverOnCollision;
             // включить притяжение каната к руке
             rContr = WorkRope.GetComponent<RopeController>();
-            int[] points = { 120 };
+            _ropeIdx = 120;
+            int[] points = { _ropeIdx };
             rContr.FixPoints.Clear();
             rContr.FixPoints.AddRange(points);
             rContr.Fixator = RHand;
@@ -83,18 +87,73 @@ public class Marinero : MonoBehaviour
         if(isRopeContact)
         {
             print("Канат долетел до коллайдера Маринеро");
+            // отключаем отлов столкновений
             _solver.OnCollision -= SolverOnCollision;
+            
+            // запускаем анимацию ловли
             _animator.SetTrigger("CatchNow");
 
             // включить притяжение каната к руке
             rContr = WorkRope.GetComponent<RopeController>();
-            int[] points = { 120 };
+            int[] points = { _ropeIdx };
             rContr.FixPoints.Clear();
             rContr.FixPoints.AddRange(points);
             rContr.Fixator = RHand;
             CurState = "TAKE_HANK_R";
             rContr.CurState = "MANYPOINTS";
+
+            StartCoroutine(FreezeRope(0.3f, "DragNow") );
         }
     }
+
+
+
+    // при вытягивании каната вызываются по очереди
+    void TakeRopeToLeftHand()
+    {
+        print("TakeRopeToLeftHand()");
+        _ropeIdx -= _ropeDragStep;
+        // нужно будет переделать потом условие в зависимости от расстояния до утки
+        if (_ropeIdx > 30)
+        {
+            rContr.FixPoints[0] = _ropeIdx;
+            rContr.Fixator = LHand;
+            CurState = "DRAG_ROPE_L";
+            rContr.CurState = "MANYPOINTS";
+        }
+        else
+        {
+            _animator.SetTrigger("EndDrag");
+        }
+
+    }
+    void TakeRopeToRightHand()
+    {
+        print("TakeRopeToRightHand()");
+        _ropeIdx -= _ropeDragStep;
+        // нужно будет переделать потом условие в зависимости от расстояния до утки
+        if (_ropeIdx > 30)
+        {
+            rContr.FixPoints[0] = _ropeIdx;
+            rContr.Fixator = RHand;
+            CurState = "DRAG_ROPE_R";
+            rContr.CurState = "MANYPOINTS";
+        }
+        else
+        {
+            _animator.SetTrigger("EndDrag");
+        }
+
+    }
+
+    // Запустить анимацию после зарержки
+    IEnumerator FreezeRope( float wait, string trig )
+    {
+        // Переждать время 
+        yield return new WaitForSeconds(wait);
+        // Толкнуть анимацию триггером
+        _animator.SetTrigger(trig);
+    }
+
 
 }
