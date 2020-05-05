@@ -12,7 +12,7 @@ public class Sailor : MonoBehaviour
     private RopeController rContr;
 
     [NonSerialized]
-    public string[] States = { "IDLE", "FIND_ROPE", "TAKE_HANK_R", "TAKE_HANK_L", "THROW_ROPE", "DRAG_ROPE_L", "DRAG_ROPE_R", "FIX_ROPE" };
+    public string[] States = { "IDLE", "FIND_ROPE", "TAKE_HANK_R", "TAKE_HANK_L", "THROW_ROPE", "DRAG_ROPE_L", "DRAG_ROPE_R", "FIX_ROPE", "WAIT_DISTANCE" };
     [NonSerialized]
     public string CurState = "IDLE";
 
@@ -59,6 +59,17 @@ public class Sailor : MonoBehaviour
                     //_animator.SetBool("FindRope", false);
                 }
             }
+        }
+        if(CurState == "WAIT_DISTANCE")
+        {
+            rContr = WorkRope.GetComponent<RopeController>();
+            float dist = Vector3.Magnitude(transform.position - RopeTarget.transform.position);
+            if (dist < 5)
+            {
+                _animator.SetTrigger("ThrowRope");
+                CurState = "THROW_ROPE";
+            }
+
         }
     }
 
@@ -133,6 +144,24 @@ public class Sailor : MonoBehaviour
         rContr.Fixator = RHand;
         CurState = "TAKE_HANK_R";
         rContr.CurState = "MANYPOINTS";
+    }
+
+    // Проверить дистанцию и или бросить, или ждать
+    private void VerifyDistance()
+    {
+        print("VerifyDistance");
+        rContr = WorkRope.GetComponent<RopeController>();
+        float dist = Vector3.Magnitude( transform.position - RopeTarget.transform.position);
+        if(dist<5)
+        {
+            _animator.SetTrigger("ThrowRope");
+            CurState = "THROW_ROPE";
+        }
+        else
+        {
+            _animator.SetTrigger("WaitDistance");
+            CurState = "WAIT_DISTANCE";
+        }
     }
 
     private void ThrowRope()
