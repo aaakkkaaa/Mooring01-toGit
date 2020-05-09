@@ -29,8 +29,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6173773256248134618}
   m_LocalRotation: {x: 0, y: 0, z: -0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: -1.05, y: 0, z: -0}
-  m_LocalScale: {x: 0.2, y: 0.25, z: 0.2}
+  m_LocalPosition: {x: -1, y: -0, z: -0}
+  m_LocalScale: {x: 0.2, y: 0.3, z: 0.2}
   m_Children: []
   m_Father: {fileID: 6173773256831463028}
   m_RootOrder: 3
@@ -123,7 +123,7 @@ ConfigurableJoint:
   m_Anchor: {x: 0, y: 1.0000006, z: 0}
   m_Axis: {x: 1, y: 0, z: 0}
   m_AutoConfigureConnectedAnchor: 1
-  m_ConnectedAnchor: {x: 0.000003965397, y: 1.0000015, z: 0.00011570228}
+  m_ConnectedAnchor: {x: -0.000003918104, y: 1.0000055, z: -0.00014619582}
   serializedVersion: 2
   m_SecondaryAxis: {x: 0, y: 1, z: 0}
   m_XMotion: 0
@@ -218,7 +218,7 @@ GameObject:
   - component: {fileID: 6173773256831463028}
   - component: {fileID: 6173773256831463031}
   m_Layer: 0
-  m_Name: FenderJ
+  m_Name: Fender
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -389,6 +389,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 958c969cfb16745f192d4d7bd28b7178, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  decimation: 0
   smoothing: 0
   twist: 0
 --- !u!114 &6173773257928167850
@@ -483,8 +484,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6665465499641281923}
   m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: -0.4, y: -0, z: -0}
-  m_LocalScale: {x: 0.016, y: 0.4, z: 0.016}
+  m_LocalPosition: {x: -0.35, y: -0, z: -0}
+  m_LocalScale: {x: 0.016, y: 0.35, z: 0.016}
   m_Children: []
   m_Father: {fileID: 6173773256831463028}
   m_RootOrder: 1
@@ -577,7 +578,7 @@ ConfigurableJoint:
   m_Anchor: {x: 0, y: -1, z: 0}
   m_Axis: {x: 1, y: 0, z: 0}
   m_AutoConfigureConnectedAnchor: 1
-  m_ConnectedAnchor: {x: -1.8926563, y: 1.635, z: -0.0019991398}
+  m_ConnectedAnchor: {x: -1.5812994, y: 1.6808, z: 1.8658}
   serializedVersion: 2
   m_SecondaryAxis: {x: 0, y: 1, z: 0}
   m_XMotion: 0
