@@ -13,6 +13,7 @@ public class sAssist : MonoBehaviour
 
     // канаты для выключения моделирования
     private ObiRope[] _ropes;
+    private ropeTrick[] _ropeTricks;
 
     // Start is called before the first frame update
     void Start()
@@ -60,7 +61,7 @@ public class sAssist : MonoBehaviour
                 {
                     mySoundStep = 0.1f;
                 }
-                else if(Input.GetKey("-")) // -
+                else if (Input.GetKey("-")) // -
                 {
                     mySoundStep = -0.1f;
                 }
@@ -106,9 +107,14 @@ public class sAssist : MonoBehaviour
 
         // Find - ликвидировать при возможности
         _ropes = FindObjectsOfType<ObiRope>();
-        for(int i=0; i< _ropes.Length; i++)
+        for (int i = 0; i < _ropes.Length; i++)
         {
             _ropes[i].transform.SetParent(GameObject.Find("BakedRope").transform);
+        }
+        _ropeTricks = FindObjectsOfType<ropeTrick>();
+        for (int i = 0; i < _ropes.Length; i++)
+        {
+            _ropeTricks[i].gameObject.SetActive(false);
         }
     }
 
