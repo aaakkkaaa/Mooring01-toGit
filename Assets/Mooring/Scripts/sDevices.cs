@@ -65,7 +65,8 @@ public class sDevices : MonoBehaviour
 
     // Органы управления -----------------------------
 
-    Transform _HelmWheel;                     // Штурвал
+    [SerializeField] Transform _HelmWheel;    // Штурвал
+    [SerializeField] Transform _HelmWheel2;   // Второй штурвал
     Transform _ThrottleLever;                 // Ручка газ-реверс
     //float _Mile = 1852.0f;                  // Морская миля = 1852 метра
     //float _Knot = 0.5144f;                  // Скорость 1 узел = 0.514... метр/сек.
@@ -86,7 +87,7 @@ public class sDevices : MonoBehaviour
 
         // Органы управления -----------------------------
 
-        _HelmWheel = GameObject.Find("HelmWheel").transform;                         // Штурвал
+        //_HelmWheel = GameObject.Find("HelmWheel").transform;                         // Штурвал
         _ThrottleLever = GameObject.Find("ThrottleLever").transform;                 // Ручка газ-реверс
         // Источник пены
         _FoamGen = GameObject.Find("FoamGenAft");
@@ -135,7 +136,7 @@ public class sDevices : MonoBehaviour
         myVect = _HelmWheel.localEulerAngles;
         myVect.z = _YachtSolver.steeringWheel + 30;
         //myVect.z = - Mathf.Lerp(-540, 540, (steeringWheel + 35) / 70.0f);
-        _HelmWheel.localEulerAngles = myVect;
+        _HelmWheel.localEulerAngles = _HelmWheel2.localEulerAngles = myVect;
 
         // Изменить высоту звука двигателя, выключить/включить шум воды и пену 
 
