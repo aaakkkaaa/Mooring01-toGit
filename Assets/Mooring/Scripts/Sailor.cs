@@ -60,7 +60,7 @@ public class Sailor : MonoBehaviour
                 }
             }
         }
-        if(CurState == "WAIT_DISTANCE")
+        if (CurState == "WAIT_DISTANCE")
         {
             rContr = WorkRope.GetComponent<RopeController>();
             float dist = Vector3.Magnitude(transform.position - RopeTarget.transform.position);
@@ -103,13 +103,13 @@ public class Sailor : MonoBehaviour
         {
             _workIdx = minIdx;
             rContr = WorkRope.GetComponent<RopeController>();
-            if(rContr.FixPoints.Count == 0)
+            if (rContr.FixPoints.Count == 0)
             {
                 rContr.FixPoints.Add(_workIdx);
             }
             else
             {
-                rContr.FixPoints[0] = _workIdx; 
+                rContr.FixPoints[0] = _workIdx;
             }
             rContr.Fixator = RHand;
             CurState = "DRAG_ROPE_R";
@@ -138,11 +138,11 @@ public class Sailor : MonoBehaviour
         }
 
         rContr = WorkRope.GetComponent<RopeController>();
-       int[] points = { 50, 90, 130 };
+        int[] points = { 50, 90, 130 };
         rContr.FixPoints.Clear();
         rContr.FixPoints.AddRange(points);
         rContr.Fixator = RHand;
-        CurState = "TAKE_HANK_R";
+        CurState = "WAIT_DISTANCE";
         rContr.CurState = "MANYPOINTS";
     }
 
@@ -151,8 +151,8 @@ public class Sailor : MonoBehaviour
     {
         print("VerifyDistance");
         rContr = WorkRope.GetComponent<RopeController>();
-        float dist = Vector3.Magnitude( transform.position - RopeTarget.transform.position);
-        if(dist<5)
+        float dist = Vector3.Magnitude(transform.position - RopeTarget.transform.position);
+        if (dist < 5)
         {
             _animator.SetTrigger("ThrowRope");
             CurState = "THROW_ROPE";
@@ -179,7 +179,7 @@ public class Sailor : MonoBehaviour
         rContr.Fixator = null;
         // определим направление броска в глобальных координатах
         Vector3 startPoint;
-        if(CurState == "TAKE_HANK_R")
+        if (CurState == "TAKE_HANK_R")
         {
             startPoint = RHand.transform.position;
         }

@@ -13,7 +13,7 @@ public class Marinero : MonoBehaviour
     private RopeController rContr;
 
     [NonSerialized]
-    public string[] States = { "IDLE", "FIND_ROPE", "TAKE_HANK_R", "TAKE_HANK_L", "THROW_ROPE", "DRAG_ROPE_L", "DRAG_ROPE_R", "FIX_ROPE" };
+    public string[] States = { "IDLE", "FIND_ROPE", "TAKE_HANK_R", "TAKE_HANK_L", "THROW_ROPE", "DRAG_ROPE_L", "DRAG_ROPE_R", "FIX_ROPE",  "PUSH_ROPE" };
     [NonSerialized]
     public string CurState = "IDLE";
 
@@ -24,6 +24,9 @@ public class Marinero : MonoBehaviour
     // индекс рабочей частицы
     private int _ropeIdx;
     private int _ropeDragStep=5;
+
+    // Утка с которой работает маринеро
+    public GameObject WorkCleat;
 
     private ObiSolver _solver;
     private Collider _coll;
@@ -101,12 +104,67 @@ public class Marinero : MonoBehaviour
             rContr.Fixator = RHand;
             CurState = "TAKE_HANK_R";
             rContr.CurState = "MANYPOINTS";
-
-            StartCoroutine(FreezeRope(0.3f, "DragNow") );
         }
     }
 
+    // надо перехватить левой рукой за последнюю частицу
+    void GetEndOfRopeToLeftHand()
+    {
+        // включить притяжение крайней точки каната правой руке
+        rContr = WorkRope.GetComponent<RopeController>();
+        _ropeIdx = WorkRope.activeParticleCount - 1;
+        int[] points = { _ropeIdx };
+        rContr.FixPoints.Clear();
+        rContr.FixPoints.AddRange(points);
+        rContr.Fixator = LHand;
+        CurState = "DRAG_ROPE_L";
+        rContr.CurState = "MANYPOINTS";
+    }
 
+    // вызывается из анимации когда надо просунуть канат в утку
+    void PushThroughToTarget1()
+    {
+        print("PushThroughToLeftHand()");
+        // включить притяжение крайней точки каната к Target1
+        rContr = WorkRope.GetComponent<RopeController>();
+        _ropeIdx = WorkRope.activeParticleCount - 1;
+        int[] points = { _ropeIdx };
+        rContr.FixPoints.Clear();
+        rContr.FixPoints.AddRange(points);
+        GameObject attract = WorkCleat.transform.Find("Target1").gameObject;
+        rContr.Fixator = attract;
+        CurState = "PUSH_ROPE";
+        rContr.CurState = "MANYPOINTS";
+    }
+
+    void PushThroughToTarget2()
+    {
+        print("PushThroughToRightHand()");
+        // включить притяжение крайней точки каната к Target2
+        rContr = WorkRope.GetComponent<RopeController>();
+        _ropeIdx = WorkRope.activeParticleCount - 1;
+        int[] points = { _ropeIdx };
+        rContr.FixPoints.Clear();
+        rContr.FixPoints.AddRange(points);
+        GameObject attract = WorkCleat.transform.Find("Target2").gameObject;
+        rContr.Fixator = attract;
+        CurState = "PUSH_ROPE";
+        rContr.CurState = "MANYPOINTS";
+    }
+
+    void AfterPush()
+    {
+        // включить притяжение крайней точки каната правой руке
+        rContr = WorkRope.GetComponent<RopeController>();
+        _ropeIdx = WorkRope.activeParticleCount - 1;
+        int[] points = { _ropeIdx };
+        rContr.FixPoints.Clear();
+        rContr.FixPoints.AddRange(points);
+        rContr.Fixator = RHand;
+        CurState = "DRAG_ROPE_R";
+        rContr.CurState = "MANYPOINTS";
+
+    }
 
     // при вытягивании каната вызываются по очереди
     void TakeRopeToLeftHand()

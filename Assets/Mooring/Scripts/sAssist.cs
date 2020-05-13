@@ -11,6 +11,9 @@ public class sAssist : MonoBehaviour
     [SerializeField]
     UI_TextMessage _MessageScr;
 
+    // яхта
+    public GameObject MainShip;
+
     // канаты для выключения моделирования
     private ObiRope[] _ropes;
     private ropeTrick[] _ropeTricks;
@@ -18,6 +21,10 @@ public class sAssist : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        // Зафиксировать положение яхты чтобы избавиться от конфликта с канатом
+        Rigidbody ship = MainShip.GetComponent<Rigidbody>();
+        ship.constraints = RigidbodyConstraints.FreezeAll;
+
         // Запустить корутину Регулировки громкости
         StartCoroutine(ChangeVolume());
 
@@ -116,6 +123,8 @@ public class sAssist : MonoBehaviour
         {
             _ropeTricks[i].gameObject.SetActive(false);
         }
+        Rigidbody ship = MainShip.GetComponent<Rigidbody>();
+        ship.constraints = RigidbodyConstraints.None;
     }
 
 
