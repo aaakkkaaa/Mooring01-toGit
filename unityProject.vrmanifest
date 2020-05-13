@@ -5,7 +5,7 @@
       "app_key": "application.generated.unity.mooring01.exe",
       "launch_type": "url",
       "url": "steam://launch/",
-      "action_manifest_path": "D:\\00\\Mooring\\Warehouse\\Mooring05\\Assets\\StreamingAssets\\SteamVR\\actions.json",
+      "action_manifest_path": "D:\\00\\Mooring\\Warehouse\\Mooring07\\Assets\\StreamingAssets\\SteamVR\\actions.json",
       "strings": {
         "en_us": {
           "name": "Mooring01 [Testing]"

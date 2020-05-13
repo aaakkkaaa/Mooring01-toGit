@@ -14,6 +14,18 @@ public class sAssist : MonoBehaviour
     // яхта
     public GameObject MainShip;
 
+    // Трекер, закрепленный на консоли шутрвала в реальном пространстве
+    [SerializeField]
+    Transform _ConsoleTracker;
+
+    // Точка, где должен находиться этот трекер в виртуальном пространстве
+    [SerializeField]
+    Transform _ConsoleTrackerTrackerPose;
+
+    // Вспомогательный объект для коррекции положения [Camera Rig]
+    [SerializeField]
+    Transform _TrackerTempPose;
+
     // канаты для выключения моделирования
     private ObiRope[] _ropes;
     private ropeTrick[] _ropeTricks;
@@ -125,6 +137,31 @@ public class sAssist : MonoBehaviour
         }
         Rigidbody ship = MainShip.GetComponent<Rigidbody>();
         ship.constraints = RigidbodyConstraints.None;
+
+        // Провести калибровку положения базы камеры ([CameraRig]) относительно трекера HTC Vive, закрепленного на консоли штурвала в реальном пространстве
+
+        // Высота консоли в модели яхты
+        if (_ConsoleTracker.localPosition.y != 0.0f) // если VR работает
+        {
+            Transform Console = _ConsoleTrackerTrackerPose.parent;
+            Vector3 ConcolePos = Console.localPosition;
+            print("Высота установки консоли была: " + ConcolePos.y);
+            ConcolePos.y += _ConsoleTracker.position.y - _ConsoleTrackerTrackerPose.position.y;
+            print("Высота установки консоли стала: " + ConcolePos.y);
+            Console.localPosition = ConcolePos;
+
+            // Положение трекера в пространстве
+            Transform CameraRig = _ConsoleTracker.parent;
+            Transform MainShip = CameraRig.parent;
+            _TrackerTempPose.SetParent(MainShip);
+            CameraRig.SetParent(_TrackerTempPose);
+            _TrackerTempPose.position = _ConsoleTrackerTrackerPose.position;
+            CameraRig.SetParent(MainShip);
+            _TrackerTempPose.SetParent(_ConsoleTracker);
+            _TrackerTempPose.position = Vector3.zero;
+
+        }
+
     }
 
 
