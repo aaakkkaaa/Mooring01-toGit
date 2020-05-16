@@ -41,7 +41,7 @@ public class sAssist : MonoBehaviour
         StartCoroutine(ChangeVolume());
 
         // Выключить обработку каната
-        StartCoroutine(FreezeRope());
+        StartCoroutine(AfterStart());
 
     }
 
@@ -119,7 +119,7 @@ public class sAssist : MonoBehaviour
     }
 
     // Выключить обработку каната
-    IEnumerator FreezeRope()
+    IEnumerator AfterStart()
     {
         // Переждать время 0.1 секунды
         yield return new WaitForSeconds(0.1f);

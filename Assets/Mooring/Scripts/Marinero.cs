@@ -23,7 +23,7 @@ public class Marinero : MonoBehaviour
     public GameObject RopeTarget;
     // индекс рабочей частицы
     private int _ropeIdx;
-    private int _ropeDragStep=5;
+    private int _ropeDragStep=20;
 
     // Утка с которой работает маринеро
     public GameObject WorkCleat;
@@ -125,8 +125,13 @@ public class Marinero : MonoBehaviour
     void PushThroughToTarget1()
     {
         print("PushThroughToLeftHand()");
-        // включить притяжение крайней точки каната к Target1
+        
         rContr = WorkRope.GetComponent<RopeController>();
+        // выстроить крайние точки каната по линии, чтобы потом продеть в утку
+        Vector3 t1 = WorkCleat.transform.Find("Target1").position;
+        Vector3 t2 = WorkCleat.transform.Find("Target2").position;
+        rContr.MoveTo(t1, t2, 15);
+        // включить притяжение крайней точки каната к Target1
         _ropeIdx = WorkRope.activeParticleCount - 1;
         int[] points = { _ropeIdx };
         rContr.FixPoints.Clear();
@@ -136,6 +141,7 @@ public class Marinero : MonoBehaviour
         CurState = "PUSH_ROPE";
         rContr.CurState = "MANYPOINTS";
     }
+
 
     void PushThroughToTarget2()
     {
@@ -154,6 +160,7 @@ public class Marinero : MonoBehaviour
 
     void AfterPush()
     {
+        print(gameObject.name + " - AfterPush()");
         // включить притяжение крайней точки каната правой руке
         rContr = WorkRope.GetComponent<RopeController>();
         _ropeIdx = WorkRope.activeParticleCount - 1;
@@ -163,48 +170,49 @@ public class Marinero : MonoBehaviour
         rContr.Fixator = RHand;
         CurState = "DRAG_ROPE_R";
         rContr.CurState = "MANYPOINTS";
-
     }
 
-    // при вытягивании каната вызываются по очереди
-    void TakeRopeToLeftHand()
+    // Канат вытягивается правой рукой а бухта собирается в левой руке
+    void DragRopeWorpPointToLeft()
     {
-        print("TakeRopeToLeftHand()");
-        _ropeIdx -= _ropeDragStep;
-        // нужно будет переделать потом условие в зависимости от расстояния до утки
-        if (_ropeIdx > 30)
+        print(gameObject.name + " - DragRopeWorpPointToLeft()");
+        rContr = WorkRope.GetComponent<RopeController>();
+        // если это первая итерация, то канат в правой руке, а в левой пусто
+        if (rContr.CurState == "MANYPOINTS")
         {
-            rContr.FixPoints[0] = _ropeIdx;
+            // передадим канат в левую руку 
             rContr.Fixator = LHand;
-            CurState = "DRAG_ROPE_L";
-            rContr.CurState = "MANYPOINTS";
+            // укажем, новое текущее состояние
+            rContr.CurState = "MANY_AND_ONE";
+            // но второй точки фиксации пока нет
+            rContr.Fixator2 = null;
         }
-        else
+        else if(rContr.CurState == "MANY_AND_ONE")
         {
-            _animator.SetTrigger("EndDrag");
+            // добавим текущую точку фиксации из правой руки в левую
+            rContr.FixPoints.Add(_ropeIdx);
+            // освободим правую руку
+            rContr.Fixator2 = null;
+            // если дотянули до предела
+            if (_ropeIdx < 70)
+            {
+                rContr.Fixator2 = null;
+                _animator.SetTrigger("EndDrag");
+                rContr.CurState = "MANYPOINTS";
+            }    
         }
-
     }
-    void TakeRopeToRightHand()
+
+    void DragRopeNewWorpPointToRight()
     {
-        print("TakeRopeToRightHand()");
+        print(gameObject.name + " - DragRopeNewWorpPointToRight()");
         _ropeIdx -= _ropeDragStep;
-        // нужно будет переделать потом условие в зависимости от расстояния до утки
-        if (_ropeIdx > 30)
-        {
-            rContr.FixPoints[0] = _ropeIdx;
-            rContr.Fixator = RHand;
-            CurState = "DRAG_ROPE_R";
-            rContr.CurState = "MANYPOINTS";
-        }
-        else
-        {
-            _animator.SetTrigger("EndDrag");
-        }
-
+        rContr.Fixator2 = RHand;
+        rContr.FixPoint2 = _ropeIdx;
     }
 
-    // Запустить анимацию после зарержки
+
+    // Запустить анимацию после задержки
     IEnumerator FreezeRope( float wait, string trig )
     {
         // Переждать время 
