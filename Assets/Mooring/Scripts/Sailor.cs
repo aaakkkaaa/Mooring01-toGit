@@ -49,14 +49,13 @@ public class Sailor : MonoBehaviour
                     //_animator.Play("64_26_2");
                     // "Разжать правую руку"
                     _animator.SetTrigger("FindRope");
-                    _animator.SetLayerWeight(1, 1f);
+                    //_animator.SetLayerWeight(1, 1f);
                 }
                 else
                 {
                     // остановить анимации
                     CurState = "IDLE";
                     _animator.Play("m_idle_neutral_01");
-                    //_animator.SetBool("FindRope", false);
                 }
             }
         }
@@ -103,15 +102,15 @@ public class Sailor : MonoBehaviour
         {
             _workIdx = minIdx;
             rContr = WorkRope.GetComponent<RopeController>();
-            if (rContr.FixPoints.Count == 0)
+            if (rContr.FlyPoints.Count == 0)
             {
-                rContr.FixPoints.Add(_workIdx);
+                rContr.FlyPoints.Add(_workIdx);
             }
             else
             {
-                rContr.FixPoints[0] = _workIdx;
+                rContr.FlyPoints[0] = _workIdx;
             }
-            rContr.Fixator = RHand;
+            rContr.FlyTarget = RHand;
             CurState = "DRAG_ROPE_R";
         }
         else
@@ -129,7 +128,7 @@ public class Sailor : MonoBehaviour
         print("TakeRopeHank");
         // Find убрать при возможности
         GameObject.Find("Obi Rope").transform.SetParent(GameObject.Find("Obi Solver").transform);
-        _animator.SetBool("TakeRope", true); // Сжать правую руку
+        //_animator.SetBool("TakeRope", true); // Сжать правую руку
 
         if (WorkRope == null)
         {
@@ -139,11 +138,10 @@ public class Sailor : MonoBehaviour
 
         rContr = WorkRope.GetComponent<RopeController>();
         int[] points = { 50, 90, 130 };
-        rContr.FixPoints.Clear();
-        rContr.FixPoints.AddRange(points);
-        rContr.Fixator = RHand;
+        rContr.SetAttractors(RHand, points, 3);
+      
         CurState = "WAIT_DISTANCE";
-        rContr.CurState = "MANYPOINTS";
+        rContr.CurState = "ATTRACT";
     }
 
     // Проверить дистанцию и или бросить, или ждать
@@ -152,7 +150,7 @@ public class Sailor : MonoBehaviour
         print("VerifyDistance");
         rContr = WorkRope.GetComponent<RopeController>();
         float dist = Vector3.Magnitude(transform.position - RopeTarget.transform.position);
-        if (dist < 5)
+        if (dist < rContr.ThrowDistance)
         {
             _animator.SetTrigger("ThrowRope");
             CurState = "THROW_ROPE";
@@ -166,7 +164,7 @@ public class Sailor : MonoBehaviour
 
     private void ThrowRope()
     {
-        print("ThrowRope");
+        print(name + ".ThrowRope");
 
         if (WorkRope == null)
         {
@@ -175,8 +173,8 @@ public class Sailor : MonoBehaviour
         }
 
         rContr = WorkRope.GetComponent<RopeController>();
-        rContr.FixPoints.Clear();
-        rContr.Fixator = null;
+        rContr.FlyPoints.Clear();
+        rContr.FlyTarget = null;
         // определим направление броска в глобальных координатах
         Vector3 startPoint;
         if (CurState == "TAKE_HANK_R")
@@ -192,14 +190,14 @@ public class Sailor : MonoBehaviour
 
         CurState = "IDLE";
 
-        _animator.SetLayerWeight(1, 0f); // "Разжать правую руку"
+       // _animator.SetLayerWeight(1, 0f); // "Разжать правую руку"
 
         // сообщим маринеро, чтобы принял позу ловца
         Marinero marinero = RopeTarget.GetComponent<Marinero>();
         marinero.CatchRope();
     }
 
-    private void CatchRope()
+    public void CatchRope()
     {
 
     }

@@ -102,32 +102,6 @@ AnimatorStateTransition:
   m_InterruptionSource: 0
   m_OrderedInterruption: 1
   m_CanTransitionToSelf: 1
---- !u!1102 &-3109705606217104800
-AnimatorState:
-  serializedVersion: 5
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Rope_Onboard_CatchAndCleatHitch-FBX
-  m_Speed: 1
-  m_CycleOffset: 0
-  m_Transitions: []
-  m_StateMachineBehaviours: []
-  m_Position: {x: 50, y: 50, z: 0}
-  m_IKOnFeet: 0
-  m_WriteDefaultValues: 1
-  m_Mirror: 0
-  m_SpeedParameterActive: 0
-  m_MirrorParameterActive: 0
-  m_CycleOffsetParameterActive: 0
-  m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 59bb83eb3cb9dc6478d8fb31356bfc18, type: 2}
-  m_Tag: 
-  m_SpeedParameter: 
-  m_MirrorParameter: 
-  m_CycleOffsetParameter: 
-  m_TimeParameter: 
 --- !u!1102 &-2844173759629026536
 AnimatorState:
   serializedVersion: 5
@@ -150,32 +124,6 @@ AnimatorState:
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
   m_Motion: {fileID: 7400000, guid: 7d953dfc357610d4fb7660f851b84898, type: 2}
-  m_Tag: 
-  m_SpeedParameter: 
-  m_MirrorParameter: 
-  m_CycleOffsetParameter: 
-  m_TimeParameter: 
---- !u!1102 &-1452536643106336565
-AnimatorState:
-  serializedVersion: 5
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Rope_Onboard_Idle-FBX
-  m_Speed: 1
-  m_CycleOffset: 0
-  m_Transitions: []
-  m_StateMachineBehaviours: []
-  m_Position: {x: 50, y: 50, z: 0}
-  m_IKOnFeet: 1
-  m_WriteDefaultValues: 1
-  m_Mirror: 0
-  m_SpeedParameterActive: 0
-  m_MirrorParameterActive: 0
-  m_CycleOffsetParameterActive: 0
-  m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 70608a1ef9b03f1448ffaca75a9d1f48, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -250,9 +198,6 @@ AnimatorStateMachine:
     m_State: {fileID: -8133735012052433005}
     m_Position: {x: -190, y: 60, z: 0}
   - serializedVersion: 1
-    m_State: {fileID: -1452536643106336565}
-    m_Position: {x: 110, y: 140, z: 0}
-  - serializedVersion: 1
     m_State: {fileID: 769333933849147112}
     m_Position: {x: -190, y: 200, z: 0}
   - serializedVersion: 1
@@ -261,9 +206,6 @@ AnimatorStateMachine:
   - serializedVersion: 1
     m_State: {fileID: 6064821554329063385}
     m_Position: {x: -190, y: 340, z: 0}
-  - serializedVersion: 1
-    m_State: {fileID: -3109705606217104800}
-    m_Position: {x: 110, y: 220, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -6487060041328320328}
     m_Position: {x: -190, y: 130, z: 0}
