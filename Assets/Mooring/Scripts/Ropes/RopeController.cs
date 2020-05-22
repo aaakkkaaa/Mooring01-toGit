@@ -160,13 +160,6 @@ public class RopeController : MonoBehaviour
             }
 
         }
-        /*
-        if (CurState == "ATTACH")
-        {
-            print("AttachOnShoreIdx = " + AttachOnShoreIdx);
-            _solver.invMasses[AttachOnShoreIdx] = 0;
-        }
-        */
 
         // притянуть частицы к оси утки
         if (CollPoints != null)
@@ -249,6 +242,7 @@ public class RopeController : MonoBehaviour
     }
     public void EndCleat()
     {
+        print("EndCleat()");
         _rope.solver.OnCollision -= SolverOnCleatCollision;
         CollPoints = null;
     }
@@ -338,11 +332,11 @@ public class Attractor
 
     public Attractor() { }
 
-    public Attractor(GameObject obj, int fix, int num = 1, float force = 1.0f)
+    public Attractor(GameObject obj, int fix, int interv = 1, float force = 1.0f)
     {
         Fixator = obj;
         FixPoint = fix;
-        Interval = num;
+        Interval = interv;
         ForceMult = force;
     }
 }
