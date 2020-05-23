@@ -31,12 +31,12 @@ public class Sailor : MonoBehaviour
     public GameObject RopeTarget;
 
     private int _ropeIdx;
-    // сколько частиц тащит маринеро правой рукой за один цикл 
+    // сколько частиц тащит сейлор правой рукой за один цикл 
     private int _ropeDragStep = 20;
     // прекращает таскать при достижении этого числа
     private int _dragLimit = 100;
 
-    // Утка с которой работает маринеро
+    // Утка с которой работает сейлор
     public GameObject WorkCleat;
 
     private ObiSolver _solver;
@@ -231,18 +231,21 @@ public class Sailor : MonoBehaviour
             rContr.Attractors.Add(attr);
             CurState = "TAKE_HANK_R";
             rContr.CurState = "ATTRACT";
+            // анимация закрепления каната на утке запускается автоматически
         }
     }
+
+    private void HookRope()
+    {
+        rContr.BeginCleat(WorkCleat);
+    }
+
 
     private void DragRope()
     {
 
     }
 
-    private void FixRope()
-    {
-
-    }
 
 
 }

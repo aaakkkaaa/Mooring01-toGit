@@ -38,7 +38,7 @@ public class RopeController : MonoBehaviour
     public string CurState = "FREE";    // ONEPOINT, MANYPOINTS, FREE
 
     // утка, с которой взаимодействует канат, передается из marinero
-    private GameObject _marieroCleat;
+    private GameObject _workCleat;
     // точки в утке, вдоль которых должен стараться пролечь канат (в системе координат солвера)
     private Vector4 _t1;
     private Vector4 _t2;
@@ -181,10 +181,10 @@ public class RopeController : MonoBehaviour
                     Vector4 velocity = _solver.velocities[idx];
                     Vector4 force = (((Vector4)attractPos - position) * _springStiffness - velocity * _springDamping) / invMass;
                     _solver.externalForces[idx] = force/3;
-                    //print(idx + "  " + force);
+                    print(idx + "  " + force);
                 }
             }
-
+            print("-----------------");
         }
 
 
@@ -229,14 +229,14 @@ public class RopeController : MonoBehaviour
     // передаем утку, из нее извлекаем все нужное
     public void BeginCleat(GameObject cleat)
     {
-        _marieroCleat = cleat;
+        _workCleat = cleat;
         // выстроить крайние точки каната по линии, чтобы потом продеть в утку
-        Vector3 _tg1 = _marieroCleat.transform.Find("Target1").position;
-        Vector3 _tg2 = _marieroCleat.transform.Find("Target2").position;
+        Vector3 _tg1 = _workCleat.transform.Find("Target1").position;
+        Vector3 _tg2 = _workCleat.transform.Find("Target2").position;
         _t1 = _rope.solver.transform.InverseTransformPoint(_tg1);
         _t2 = _rope.solver.transform.InverseTransformPoint(_tg2);
         // ищем коллайдер, с которым будем взаимодействовать
-        _coll = _marieroCleat.transform.Find("Zona").gameObject.GetComponent<Collider>();
+        _coll = _workCleat.transform.Find("Zona").gameObject.GetComponent<Collider>();
         CollPoints = new List<int>();
         _rope.solver.OnCollision += SolverOnCleatCollision;
     }
