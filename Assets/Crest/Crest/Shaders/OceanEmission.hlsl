@@ -87,7 +87,7 @@ half3 ScatterColour(
 
 
 #if _CAUSTICS_ON
-void ApplyCaustics(in const float3 scenePos, in const half3 i_lightDir, in const float i_sceneZ, in sampler2D i_normals, in const bool i_underwater, inout half3 io_sceneColour)
+void ApplyCaustics(in const float3 scenePos, in const half3 i_lightCol, in const half3 i_lightDir, in const float i_sceneZ, in sampler2D i_normals, in const bool i_underwater, inout half3 io_sceneColour)
 {
 	// could sample from the screen space shadow texture to attenuate this..
 	// underwater caustics - dedicated to P
@@ -109,7 +109,10 @@ void ApplyCaustics(in const float3 scenePos, in const half3 i_lightDir, in const
 	float4 cuv1 = float4((surfacePosXZ / _CausticsTextureScale + float2(0.044*_CrestTime + 17.16, -0.169*_CrestTime)), 0., mipLod);
 	float4 cuv2 = float4((1.37*surfacePosXZ / _CausticsTextureScale + float2(0.248*_CrestTime, 0.117*_CrestTime)), 0., mipLod);
 
+	// We'll use this distortion code for above water in single pass due to refraction bug.
+#if !UNITY_SINGLE_PASS_STEREO
 	if (i_underwater)
+#endif
 	{
 		// Add distortion if we're not getting the refraction
 		half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(i_normals, surfacePosXZ / _CausticsDistortionScale)).xy;
@@ -117,7 +120,9 @@ void ApplyCaustics(in const float3 scenePos, in const half3 i_lightDir, in const
 		cuv2.xy += 1.77 * causticN;
 	}
 
-	half causticsStrength = _CausticsStrength;
+	// Scale caustics strength by primary light, depth fog density and scene depth.
+	half3 causticsStrength = lerp(_CausticsStrength * i_lightCol, 0.0, saturate(1.0 - exp(-_DepthFogDensity.xyz * sceneDepth)));
+
 #if _SHADOWS_ON
 	{
 		real2 causticShadow = 0.0;
@@ -144,7 +149,7 @@ void ApplyCaustics(in const float3 scenePos, in const half3 i_lightDir, in const
 #endif // _CAUSTICS_ON
 
 
-half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const float3 i_lightDir,
+half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const half3 i_lightCol, in const float3 i_lightDir,
 	in const real3 i_grabPosXYW, in const float i_pixelZ, in const half2 i_uvDepth, in const float i_sceneZ, in const float i_sceneZ01,
 	in const half3 i_bubbleCol, in sampler2D i_normals, Texture2D<float4> i_cameraDepths, in const bool i_underwater, in const half3 i_scatterCol)
 {
@@ -195,8 +200,14 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 #if UNITY_UV_STARTS_AT_TOP
 		scenePosNDC.y = 1. - scenePosNDC.y;
 #endif
+		// Refractions don't work correctly in single pass. Use same code from underwater instead for now.
+#if UNITY_SINGLE_PASS_STEREO
+		float3 cameraForward = mul((float3x3)unity_CameraToWorld, float3(0, 0, 1));
+		float3 scenePos = (((i_view) / dot(i_view, cameraForward)) * i_sceneZ) + _WorldSpaceCameraPos;
+#else
 		float3 scenePos = ComputeWorldSpacePosition(scenePosNDC, sceneZRefractDevice, UNITY_MATRIX_I_VP);
-		ApplyCaustics(scenePos, i_lightDir, i_sceneZ, i_normals, i_underwater, sceneColour);
+#endif
+		ApplyCaustics(scenePos, i_lightCol, i_lightDir, i_sceneZ, i_normals, i_underwater, sceneColour);
 #endif
 		alpha = 1.0 - exp(-_DepthFogDensity.xyz * depthFogDistance);
 	}

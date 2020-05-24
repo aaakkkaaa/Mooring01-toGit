@@ -42,7 +42,7 @@ Shader "Crest/Inputs/Flow/Whirlpool"
 				return o;
 			}
 
-			float2 Frag(Varyings input) : SV_Target
+			float4 Frag(Varyings input) : SV_Target
 			{
 				float2 flow = float2(0.0, 0.0);
 
@@ -66,7 +66,7 @@ Shader "Crest/Inputs/Flow/Whirlpool"
 					);
 				}
 
-				return flow;
+				return float4(flow, 0.0, 0.0);
 			}
 			ENDCG
 		}

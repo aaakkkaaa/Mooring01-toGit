@@ -43,6 +43,7 @@ void CrestNodeFoam_half
 	in const half i_foam,
 	in const half lodVal,
 	in const float2 i_worldXZUndisplaced,
+	in const float i_pixelZ,
 	in half3 i_n,
 	in half3 i_emission,
 	in float i_smoothness,
@@ -52,15 +53,24 @@ void CrestNodeFoam_half
 	out float o_smoothness
 )
 {
-	float whiteFoam = WhiteFoamTexture(i_texture, i_texelSize, i_scale, i_feather, i_foam, i_oceanParams0.x, i_oceanParams1.x, i_worldXZUndisplaced, (float2)0.0, lodVal);
+	// Get the "special" properties from the texture. The texel node only exposes zw (width and height). We could
+	// compute this ourselves.
+	half2 texelSizeXY =
+#if SHADERGRAPH_PREVIEW
+	i_texelSize;
+#else
+	 _TextureFoam_TexelSize.xy;
+#endif
+
+	float whiteFoam = WhiteFoamTexture(i_texture, texelSizeXY, i_scale, i_feather, i_foam, i_oceanParams0.x, i_oceanParams1.x, i_worldXZUndisplaced, (float2)0.0, lodVal);
 	o_albedo = saturate(whiteFoam * i_albedoIntensity);
 	o_emission = lerp(i_emission, i_emissiveIntensity, whiteFoam);
 	o_smoothness = lerp(i_smoothness, i_foamSmoothness, whiteFoam);
 
 	//#if _FOAM3DLIGHTING_ON
-	float2 dd = float2(1.0, 0.0);
-	half whiteFoam_x = WhiteFoamTexture(i_texture, i_texelSize, i_scale, i_feather, i_foam, i_oceanParams0.x, i_oceanParams1.x, i_worldXZUndisplaced, dd.xy, lodVal);
-	half whiteFoam_z = WhiteFoamTexture(i_texture, i_texelSize, i_scale, i_feather, i_foam, i_oceanParams0.x, i_oceanParams1.x, i_worldXZUndisplaced, dd.yx, lodVal);
+	float2 dd = float2(0.25 * i_pixelZ, 0.0);
+	half whiteFoam_x = WhiteFoamTexture(i_texture, texelSizeXY, i_scale, i_feather, i_foam, i_oceanParams0.x, i_oceanParams1.x, i_worldXZUndisplaced, dd.xy, lodVal);
+	half whiteFoam_z = WhiteFoamTexture(i_texture, texelSizeXY, i_scale, i_feather, i_foam, i_oceanParams0.x, i_oceanParams1.x, i_worldXZUndisplaced, dd.yx, lodVal);
 
 	// Compute a foam normal - manually push in derivatives. If i used blend smooths all the normals towards straight up when there is no foam.
 	o_n = i_n;

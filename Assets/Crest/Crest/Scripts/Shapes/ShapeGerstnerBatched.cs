@@ -267,6 +267,7 @@ namespace Crest
 
                 // Create a proxy MeshRenderer to feed the rendering
                 var renderProxy = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                Destroy(renderProxy.GetComponent<Collider>());
                 renderProxy.hideFlags = HideFlags.HideAndDontSave;
                 renderProxy.transform.parent = transform;
                 rend = renderProxy.GetComponent<MeshRenderer>();
@@ -416,6 +417,10 @@ namespace Crest
                 if (OceanRenderer.Instance._lodDataSeaDepths)
                 {
                     OceanRenderer.Instance._lodDataSeaDepths.BindResultData(mat, false);
+                }
+                else
+                {
+                    LodDataMgrSeaFloorDepth.BindNull(mat, false);
                 }
 
                 if (_directTowardsPoint)

@@ -42,13 +42,18 @@ void CrestNodeSceneColour_half
 
 	// View ray intersects geometry surface either above or below ocean surface
 
+	half2 refractOffset = i_refractionStrength * i_normalTS.xy;
+	if (!i_underwater)
+	{
+		// We're above the water, so behind interface is depth fog
+		refractOffset *= min(1.0, 0.5 * (i_sceneZ - i_pixelZ)) / i_sceneZ;
+	}
+	const float4 screenPosRefract = i_screenPos + float4(refractOffset, 0.0, 0.0);
+	const float sceneZRefractDevice = SHADERGRAPH_SAMPLE_SCENE_DEPTH(screenPosRefract.xy);
 
 	// Depth fog & caustics - only if view ray starts from above water
 	if (!i_underwater)
 	{
-		const half2 refractOffset = i_refractionStrength * i_normalTS.xy * min(1.0, 0.5*(i_sceneZ - i_pixelZ)) / i_sceneZ;
-		float4 screenPosRefract = i_screenPos + float4(refractOffset, 0.0, 0.0);
-		const float sceneZRefractDevice = SHADERGRAPH_SAMPLE_SCENE_DEPTH(screenPosRefract.xy);
 		float sceneZRefract = LinearEyeDepth(sceneZRefractDevice, _ZBufferParams);
 
 		// Compute depth fog alpha based on refracted position if it landed on an underwater surface, or on unrefracted depth otherwise
@@ -67,23 +72,17 @@ void CrestNodeSceneColour_half
 
 			o_sceneColour = i_sceneColourUnrefracted;
 
-			float sceneZRefractDevice = LinearToDeviceDepth(i_sceneZ, _ZBufferParams);
-			o_scenePositionWS = CrestComputeWorldSpacePosition(i_screenPos.xy, sceneZRefractDevice, UNITY_MATRIX_I_VP);
+			const float deviceDepthUnrefract = LinearToDeviceDepth(i_sceneZ, _ZBufferParams);
+			o_scenePositionWS = CrestComputeWorldSpacePosition(i_screenPos.xy, deviceDepthUnrefract, UNITY_MATRIX_I_VP);
 		}
 	}
-	//	else
-	//	{
-	//		// No fog behind water interface as we're under the water, so behind interface is air
-	//		const half2 refractOffset = _RefractionStrength * i_n_pixel.xz;
-	//		const half2 uvBackgroundRefract = uvBackground + refractOffset;
-	//
-	//		o_sceneColour = SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, uvBackgroundRefract).rgb;
-	//		// Long ray from water surface to air - this is approx the max value of a half.
-	//		o_rayLength = 65000.0;
-	//
-	//		// Not hooked up yet
-	//		o_scenePositionWS = 0.0;
-	//	}
+	else
+	{
+		// Depth fog is handled by underwater shader
+		o_sceneDistance = i_pixelZ;
+		o_sceneColour = SHADERGRAPH_SAMPLE_SCENE_COLOR(screenPosRefract.xy);
+		o_scenePositionWS = CrestComputeWorldSpacePosition(screenPosRefract.xy, sceneZRefractDevice, UNITY_MATRIX_I_VP);
+	}
 
 	//#endif // _TRANSPARENCY_ON
 }

@@ -9,6 +9,8 @@ void CrestNodeApplyCaustics_float
 	in const half3 i_sceneColour,
 	in const float3 i_scenePos,
 	in const float i_waterSurfaceY,
+	in const half3 i_depthFogDensity,
+	in const half3 i_lightCol,
 	in const half3 i_lightDir,
 	in const float i_sceneZ,
 	in const Texture2D<float4> i_texture,
@@ -26,6 +28,9 @@ void CrestNodeApplyCaustics_float
 {
 	o_sceneColour = i_sceneColour;
 
+	// We don't want caustics showing above the surface until we can implement it for when the view is above or below the surface.
+	if (i_scenePos.y > i_waterSurfaceY) return;
+
 	half sceneDepth = i_waterSurfaceY - i_scenePos.y;
 
 	// Compute mip index manually, with bias based on sea floor depth. We compute it manually because if it is computed automatically it produces ugly patches
@@ -38,16 +43,18 @@ void CrestNodeApplyCaustics_float
 	float2 surfacePosXZ = i_scenePos.xz + i_lightDir.xz * sceneDepth / (4.0*i_lightDir.y);
 	float2 cuv1 = surfacePosXZ / i_textureScale + float2(0.044*_CrestTime + 17.16, -0.169*_CrestTime);
 	float2 cuv2 = 1.37*surfacePosXZ / i_textureScale + float2(0.248*_CrestTime, 0.117*_CrestTime);
-//
-//	if (i_underwater)
-//	{
-//		// Add distortion if we're not getting the refraction
-//		half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(i_normals, surfacePosXZ / _CausticsDistortionScale)).xy;
-//		cuv1.xy += 1.30 * causticN;
-//		cuv2.xy += 1.77 * causticN;
-//	}
 
-	half causticsStrength = i_strength;
+	if (i_underwater)
+	{
+		// Add distortion if we're not getting the refraction
+		half2 causticN = i_distortionStrength  * UnpackNormal(i_distortion.Sample(sampler_Crest_linear_repeat, surfacePosXZ / i_distortionScale)).xy;
+		cuv1.xy += 1.30 * causticN;
+		cuv2.xy += 1.77 * causticN;
+	}
+
+	// Scale caustics strength by primary light, depth fog density and scene depth.
+	half causticsStrength = lerp(i_strength * i_lightCol, 0.0, saturate(1.0 - exp(-i_depthFogDensity.xyz * sceneDepth)));
+
 //#if _SHADOWS_ON
 //	{
 //		real2 causticShadow = 0.0;

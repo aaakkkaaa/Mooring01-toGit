@@ -201,7 +201,7 @@ Shader "Crest/Underwater Curtain"
 				{
 					// flatten view in the camera direction to calculate the scenePos
 					float3 scenePos = (((rawView) / dot(rawView, _CameraForward)) * sceneZ) + _WorldSpaceCameraPos;
-					ApplyCaustics(scenePos, lightDir, sceneZ, _Normals, true, sceneColour);
+					ApplyCaustics(scenePos, lightCol, lightDir, sceneZ, _Normals, true, sceneColour);
 				}
 #endif // _CAUSTICS_ON
 

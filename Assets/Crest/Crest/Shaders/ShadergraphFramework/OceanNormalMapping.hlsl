@@ -16,12 +16,16 @@ half2 SampleNormalMaps
 	float lodAlpha
 )
 {
+#if SHADERGRAPH_PREVIEW
+	// sampler_TextureNormals is not defined in shader graph. Silence error.
+	SamplerState sampler_TextureNormals = LODData_linear_clamp_sampler;
+#endif
 	const float2 v0 = float2(0.94, 0.34), v1 = float2(-0.85, -0.53);
 	float nstretch = i_normalsScale * _GeomData.x; // normals scaled with geometry
 	const float spdmulL = _GeomData.z;
 	half2 norm =
-		UnpackNormal(i_normals.Sample(sampler_Crest_linear_repeat, (v0*_CrestTime*spdmulL + worldXZUndisplaced) / nstretch)).xy +
-		UnpackNormal(i_normals.Sample(sampler_Crest_linear_repeat, (v1*_CrestTime*spdmulL + worldXZUndisplaced) / nstretch)).xy;
+		UnpackNormal(i_normals.Sample(sampler_TextureNormals, (v0*_CrestTime*spdmulL + worldXZUndisplaced) / nstretch)).xy +
+		UnpackNormal(i_normals.Sample(sampler_TextureNormals, (v1*_CrestTime*spdmulL + worldXZUndisplaced) / nstretch)).xy;
 
 	// blend in next higher scale of normals to obtain continuity
 	const float farNormalsWeight = _InstanceData.y;
@@ -32,8 +36,8 @@ half2 SampleNormalMaps
 		nstretch *= 2.0;
 		const float spdmulH = _GeomData.w;
 		norm = lerp(norm,
-			UnpackNormal(i_normals.Sample(sampler_Crest_linear_repeat, (v0*_CrestTime*spdmulH + worldXZUndisplaced) / nstretch)).xy +
-			UnpackNormal(i_normals.Sample(sampler_Crest_linear_repeat, (v1*_CrestTime*spdmulH + worldXZUndisplaced) / nstretch)).xy,
+			UnpackNormal(i_normals.Sample(sampler_TextureNormals, (v0*_CrestTime*spdmulH + worldXZUndisplaced) / nstretch)).xy +
+			UnpackNormal(i_normals.Sample(sampler_TextureNormals, (v1*_CrestTime*spdmulH + worldXZUndisplaced) / nstretch)).xy,
 			nblend);
 	}
 

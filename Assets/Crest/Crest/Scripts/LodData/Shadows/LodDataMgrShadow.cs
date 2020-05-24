@@ -202,7 +202,10 @@ namespace Crest
             // which only happens if there are (nontransparent) shadow receivers around
             TextureArrayHelpers.ClearToBlack(_targets);
 
+            // TODO - this is in SRP, so i can't ifdef it? what is a good plan here - wait for it to be removed completely?
+#pragma warning disable 618
             using (new ProfilingSample(BufCopyShadowMap, "CrestSampleShadows"))
+#pragma warning restore 618
             {
                 var lt = OceanRenderer.Instance._lodTransform;
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)

@@ -23,6 +23,7 @@ void OceanNormals_half
 	in const half2 i_flow,
 	in const half3 viewNorm,
 	in const bool i_isUnderwater,
+	in const half i_minReflectionDirectionY,
 	out half3 o_normalTS
 )
 {
@@ -40,10 +41,6 @@ void OceanNormals_half
 	if (wt_biggerLod > 0.001) SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, i_oceanParams1.w, i_oceanParams1.x, dummy, n_geom.xz, sss);
 	n_geom = normalize(n_geom);
 
-	// I don't know why this is required. Maybe the tangent frame is broken. Tell tale sign of an issue is to see grazing/fresnel style reflection
-	// on wave fronts / facing surfaces.
-	n_geom.z = -n_geom.z;
-
 	if (i_isUnderwater) n_geom = -n_geom;
 	real3 n_pixel = n_geom;
 //#if _APPLYNORMALMAPPING_ON
@@ -54,13 +51,31 @@ void OceanNormals_half
 	n_pixel = normalize(n_pixel);
 #endif
 //#endif
-	o_normalTS = n_pixel.xzy;
 
 	// Make sure normal faces viewer. This has nothing to do with reflections being above horizon.
-	const half3 viewNormTS = viewNorm.xzy;
+	/*const half3 viewNormTS = viewNorm.xzy;
 	half dp = dot(o_normalTS, viewNormTS);
 	if (dp < 0.0)
 	{
 		o_normalTS -= 2.0 * dp * viewNormTS;
+	}*/
+
+	if (!i_isUnderwater)
+	{
+		float3 refl = reflect(-viewNorm, n_pixel);
+		if (refl.y < i_minReflectionDirectionY)
+		{
+			// Find the normal that keeps the reflection direction above the horizon. Compute the reflection dir that does work, normalize it, and
+			// then normal is half vector between this good refl dir and view dir
+			float3 FL = refl;
+			FL.y = i_minReflectionDirectionY;
+			FL = normalize(FL);
+			n_pixel = normalize(FL + viewNorm);
+		}
 	}
+
+	o_normalTS = n_pixel.xzy;
+
+	// Seems like the tangent frame has a different handedness - this seems to work well in SRP.
+	o_normalTS.y *= -1.0;
 }
