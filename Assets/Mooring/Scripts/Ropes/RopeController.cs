@@ -37,13 +37,14 @@ public class RopeController : MonoBehaviour
     [NonSerialized]
     public string CurState = "FREE";    // ONEPOINT, MANYPOINTS, FREE
 
-    // утка, с которой взаимодействует канат, передается из marinero
+    // утка, с которой взаимодействует канат, передается из marinero и из sailor
     private GameObject _workCleat;
     // точки в утке, вдоль которых должен стараться пролечь канат (в системе координат солвера)
-    private Vector4 _t1;
-    private Vector4 _t2;
+    private Transform _target1;
+    private Transform _target2;
     // коллайдер утки, с которым будет отлавливаться взаимодействие
     private Collider _coll;
+    // если не null, то делается выстраивание точек каната вдоль оси утки
     private List<int> CollPoints;
 
     // номер точки (в солвере!), приаттаченая к утке на берегу
@@ -164,6 +165,11 @@ public class RopeController : MonoBehaviour
         // притянуть частицы к оси утки
         if (CollPoints != null)
         {
+            Vector3 _tg1 = _target1.position;
+            Vector3 _tg2 = _target2.position;
+            Vector4 _t1 = _rope.solver.transform.InverseTransformPoint(_tg1);
+            Vector4 _t2 = _rope.solver.transform.InverseTransformPoint(_tg2);
+
             for (int i = 0; i < CollPoints.Count; i++)
             {
                 int idx = CollPoints[i];
@@ -231,10 +237,9 @@ public class RopeController : MonoBehaviour
     {
         _workCleat = cleat;
         // выстроить крайние точки каната по линии, чтобы потом продеть в утку
-        Vector3 _tg1 = _workCleat.transform.Find("Target1").position;
-        Vector3 _tg2 = _workCleat.transform.Find("Target2").position;
-        _t1 = _rope.solver.transform.InverseTransformPoint(_tg1);
-        _t2 = _rope.solver.transform.InverseTransformPoint(_tg2);
+        _target1 = _workCleat.transform.Find("Target1");
+        _target2 = _workCleat.transform.Find("Target2");
+
         // ищем коллайдер, с которым будем взаимодействовать
         _coll = _workCleat.transform.Find("Zona").gameObject.GetComponent<Collider>();
         CollPoints = new List<int>();
