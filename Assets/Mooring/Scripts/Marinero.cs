@@ -82,12 +82,13 @@ public class Marinero : MonoBehaviour
             _solver.OnCollision += SolverOnCollision;
             // включить полет каната к руке
             rContr = WorkRope.GetComponent<RopeController>();
-            _ropeIdx = 120;
+            //_ropeIdx = 120;
+            _ropeIdx = rContr.MaxPointIdx();
             int[] points = { _ropeIdx };
             rContr.FlyPoints.Clear();
             rContr.FlyPoints.AddRange(points);
             rContr.FlyTarget = RHand;
-            CurState = "TAKE_HANK_R";
+            CurState = "TAKE_HANK_L";
             rContr.CurState = "FLY_TO";
         }
     }
@@ -125,15 +126,15 @@ public class Marinero : MonoBehaviour
 
             // включить притяжение каната к руке
             rContr = WorkRope.GetComponent<RopeController>();
-            Attractor attr = new Attractor(RHand, _ropeIdx, 3 );
+            Attractor attr = new Attractor(LHand, _ropeIdx, 3 );
             rContr.Attractors.Clear();
             rContr.Attractors.Add(attr);
-            CurState = "TAKE_HANK_R";
+            CurState = "TAKE_HANK_L";
             rContr.CurState = "ATTRACT";
         }
     }
 
-    // надо перехватить левой рукой за последнюю частицу
+    // надо перехватить левой рукой за последнюю частицу - не используется!
     void GetEndOfRopeToLeftHand()
     {
         // включить притяжение крайней точки каната правой руке
@@ -180,7 +181,7 @@ public class Marinero : MonoBehaviour
         rContr.Attractors[0].Fixator = target1;
         CurState = "PUSH_ROPE";
         rContr.CurState = "ATTRACT";
-        rContr.BeginCleat(WorkCleat);
+        rContr.BeginCleat(WorkCleat, 20, rContr.MaxPointIdx());
     }
 
     void AfterPush()
@@ -196,10 +197,25 @@ public class Marinero : MonoBehaviour
         rContr.CurState = "ATTRACT";
     }
 
+    // взять канат вдобавок к правой руке еще и левой не за самый конец
+    void AddLeftHand()
+    {
+        print(gameObject.name + " - AddLeftHand() " + rContr.Attractors.Count);
+        _ropeIdx -= _ropeDragStep;
+        Attractor attr = new Attractor(LHand, _ropeIdx, 2);
+        rContr.Attractors.Add(attr);
+    }
+
+    // передать конец из правой в левую
+    void FreeRightHand()
+    {
+        rContr.Attractors[0].Fixator = LHand;
+    }
+
     // Канат вытягивается правой рукой а бухта собирается в левой руке
     void DragRopeWorkPointToLeft()
     {
-        print(gameObject.name + " - DragRopeWorkPointToLeft()");
+        print(gameObject.name + " - DragRopeWorkPointToLeft() " + rContr.Attractors.Count);
         rContr = WorkRope.GetComponent<RopeController>();
         int workAttr = rContr.Attractors.Count - 1;
         rContr.CurState = "ATTRACT";
@@ -225,15 +241,16 @@ public class Marinero : MonoBehaviour
 
     void DragRopeNewWorkPointToRight()
     {
-        print(gameObject.name + " - DragRopeNewWorkPointToRight()");
+        print(gameObject.name + " - DragRopeNewWorkPointToRight() " + rContr.Attractors.Count);
         _ropeIdx -= _ropeDragStep;
         Attractor attr = new Attractor(RHand, _ropeIdx,2);
         rContr.Attractors.Add(attr);
     }
 
-    // перекладываем бухту в правую руку перед броском
+    // перекладываем бухту в правую руку перед броском, кроме последнего витка, который  передаем в левую 
     void HankToRightHand()
     {
+        print("HankToRightHand() " + rContr.Attractors.Count);
         for(int i=0; i<rContr.Attractors.Count; i++)
         {
             if(rContr.Attractors[i].Fixator == LHand)
@@ -241,6 +258,7 @@ public class Marinero : MonoBehaviour
                 rContr.Attractors[i].Fixator = RHand;
             }
         }
+        rContr.Attractors[rContr.Attractors.Count-1].Fixator = LHand;
     }
 
     // бросок в направлении sailor

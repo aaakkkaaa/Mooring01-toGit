@@ -44,6 +44,10 @@ public class RopeController : MonoBehaviour
     private Transform _target2;
     // коллайдер утки, с которым будет отлавливаться взаимодействие
     private Collider _coll;
+    // диапазон номеров частиц, которые нужно обрабатывать после коллайдинга с уткой
+    private int _minIdx;
+    private int _maxIdx;
+
     // если не null, то делается выстраивание точек каната вдоль оси утки
     private List<int> CollPoints;
 
@@ -187,10 +191,10 @@ public class RopeController : MonoBehaviour
                     Vector4 velocity = _solver.velocities[idx];
                     Vector4 force = (((Vector4)attractPos - position) * _springStiffness - velocity * _springDamping) / invMass;
                     _solver.externalForces[idx] = force/3;
-                    print(idx + "  " + force);
+                    //print(idx + " ->  " + force);
                 }
             }
-            print("-----------------");
+            //print("-----------------");
         }
 
 
@@ -233,7 +237,7 @@ public class RopeController : MonoBehaviour
     }
 
     // передаем утку, из нее извлекаем все нужное
-    public void BeginCleat(GameObject cleat)
+    public void BeginCleat(GameObject cleat, int minI, int maxI)
     {
         _workCleat = cleat;
         // выстроить крайние точки каната по линии, чтобы потом продеть в утку
@@ -242,7 +246,11 @@ public class RopeController : MonoBehaviour
 
         // ищем коллайдер, с которым будем взаимодействовать
         _coll = _workCleat.transform.Find("Zona").gameObject.GetComponent<Collider>();
+
         CollPoints = new List<int>();
+        // диапазон номеров частиц, которые нужно обрабатывать
+        _minIdx = minI;
+        _maxIdx = maxI;
         _rope.solver.OnCollision += SolverOnCleatCollision;
     }
     public void EndCleat()
@@ -294,16 +302,33 @@ public class RopeController : MonoBehaviour
         }
     }
 
-    public void SetAttractors( GameObject obj, int[] points, int num = 1, float force = 1.0f)
+    public void SetAttractors( GameObject obj, int[] points, int interv = 1, float force = 1.0f)
     {
         Attractors.Clear();
         for(int i=0; i<points.Length; i++)
         {
-            Attractor attr = new Attractor(obj, points[i], num, force);
+            Attractor attr = new Attractor(obj, points[i], interv, force);
             Attractors.Add(attr);
         }
     }
 
+    // удалить из аттракторов те, которые притягивают к obj
+    public void RemoveAttractors(GameObject obj)
+    {
+        print("RemoveAttractors -> было: " + Attractors.Count);
+        List<Attractor> tmp = new List<Attractor>();
+        for(int i=0; i<Attractors.Count; i++)
+        {
+            if (Attractors[i].Fixator != obj)
+            {
+                tmp.Add(Attractors[i]);
+            }
+        }
+        Attractors = tmp;
+        print("RemoveAttractors -> стало: " + Attractors.Count);
+    }
+
+    // зафиксировать на утке частицу каната
     public void AttachPointToCleat()
     {
         print("Rope.AttachPointToCleat()");
@@ -323,6 +348,16 @@ public class RopeController : MonoBehaviour
         EndCleat();
     }
 
+
+    public int MaxPointIdx()
+    {
+        if( _rope == null )
+        {
+            _rope = GetComponent<ObiRope>();
+            _solver = _rope.solver;
+        }
+        return _rope.activeParticleCount-1;
+    }
 
 }
 

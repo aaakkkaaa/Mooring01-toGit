@@ -183,7 +183,7 @@ public class Sailor : MonoBehaviour
             _solver.OnCollision += SolverOnCollision;
             // включить полет каната к руке
             rContr = WorkRope.GetComponent<RopeController>();
-            _ropeIdx = 125;
+            _ropeIdx = rContr.MaxPointIdx()-3;
             int[] points = { _ropeIdx };
             rContr.FlyPoints.Clear();
             rContr.FlyPoints.AddRange(points);
@@ -235,9 +235,25 @@ public class Sailor : MonoBehaviour
         }
     }
 
+    // в начале зацепа за утку надо скинуть канат с палубы в воду
+    private void RopeToWater()
+    {
+        print(gameObject.name + ".RopeToWater()");
+        GameObject attrObj = WorkCleat.transform.Find("Target2").gameObject;
+        for (int i=0; i<1; i++)
+        {
+            Attractor attr = new Attractor(attrObj, _ropeIdx-10-i*5, 3, 1.0f);
+            rContr.Attractors.Add(attr);
+        }
+    }
+
+    // исключим лишние аттракторы
     private void HookRope()
     {
-        rContr.BeginCleat(WorkCleat);
+        print(gameObject.name + ".HookRope()");
+        GameObject attrObj = WorkCleat.transform.Find("Target2").gameObject;
+        rContr.RemoveAttractors(attrObj);
+        rContr.BeginCleat(WorkCleat, 20, rContr.MaxPointIdx());
     }
 
 
