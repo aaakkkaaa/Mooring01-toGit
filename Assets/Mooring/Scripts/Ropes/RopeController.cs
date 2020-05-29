@@ -21,6 +21,9 @@ public class RopeController : MonoBehaviour
     public List<Attractor> Attractors;  // описывание притяжения: к какому объекту какая частица каната притягивается
 
     [NonSerialized]
+    public List<Connector> Connectors;  // описывание аттача: к какому объекту какая частица каната присоединена
+
+    [NonSerialized]
     public float ThrowDistance = 5.0f;
 
     [NonSerialized]
@@ -79,7 +82,7 @@ public class RopeController : MonoBehaviour
 
         if (CurState == "ATTRACT")
         {
-            for(int i=0; i< Attractors.Count; i++)
+            for (int i = 0; i < Attractors.Count; i++)
             {
                 GameObject Fixator = Attractors[i].Fixator;
                 Vector4 targetPosition;
@@ -91,7 +94,7 @@ public class RopeController : MonoBehaviour
                 {
                     targetPosition = _solver.transform.InverseTransformPoint(Attractors[i].Pos);
                 }
-                
+
                 int particleIndex = Attractors[i].FixPoint;
                 int pIdx = _rope.solverIndices[particleIndex];
                 float invMass = _solver.invMasses[pIdx];
@@ -125,7 +128,7 @@ public class RopeController : MonoBehaviour
             }
         }
 
-        if(CurState == "FLY_TO")
+        if (CurState == "FLY_TO")
         {
             if (FlyTarget != null)
             {
@@ -176,7 +179,8 @@ public class RopeController : MonoBehaviour
 
             for (int i = 0; i < CollPoints.Count; i++)
             {
-                int idx = CollPoints[i];
+                int pIdx = CollPoints[i];
+                int idx = _rope.solverIndices[pIdx];
                 // на линии _t1:_t2 найти точку, на которую проецируется шарик
                 Vector3 vector = _solver.positions[idx] - _t1;
                 Vector3 onNormal = _t2 - _t1;
@@ -190,14 +194,25 @@ public class RopeController : MonoBehaviour
                     Vector4 position = _solver.positions[idx];
                     Vector4 velocity = _solver.velocities[idx];
                     Vector4 force = (((Vector4)attractPos - position) * _springStiffness - velocity * _springDamping) / invMass;
-                    _solver.externalForces[idx] = force/3;
+                    _solver.externalForces[idx] = force / 3;
                     //print(idx + " ->  " + force);
                 }
             }
             //print("-----------------");
         }
 
-
+        // держать на своих местах частицы жестко присоединенные к кому-то
+        if (Connectors != null)
+        {
+            for (int i = 0; i < Connectors.Count; i++)
+            {
+                Connector con = Connectors[i];
+                int idx = _rope.solverIndices[con.FixPoint];
+                Vector3 pos = _rope.solver.transform.InverseTransformPoint(con.Fixator.transform.position);
+                _solver.positions[idx] = pos;
+                //print(con.Fixator.name);
+            }
+        }
     }
 
     // переместить точки каната от 0 до idx так, чтобы они были дальше от t2 чем t1 и выстроены по линии
@@ -239,6 +254,7 @@ public class RopeController : MonoBehaviour
     // передаем утку, из нее извлекаем все нужное
     public void BeginCleat(GameObject cleat, int minI, int maxI)
     {
+        print("BeginCleat()");
         _workCleat = cleat;
         // выстроить крайние точки каната по линии, чтобы потом продеть в утку
         _target1 = _workCleat.transform.Find("Target1");
@@ -279,7 +295,7 @@ public class RopeController : MonoBehaviour
                     {
                         if (collider == _coll)
                         {
-                            CollPoints.Add(idx);
+                            CollPoints.Add(pa.indexInActor);
                         }
                     }
                 }
@@ -341,12 +357,51 @@ public class RopeController : MonoBehaviour
             AttachOnShoreIdx = CollPoints[(CollPoints.Count - 1)/ 2];
             CurState = "ATTACH";
             print("AttachOnShoreIdx = " + AttachOnShoreIdx);
-            _solver.invMasses[AttachOnShoreIdx] = 0;
+            GameObject center = _workCleat.transform.Find("Center").gameObject;
+            AddConnect(center, AttachOnShoreIdx);
+            //_solver.invMasses[AttachOnShoreIdx] = 0;
 
         }
         // убрать обработчик коллизий и обнулить список CollPoints
         EndCleat();
     }
+
+    // добавление жесткой фиксации
+    public void AddConnect(GameObject obj, int fix)
+    {
+        if (Connectors == null)
+        {
+            Connectors = new List<Connector>();
+        }
+        Connector con = new Connector(obj, fix);
+        int pIdx = _rope.solverIndices[fix];
+        con.InvMass = _solver.invMasses[pIdx];  // сохранили для восстановления свободы частицы
+        _solver.invMasses[pIdx] = 0;
+        Connectors.Add(con);
+   }
+
+    // удаление жесктой фиксации
+    public void DelConnect(int fix)
+    {
+        Connector con=null;
+        if (Connectors != null)
+        {
+            int pIdx = _rope.solverIndices[fix];
+            for(int i=0; i<Connectors.Count; i++)
+            {
+                con = Connectors[i];
+                if(con.FixPoint == fix )
+                {
+                    _solver.invMasses[pIdx] = con.InvMass;
+                }
+            }
+            if(con != null )
+            {
+                Connectors.Remove(con);
+            }
+        }
+    }
+
 
 
     public int MaxPointIdx()
@@ -364,7 +419,7 @@ public class RopeController : MonoBehaviour
 // для моделирования притяжения к объекту одной точкой каната
 public class Attractor
 {
-    public GameObject Fixator;  // к нему притягиваемся
+    public GameObject Fixator;  // к нему притягиваемся 
     public Vector3 Pos;         // альтернативный способ задавать точку притяжения, если Fixator=null
     public int FixPoint;        // номер притягиваемого шарика
     public int Interval;        // сколько соседних шариков притягиваются туда же
@@ -378,6 +433,19 @@ public class Attractor
         FixPoint = fix;
         Interval = interv;
         ForceMult = force;
+    }
+}
+
+public class Connector
+{
+    public GameObject Fixator;  // к нему присоединены 
+    public int FixPoint;        // номер притягиваемого шарика
+    public float InvMass;       // сохранение старой инверсной массы, для восстановления
+
+    public Connector(GameObject obj, int fix)
+    {
+        Fixator = obj;
+        FixPoint = fix;
     }
 }
 

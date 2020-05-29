@@ -32,9 +32,9 @@ public class Sailor : MonoBehaviour
 
     private int _ropeIdx;
     // сколько частиц тащит сейлор правой рукой за один цикл 
-    private int _ropeDragStep = 20;
+    private int _ropeDragStep = 10;
     // прекращает таскать при достижении этого числа
-    private int _dragLimit = 100;
+    private int _dragLimit = 110;
 
     // Утка с которой работает сейлор
     public GameObject WorkCleat;
@@ -44,6 +44,11 @@ public class Sailor : MonoBehaviour
 
     // индекс рабочей частицы
     private int _workIdx;
+
+    // правильное положение и углы
+    private bool needCorrectPose = false;
+    Vector3 pos = new Vector3( -1.491f, 1.045f, -5.442f );
+    Vector3 ang = new Vector3(0, -150, 0);
 
     private void Awake()
     {
@@ -92,6 +97,13 @@ public class Sailor : MonoBehaviour
                 CurState = "THROW_ROPE";
             }
 
+        }
+        if(needCorrectPose)
+        {
+            transform.localPosition = pos;
+            transform.localEulerAngles = ang;
+            //transform.localPosition = Vector3.Lerp(transform.localPosition, pos, 0.1f);
+            //transform.localEulerAngles = Vector3.Lerp(transform.localEulerAngles, ang, 0.1f); 
         }
     }
 
@@ -254,6 +266,54 @@ public class Sailor : MonoBehaviour
         GameObject attrObj = WorkCleat.transform.Find("Target2").gameObject;
         rContr.RemoveAttractors(attrObj);
         rContr.BeginCleat(WorkCleat, 20, rContr.MaxPointIdx());
+    }
+
+    // временная мера, для установки сейлора в правильное положение для вытягивания каната
+    private void SetStartPose()
+    {
+        needCorrectPose = true;
+        //transform.localPosition = new Vector3(-1.491f, 1.045f, -5.442f);
+        //transform.localEulerAngles = new Vector3(0, -150, 0);
+    }
+
+
+    // при вытягивании каната перехват левой рукой
+    private void CatchRopeToLeftHand()
+    {
+        print("CatchRopeToLeftHand() " + rContr.Attractors.Count );
+        _ropeIdx -= _ropeDragStep;
+        print("_ropeIdx = " + _ropeIdx + "  _dragLimit = " + _dragLimit + " max = " + rContr.MaxPointIdx() );
+        rContr.RemoveAttractors(RHand);
+        if (_ropeIdx >_dragLimit)
+        {
+            rContr.SetAttractors(LHand, new int[]{ _ropeIdx}, 2 );
+        }
+        else
+        {
+            FixRope();
+        }
+    }
+
+    // при вытягивании каната перехват правой рукой
+    private void CatchRopeToRightHand()
+    {
+        _ropeIdx -= _ropeDragStep;
+        rContr.RemoveAttractors(LHand);
+        if (_ropeIdx > _dragLimit)
+        {
+            rContr.SetAttractors(RHand, new int[] { _ropeIdx }, 2 );
+        }
+        else
+        {
+            FixRope();
+        }
+
+    }
+
+    // определить частицу каната ближайшую к точке фиксации и зафиксировать ее
+    private void FixRope()
+    {
+        rContr.AttachPointToCleat();
     }
 
 

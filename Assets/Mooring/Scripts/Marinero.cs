@@ -126,7 +126,7 @@ public class Marinero : MonoBehaviour
 
             // включить притяжение каната к руке
             rContr = WorkRope.GetComponent<RopeController>();
-            Attractor attr = new Attractor(LHand, _ropeIdx, 3 );
+            Attractor attr = new Attractor(LHand, _ropeIdx, 10 );
             rContr.Attractors.Clear();
             rContr.Attractors.Add(attr);
             CurState = "TAKE_HANK_L";
@@ -210,6 +210,7 @@ public class Marinero : MonoBehaviour
     void FreeRightHand()
     {
         rContr.Attractors[0].Fixator = LHand;
+        rContr.Attractors[0].Interval = 2;
     }
 
     // Канат вытягивается правой рукой а бухта собирается в левой руке
