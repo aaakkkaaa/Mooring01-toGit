@@ -16,7 +16,7 @@ public class Kranec : MonoBehaviour
 
     private void Awake()
     {
-        _ballon = transform.Find("Ballon").gameObject;
+        _ballon = transform.Find("Balloon").gameObject;
         _rope = transform.Find("Rope").GetComponent<ObiRope>();
         _bluePrint = _rope.blueprint as ObiRopeBlueprint;
         //_zero = transform.Find("ZeroPoint").gameObject;

@@ -237,7 +237,7 @@ public class sCalibrator : MonoBehaviour
             // Удалить модель-шаблон
             Destroy(_PatternModel.gameObject);
 
-            // Аернуть точки-цели на штурвале родителю
+            // Вернуть точки-цели на штурвале родителю
             _HelmHandPlaceLeft.SetParent(_HelmHandPlacesParent);
             _HelmHandPlaceRight.SetParent(_HelmHandPlacesParent);
 

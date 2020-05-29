@@ -14,6 +14,9 @@ public class UI_GoAway : MonoBehaviour
     [SerializeField]
     sCalibrator _Calibrator;
 
+    [SerializeField]
+    Transform _MainShip;
+
     float _CameraHeight;
 
     Transform _Parent;
@@ -40,6 +43,12 @@ public class UI_GoAway : MonoBehaviour
         myEu.x = 0.0f;
         myEu.z = 0.0f;
         transform.eulerAngles = myEu;
+        // Перевести себя в дочерние объекты яхты
+        transform.SetParent(_MainShip);
+        // Откорректировать, чтобы угол рыскания был 0
+        myEu = transform.localEulerAngles;
+        myEu.y = 0.0f;
+        transform.localEulerAngles = myEu;
         // Передвинуть себя вперед на 1 метр
         transform.Translate(Vector3.forward);
         // Вернуть себя обратно родителю

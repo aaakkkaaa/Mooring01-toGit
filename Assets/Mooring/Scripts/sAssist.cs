@@ -20,7 +20,7 @@ public class sAssist : MonoBehaviour
 
     // Точка, где должен находиться этот трекер в виртуальном пространстве
     [SerializeField]
-    Transform _ConsoleTrackerTrackerPose;
+    Transform _ConsoleTrackerPose;
 
     // Вспомогательный объект для коррекции положения [Camera Rig]
     [SerializeField]
@@ -30,9 +30,17 @@ public class sAssist : MonoBehaviour
     private ObiRope[] _ropes;
     private ropeTrick[] _ropeTricks;
 
+    // Класс для записи в файл
+    sRecord _Record;
+
+
     // Start is called before the first frame update
     void Start()
     {
+
+        // Класс для записи в файл
+        _Record = transform.GetComponent<sRecord>();
+
         // Зафиксировать положение яхты чтобы избавиться от конфликта с канатом
         Rigidbody ship = MainShip.GetComponent<Rigidbody>();
         ship.constraints = RigidbodyConstraints.FreezeAll;
@@ -143,19 +151,30 @@ public class sAssist : MonoBehaviour
         // Высота консоли в модели яхты
         if (_ConsoleTracker.localPosition.y != 0.0f) // если VR работает
         {
-            Transform Console = _ConsoleTrackerTrackerPose.parent;
+            // Положение трекера на консоли штурвала
+            _Record.MyLog("Положение трекера на консоли (локальное): localPos=\t" + tab(_ConsoleTracker.localPosition, "F3") + "\tlocalEu =\t" + tab(_ConsoleTracker.localEulerAngles, "F1"));
+            _Record.MyLog("Положение трекера на консоли (глобальное): globalPos=\t" + tab(_ConsoleTracker.position, "F3") + "\tglobalEu =\t" + tab(_ConsoleTracker.eulerAngles, "F1"));
+            _Record.MyLog("Место для трекера на консоли (локальное): localPos=\t" + tab(_ConsoleTrackerPose.localPosition, "F3") + "\tlocalEu =\t" + tab(_ConsoleTrackerPose.localEulerAngles, "F1"));
+            _Record.MyLog("Место для трекера на консоли (глобальное): globalPos=\t" + tab(_ConsoleTrackerPose.position, "F3") + "\tglobalEu =\t" + tab(_ConsoleTrackerPose.eulerAngles, "F1"));
+
+            Transform Console = _ConsoleTrackerPose.parent;
             Vector3 ConcolePos = Console.localPosition;
+
+            _Record.MyLog("Положение консоли было (локальное): localPos=\t" + tab(ConcolePos, "F3") + "\tlocalEu =\t" + tab(ConcolePos, "F1"));
+            _Record.MyLog("Положение консоли было (глобальное): globalPos=\t" + tab(Console.position, "F3") + "\tglobalEu =\t" + tab(Console.eulerAngles, "F1"));
             print("Высота установки консоли была: " + ConcolePos.y);
-            ConcolePos.y += _ConsoleTracker.position.y - _ConsoleTrackerTrackerPose.position.y;
+            ConcolePos.y += _ConsoleTracker.position.y - _ConsoleTrackerPose.position.y;
             print("Высота установки консоли стала: " + ConcolePos.y);
             Console.localPosition = ConcolePos;
+            _Record.MyLog("Положение консоли стало (локальное): localPos=\t" + tab(ConcolePos, "F3") + "\tlocalEu =\t" + tab(ConcolePos, "F1"));
+            _Record.MyLog("Положение консоли стало (глобальное): globalPos=\t" + tab(Console.position, "F3") + "\tglobalEu =\t" + tab(Console.eulerAngles, "F1"));
 
             // Положение трекера в пространстве
             Transform CameraRig = _ConsoleTracker.parent;
             Transform MainShip = CameraRig.parent;
             _TrackerTempPose.SetParent(MainShip);
             CameraRig.SetParent(_TrackerTempPose);
-            _TrackerTempPose.position = _ConsoleTrackerTrackerPose.position;
+            _TrackerTempPose.position = _ConsoleTrackerPose.position;
             CameraRig.SetParent(MainShip);
             _TrackerTempPose.SetParent(_ConsoleTracker);
             _TrackerTempPose.position = Vector3.zero;
@@ -164,6 +183,11 @@ public class sAssist : MonoBehaviour
 
     }
 
+    // Преобразование координат и углов для вывода в файл
+    private string tab(Vector3 myVector, string format)
+    {
+        return (myVector.x.ToString(format) + "\t" + myVector.y.ToString(format) + "\t" + myVector.z.ToString(format)).Replace(".", ",");
+    }
 
 
 
