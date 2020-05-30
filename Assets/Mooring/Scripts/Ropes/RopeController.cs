@@ -180,6 +180,10 @@ public class RopeController : MonoBehaviour
             for (int i = 0; i < CollPoints.Count; i++)
             {
                 int pIdx = CollPoints[i];
+                if(pIdx < _minIdx || pIdx > _maxIdx)
+                {
+                    break;
+                }
                 int idx = _rope.solverIndices[pIdx];
                 // на линии _t1:_t2 найти точку, на которую проецируется шарик
                 Vector3 vector = _solver.positions[idx] - _t1;
@@ -195,10 +199,10 @@ public class RopeController : MonoBehaviour
                     Vector4 velocity = _solver.velocities[idx];
                     Vector4 force = (((Vector4)attractPos - position) * _springStiffness - velocity * _springDamping) / invMass;
                     _solver.externalForces[idx] = force / 3;
-                    //print(idx + " ->  " + force);
+                    print(idx + " ->  " + force);
                 }
             }
-            //print("-----------------");
+            print("-----------------");
         }
 
         // держать на своих местах частицы жестко присоединенные к кому-то
@@ -254,7 +258,7 @@ public class RopeController : MonoBehaviour
     // передаем утку, из нее извлекаем все нужное
     public void BeginCleat(GameObject cleat, int minI, int maxI)
     {
-        print("BeginCleat()");
+        print("BeginCleat() -> " + cleat.name + "  minI = " + minI + "  maxI = " + maxI );
         _workCleat = cleat;
         // выстроить крайние точки каната по линии, чтобы потом продеть в утку
         _target1 = _workCleat.transform.Find("Target1");
@@ -347,7 +351,8 @@ public class RopeController : MonoBehaviour
     // зафиксировать на утке частицу каната
     public void AttachPointToCleat()
     {
-        print("Rope.AttachPointToCleat()");
+        print("Rope.AttachPointToCleat() -> " + _workCleat.name );
+        print("CollPoints = " + CollPoints);
         if(CollPoints.Count == 0)
         {
             print("Невозможно соединится с уткой, нет подходящих точек!");

@@ -313,7 +313,7 @@ public class Sailor : MonoBehaviour
     // определить частицу каната ближайшую к точке фиксации и зафиксировать ее
     private void FixRope()
     {
-        rContr.AttachPointToCleat();
+        //rContr.AttachPointToCleat();
     }
 
 
