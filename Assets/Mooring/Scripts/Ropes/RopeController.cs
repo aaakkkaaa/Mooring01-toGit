@@ -255,7 +255,7 @@ public class RopeController : MonoBehaviour
 
     }
 
-    // передаем утку, из нее извлекаем все нужное
+    // передаем утку, из нее извлекаем все нужное, включаем коллайдер для определения частиц каната
     public void BeginCleat(GameObject cleat, int minI, int maxI)
     {
         print("BeginCleat() -> " + cleat.name + "  minI = " + minI + "  maxI = " + maxI );
@@ -407,6 +407,11 @@ public class RopeController : MonoBehaviour
         }
     }
 
+    public void ShowTrickRope()
+    {
+        GameObject knot = _workCleat.gameObject.transform.Find("RopeKnot").gameObject;
+        knot.SetActive(true);
+    }
 
 
     public int MaxPointIdx()

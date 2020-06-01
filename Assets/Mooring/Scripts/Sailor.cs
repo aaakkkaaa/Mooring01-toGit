@@ -34,7 +34,7 @@ public class Sailor : MonoBehaviour
     // сколько частиц тащит сейлор правой рукой за один цикл 
     private int _ropeDragStep = 10;
     // прекращает таскать при достижении этого числа
-    private int _dragLimit = 110;
+    private int _dragLimit = 90;
 
     // Утка с которой работает сейлор
     public GameObject WorkCleat;
@@ -238,10 +238,10 @@ public class Sailor : MonoBehaviour
 
             // включить притяжение каната к руке
             rContr = WorkRope.GetComponent<RopeController>();
-            Attractor attr = new Attractor(RHand, _ropeIdx, 3);
+            Attractor attr = new Attractor(LHand, _ropeIdx, 3);
             rContr.Attractors.Clear();
             rContr.Attractors.Add(attr);
-            CurState = "TAKE_HANK_R";
+            CurState = "TAKE_HANK_L";
             rContr.CurState = "ATTRACT";
             // анимация закрепления каната на утке запускается автоматически
         }
@@ -314,6 +314,12 @@ public class Sailor : MonoBehaviour
     private void FixRope()
     {
         //rContr.AttachPointToCleat();
+        _animator.SetTrigger("FastNow");
+    }
+
+    private void ShowKnot()
+    {
+        rContr.ShowTrickRope();
     }
 
 
