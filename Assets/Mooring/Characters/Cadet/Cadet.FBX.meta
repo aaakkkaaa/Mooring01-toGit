@@ -934,7 +934,7 @@ ModelImporter:
     - name: Bip01 L Finger0
       parentName: Bip01 L Hand
       position: {x: -0.026760863, y: 0.006282196, z: -0.031982508}
-      rotation: {x: -0.47030815, y: 0.32938805, z: -0.19480826, w: -0.7952129}
+      rotation: {x: 0.6532815, y: -0.27059805, z: 0.27059805, w: 0.6532815}
       scale: {x: 0.99999994, y: 1.0000002, z: 1.0000001}
     - name: Bip01 L Finger01
       parentName: Bip01 L Finger0
@@ -1054,7 +1054,7 @@ ModelImporter:
     - name: Bip01 R Finger0
       parentName: Bip01 R Hand
       position: {x: -0.026760863, y: 0.006282043, z: 0.03198249}
-      rotation: {x: -0.5869043, y: 0.2955456, z: 0.24310362, w: 0.71351016}
+      rotation: {x: -0.6532815, y: 0.27059805, z: 0.27059805, w: 0.6532815}
       scale: {x: 1, y: 1, z: 1.0000007}
     - name: Bip01 R Finger01
       parentName: Bip01 R Finger0
