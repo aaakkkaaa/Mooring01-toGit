@@ -11,6 +11,9 @@ public class RopeController : MonoBehaviour
     public float Stretch = 1.3f;
     public float MaxForce = 2000;
 
+    // скрипт меша - имитатор каната
+    public ropeTrick Trick;
+
     // для таскания рукой за одну или несколько точек
     private float _springStiffness = 5000;
     private float _springDamping = 50;
@@ -411,6 +414,18 @@ public class RopeController : MonoBehaviour
     {
         GameObject knot = _workCleat.gameObject.transform.Find("RopeKnot").gameObject;
         knot.SetActive(true);
+        if(Trick != null)
+        {
+            // показать имитацию каната
+            Trick.gameObject.SetActive(true);
+            // спрятать канат ObiRope
+            //transform.SetParent(GameObject.Find("BakedRope").transform);
+            gameObject.SetActive(false);
+            // запустить физику
+
+
+
+        }
     }
 
 
