@@ -98,6 +98,17 @@ public class sRecord : MonoBehaviour
     }
 
 
+    // Преобразование координат и углов для вывода в файл
+    public string tab(Vector3 myVector, string format)
+    {
+        return (myVector.x.ToString(format) + "\t" + myVector.y.ToString(format) + "\t" + myVector.z.ToString(format)).Replace(".", ",");
+    }
+    // То же для 2-мерных векторов
+    public string tab(Vector2 myVector, string format)
+    {
+        return (myVector.x.ToString(format) + "\t" + myVector.y.ToString(format)).Replace(".", ",");
+    }
+
     // ******************************************************************
 
     // Закрыть один лог-файл и удалить его запись из словаря лог-файлов
