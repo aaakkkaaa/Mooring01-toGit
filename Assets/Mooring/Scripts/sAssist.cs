@@ -28,7 +28,7 @@ public class sAssist : MonoBehaviour
 
     // канаты для выключения моделирования
     private ObiRope[] _ropes;
-    private ropeTrick[] _ropeTricks;
+    private RopeTrick[] _ropeTricks;
 
     // Класс для записи в файл
     sRecord _Record;
@@ -138,7 +138,7 @@ public class sAssist : MonoBehaviour
         {
             _ropes[i].transform.SetParent(GameObject.Find("BakedRope").transform);
         }
-        _ropeTricks = FindObjectsOfType<ropeTrick>();
+        _ropeTricks = FindObjectsOfType<RopeTrick>();
         for (int i = 0; i < _ropes.Length; i++)
         {
             _ropeTricks[i].gameObject.SetActive(false);

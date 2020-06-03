@@ -9,10 +9,10 @@ using Obi;
 public class RopeController : MonoBehaviour
 {
     public float Stretch = 1.3f;
-    public float MaxForce = 2000;
+    public float MaxForce = 20000;
 
     // скрипт меша - имитатор каната
-    public ropeTrick Trick;
+    public RopeTrick Trick;
 
     // для таскания рукой за одну или несколько точек
     private float _springStiffness = 5000;
@@ -202,10 +202,10 @@ public class RopeController : MonoBehaviour
                     Vector4 velocity = _solver.velocities[idx];
                     Vector4 force = (((Vector4)attractPos - position) * _springStiffness - velocity * _springDamping) / invMass;
                     _solver.externalForces[idx] = force / 3;
-                    print(idx + " ->  " + force);
+                    //print(idx + " ->  " + force);
                 }
             }
-            print("-----------------");
+            //print("-----------------");
         }
 
         // держать на своих местах частицы жестко присоединенные к кому-то

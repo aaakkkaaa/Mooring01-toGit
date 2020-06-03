@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ropeTrick : MonoBehaviour
+public class RopeTrick : MonoBehaviour
 {
     // куда прикреплять на яхте
     public Transform YachtElement;

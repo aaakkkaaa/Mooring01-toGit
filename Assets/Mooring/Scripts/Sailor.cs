@@ -27,7 +27,7 @@ public class Sailor : MonoBehaviour
 
     // канат с которым взаимодействует перс
     public ObiRope WorkRope;
-    // направление броска каната
+    // направление броска каната (Маринеро)
     public GameObject RopeTarget;
 
     private int _ropeIdx;
@@ -324,12 +324,25 @@ public class Sailor : MonoBehaviour
         Attractor attr = new Attractor(center, _ropeIdx, 3, 1.5f );
         rContr.Attractors.Add(attr);
         _animator.SetTrigger("FastNow");
-
     }
 
+    // показать узел и начать рассчет сил
     private void ShowKnot()
     {
         rContr.ShowTrickRope();
+
+        //начать рассчет сил 
+        Rope r = new Rope();
+        Marinero m = RopeTarget.GetComponent<Marinero>();
+        r.Bollard = m.WorkCleat.transform;
+        r.Len = Vector3.Distance(WorkCleat.transform.position, r.Bollard.position) * 1.05f;
+        r.Stretch = rContr.Stretch;
+        r.MaxForce = rContr.MaxForce;
+        r.ropeTrick = rContr.Trick;
+
+        Cleat cleat = WorkCleat.GetComponent<Cleat>();
+        cleat.Ropes.Add(r);
+
     }
 
 
