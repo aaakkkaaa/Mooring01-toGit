@@ -139,7 +139,7 @@ public class sAssist : MonoBehaviour
             _ropes[i].transform.SetParent(GameObject.Find("BakedRope").transform);
         }
         _ropeTricks = FindObjectsOfType<RopeTrick>();
-        for (int i = 0; i < _ropes.Length; i++)
+        for (int i = 0; i < _ropeTricks.Length; i++)
         {
             _ropeTricks[i].gameObject.SetActive(false);
         }
