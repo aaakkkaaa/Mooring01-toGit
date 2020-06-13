@@ -59,44 +59,36 @@ public class sBump : MonoBehaviour
     // Вошли в коллизию
     void OnCollisionEnter(Collision collision)
     {
-        // Проверим, подходит ли внешний коллайдер по имени объекта
-        string myName = collision.gameObject.name;
-
-        if (myName.Length < 8 || myName.Substring(0, 8) != "PortFlor")
+        // Проверим, подходит ли внешний коллайдер по тэгу объекта
+        if (CheckCollider(collision.gameObject.tag))
         {
-            return;
+            // Массив точек контактов
+            ContactPoint[] ContactPoints = new ContactPoint[collision.contactCount];
+            collision.GetContacts(ContactPoints);
+
+            _Impact.transform.position = ContactPoints[0].point;
+            if (!_Impact.isPlaying)
+            {
+                _Impact.volume = Mathf.Clamp(collision.relativeVelocity.magnitude + 0.5f, 0, 5) / 3;
+                _Impact.Play();
+            }
         }
-
-        // Массив точек контактов
-        ContactPoint[] ContactPoints = new ContactPoint[collision.contactCount];
-        collision.GetContacts(ContactPoints);
-
-        _Impact.transform.position = ContactPoints[0].point;
-        if (!_Impact.isPlaying)
-        {
-            _Impact.volume = Mathf.Clamp(collision.relativeVelocity.magnitude + 0.5f, 0, 5) / 5;
-            _Impact.Play();
-        }
-
     }
 
     void OnCollisionStay(Collision collision)
     {
-        // Проверим, подходит ли внешний коллайдер по имени объекта
-        string myName = collision.gameObject.name;
-        if (myName.Length < 8 || myName.Substring(0, 8) != "PortFlor")
+        // Проверим, подходит ли внешний коллайдер по тэгу объекта
+        if (CheckCollider(collision.gameObject.tag))
         {
-            return;
-        }
+            // Массив точек контактов
+            ContactPoint[] ContactPoints = new ContactPoint[collision.contactCount];
+            collision.GetContacts(ContactPoints);
 
-        // Массив точек контактов
-        ContactPoint[] ContactPoints = new ContactPoint[collision.contactCount];
-        collision.GetContacts(ContactPoints);
-
-        _Scrape.transform.position = ContactPoints[0].point;
-        if (!_Scrape.isPlaying)
-        {
-            _Scrape.Play();
+            _Scrape.transform.position = ContactPoints[0].point;
+            if (!_Scrape.isPlaying)
+            {
+                _Scrape.Play();
+            }
         }
     }
 
@@ -104,109 +96,24 @@ public class sBump : MonoBehaviour
     // Вышли из коллизии
     void OnCollisionExit(Collision collision)
     {
-        // Проверим, подходит ли внешний коллайдер по имени объекта
-        string myName = collision.gameObject.name;
-        if (myName.Length < 8 || myName.Substring(0, 8) != "PortFlor")
+        // Проверим, подходит ли внешний коллайдер по тэгу объекта
+        if (CheckCollider(collision.gameObject.tag))
         {
-            return;
-        }
-
-        _Scrape.Stop();
-    }
-
-
-
-
-
-        // Вошли в коллизию
-        void OnCollisionEnter1(Collision collision)
-    {
-
-        // Проверим, подходит ли внешний коллайдер по имени объекта
-        string myName = collision.gameObject.name;
-        if (myName.Length < 8 || myName.Substring(0, 8) != "PortFlor")
-        {
-            return;
-        }
-
-        print("");
-        print("");
-        //print("Есть контакт! Количество точек = " + collision.contactCount + ". Коллайдер: " + collision.collider + ". gameObject = " + collision.gameObject + ". impulse = " + collision.impulse);
-        //print("RelativeVelocity = " + collision.relativeVelocity + ", magnitude = " + collision.relativeVelocity.magnitude);
-        // Массив точек контактов
-        ContactPoint[] ContactPoints = new ContactPoint[collision.contactCount];
-        collision.GetContacts(ContactPoints);
-
-        foreach (ContactPoint contact in ContactPoints)
-        {
-            //Debug.DrawRay(contact.point, contact.normal, Color.white);
-            print("otherCollider = " + contact.otherCollider + ", thisCollider = " + contact.thisCollider + ", separation = " + contact.separation);
-
-            // Запишем новую коллизию в словарь
-            string myKey = contact.otherCollider.GetInstanceID().ToString() + contact.thisCollider.GetInstanceID().ToString();
-            if (!_AllCollisions.ContainsKey(myKey))
-            {
-                _AllCollisions.Add(myKey, true);
-            }
-
-        }
-        print("Есть контакт! Количество точек = " + collision.contactCount + " Всего коллизий: " + _AllCollisions.Count);
-
-        if (!_Clash)
-        {
-            _Clash = true;
-            _Impact.volume = Mathf.Clamp(collision.relativeVelocity.magnitude + 0.5f, 0, 5) / 5;
-            _Impact.Play();
-
-        }
-    }
-
-    // Находимся в коллизии
-    void OnCollisionStay1(Collision collision)
-    {
-        // Проверим, подходит ли внешний коллайдер по имени объекта
-        string myName = collision.gameObject.name;
-        if (myName.Length < 8 || myName.Substring(0, 8) != "PortFlor")
-        {
-            return;
-        }
-        if (!_Scrape.isPlaying)
-        {
-            _Scrape.Play();
-        }
-    }
-
-    // Вышли из коллизии
-    void OnCollisionExit1(Collision collision)
-    {
-        // Проверим, подходит ли внешний коллайдер по имени объекта
-        string myName = collision.gameObject.name;
-        if (myName.Length < 8 || myName.Substring(0, 8) != "PortFlor")
-        {
-            return;
-        }
-
-        // Массив точек контактов
-        ContactPoint[] ContactPoints = new ContactPoint[collision.contactCount];
-        collision.GetContacts(ContactPoints);
-
-        foreach (ContactPoint contact in ContactPoints)
-        {
-            // Удалим коллизии из словаря
-            string myKey = contact.otherCollider.GetInstanceID().ToString() + contact.thisCollider.GetInstanceID().ToString();
-            _AllCollisions.Remove(myKey);
-        }
-
-        print("Вышли из контакта. Осталось коллизий: " + _AllCollisions.Count);
-
-        if (_AllCollisions.Count == 0)
-        {
-            _Clash = false;
             _Scrape.Stop();
         }
+
     }
 
 
+    // Проверка внешнего коллайдера по тэгу
+    private bool CheckCollider(string collTag)
+    {
+        if (collTag == "Pier" || collTag == "Ship")
+        {
+            return true;
+        }
+        return false;
+    }
 
 
 }

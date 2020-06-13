@@ -120,25 +120,25 @@ public class sCalibrator : MonoBehaviour
             // Вызвать диалог для подтверждения начала калибровки
             _Dialog.ShowDialog("Начать калибровку?", "ScaleModel");
         }
-        if (Input.GetKeyDown("space"))
-        {
-            Transform CadetLHTrackerTarget = GameObject.Find("Cadet LH Tracker Target").transform;
-            print("CadetLHTrackerTarget = " + CadetLHTrackerTarget);
-            Transform CadetLHJoint = GameObject.Find("LeftHandCollider").transform.parent;
-            print("CadetLHJoint = " + CadetLHJoint);
+        //if (Input.GetKeyDown("space"))
+        //{
+        //    Transform CadetLHTrackerTarget = GameObject.Find("Cadet LH Tracker Target").transform;
+        //    print("CadetLHTrackerTarget = " + CadetLHTrackerTarget);
+        //    Transform CadetLHJoint = GameObject.Find("LeftHandCollider").transform.parent;
+        //    print("CadetLHJoint = " + CadetLHJoint);
 
-            _Record.MyLog("");
-            _Record.MyLog("Левая рука. Цель: pos =\t" + tab(_VRIK.solver.leftArm.target.position, "F3"));
-            _Record.MyLog("Левая рука. Цель: pos =\t" + tab(CadetLHTrackerTarget.position, "F3"));
-            _Record.MyLog("Левая рука. Сустав: pos =\t" + tab(_VRIK.references.leftHand.position, "F3"));
-            _Record.MyLog("Левая рука. Сустав: pos =\t" + tab(CadetLHJoint.position, "F3"));
-            _Record.MyLog("");
+        //    _Record.MyLog("");
+        //    _Record.MyLog("Левая рука. Цель: pos =\t" + tab(_VRIK.solver.leftArm.target.position, "F3"));
+        //    _Record.MyLog("Левая рука. Цель: pos =\t" + tab(CadetLHTrackerTarget.position, "F3"));
+        //    _Record.MyLog("Левая рука. Сустав: pos =\t" + tab(_VRIK.references.leftHand.position, "F3"));
+        //    _Record.MyLog("Левая рука. Сустав: pos =\t" + tab(CadetLHJoint.position, "F3"));
+        //    _Record.MyLog("");
 
-            Vector3 myVect = _VRIK.solver.leftArm.target.position - _VRIK.references.leftHand.position;
-            float myDist = myVect.magnitude;
-            _Record.MyLog("Вектор =\t" + tab(myVect, "F3") + "\tДлина =\t" + myDist);
+        //    Vector3 myVect = _VRIK.solver.leftArm.target.position - _VRIK.references.leftHand.position;
+        //    float myDist = myVect.magnitude;
+        //    _Record.MyLog("Вектор =\t" + tab(myVect, "F3") + "\tДлина =\t" + myDist);
 
-        }
+        //}
     }
 
     // Определить высоту камеры

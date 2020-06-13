@@ -149,23 +149,15 @@ public class sDevices : MonoBehaviour
             // Пауза 0.1 сек
             yield return new WaitForSeconds(0.1f);
 
-            // Органы управления -----------------------------
+            // Скорость яхты
+            float YachtSpeed = _YachtSolver.Vz * _MeterSecToKnot;
 
-            // Ручка газ-реверс
-            Vector3 myVect = _ThrottleLever.localEulerAngles;
-            myVect.x = Mathf.Lerp(-50, 50, (_YachtSolver.engineValue + 1) / 2.0f);
-            _ThrottleLever.localEulerAngles = myVect;
-
-            // Штурвал
-            myVect = _HelmWheel.localEulerAngles;
-            myVect.z = _YachtSolver.steeringWheel + 30;
-            //myVect.z = - Mathf.Lerp(-540, 540, (steeringWheel + 35) / 70.0f);
-            _HelmWheel.localEulerAngles = _HelmWheel2.localEulerAngles = myVect;
-
-            // Изменить высоту звука двигателя, выключить/включить шум воды и пену 
+            // -------------- Звук. Изменить высоту звука двигателя, выключить/включить шум воды и пену 
 
             float EV = Mathf.Abs(_YachtSolver.engineValue);
             _EngineVar.pitch = EV * 1.5f + 1; // pitch меняется от 1 до 2.5
+            _EngineVar.volume = EV + 0.1f; // громкость мняется от 0.1 до 1.1
+            _EngineConst.volume = EV + 0.5f; // громкость мняется от 0.5 до 1.5
             if (_Propeller.isPlaying) // Была включена передача
             {
                 if (EV == 0.0f) // А теперь включен холостой ход
@@ -175,7 +167,7 @@ public class sDevices : MonoBehaviour
                 }
                 else // По-прежнему включена передача
                 {
-                    _Propeller.pitch = EV * 2 + 1; // pitch меняется от 1 до 3
+                    _Propeller.pitch = EV * 4 + 1; // pitch меняется от 1 до 5
                     _Propeller.volume = EV;
                 }
             }
@@ -187,6 +179,8 @@ public class sDevices : MonoBehaviour
                     _Propeller.Play();
                 }
             }
+
+            _Record.MyLog("EV = " + EV + " _EngineConst.volume = " + _EngineConst.volume + " _EngineVar.volume = " + _EngineVar.volume + " _EngineVar.pitch = " + _EngineVar.pitch + " _Propeller.volume = " + _Propeller.volume + " _Propeller.pitch = " + _Propeller.pitch);
 
             // Компас -----------------------------
 
@@ -243,7 +237,6 @@ public class sDevices : MonoBehaviour
                 Vector2 TrueWind = new Vector2(_WindScript.WindDir[0].value * Mathf.Sin(RadiansAngle), _WindScript.WindDir[0].value * Mathf.Cos(RadiansAngle));
                 // Курсовой ветер (противоположный скорости корабля)
                 RadiansAngle = transform.eulerAngles.y * Mathf.Deg2Rad;
-                float YachtSpeed = _YachtSolver.Vz * _MeterSecToKnot;
                 Vector2 TrackWind = new Vector2(-YachtSpeed * Mathf.Sin(RadiansAngle), -YachtSpeed * Mathf.Cos(RadiansAngle));
                 // Вымпельный (относительный) ветер
                 Vector2 ApparentWind = TrueWind + TrackWind;
@@ -284,7 +277,7 @@ public class sDevices : MonoBehaviour
                 // Дисплей ветроуказателя, если ветра нет
 
                 // Скорость вымпельного ветра (скорость судна * (1))
-                _WindSpeedText.text = _YachtSolver.Vz.ToString("F1");
+                _WindSpeedText.text = YachtSpeed.ToString("F1");
                 // Направление стрелки - откуда дует ветер (а он дует с носа)
                 Vector3 myPointerEu = _WindPonter.transform.localEulerAngles;
                 myPointerEu.z = 0;
@@ -295,10 +288,27 @@ public class sDevices : MonoBehaviour
             // Спидометр --------------------
 
             // Вывести данные на дисплей
-            _SpeedText.text = (_YachtSolver.Vz * _MeterSecToKnot).ToString("F2", CultureInfo.InvariantCulture);
+            _SpeedText.text = YachtSpeed.ToString("F2", CultureInfo.InvariantCulture);
             //_RudderAngleText.text = RuderValue.ToString("F2", CultureInfo.InvariantCulture);
             //_TrackAngleText.text = NormalizeAngle(transform.localEulerAngles.y).ToString("F0", CultureInfo.InvariantCulture);
 
         }
+    }
+
+    private void LateUpdate()
+    {
+        // Органы управления -----------------------------
+
+        // Ручка газ-реверс
+        Vector3 myVect = _ThrottleLever.localEulerAngles;
+        myVect.x = Mathf.Lerp(-50, 50, (_YachtSolver.engineValue + 1) / 2.0f);
+        _ThrottleLever.localEulerAngles = myVect;
+
+        // Штурвал
+        myVect = _HelmWheel.localEulerAngles;
+        myVect.z = _YachtSolver.steeringWheel + 30;
+        //myVect.z = - Mathf.Lerp(-540, 540, (steeringWheel + 35) / 70.0f);
+        _HelmWheel.localEulerAngles = _HelmWheel2.localEulerAngles = myVect;
+
     }
 }
