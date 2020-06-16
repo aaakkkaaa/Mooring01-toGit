@@ -68,6 +68,7 @@
     <Compile Include="Assets\Mooring\Scripts\CommandManager.cs" />
     <Compile Include="Assets\Mooring\Scripts\Kranec.cs" />
     <Compile Include="Assets\Mooring\Scripts\Marinero.cs" />
+    <Compile Include="Assets\Mooring\Scripts\Misc.cs" />
     <Compile Include="Assets\Mooring\Scripts\RopeTrick.cs" />
     <Compile Include="Assets\Mooring\Scripts\Ropes\Cleat.cs" />
     <Compile Include="Assets\Mooring\Scripts\Ropes\Cleat_old.cs" />

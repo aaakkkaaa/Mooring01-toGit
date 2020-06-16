@@ -8,7 +8,6 @@ public class Traveler : MonoBehaviour
     public Transform Target;
 
     private Animator _animator;
-    private string _state = "";
 
     void Start()
     {
@@ -21,24 +20,65 @@ public class Traveler : MonoBehaviour
         {
             if (Input.GetKeyDown("g")) // повернуться к нужной точке и идти туда 
             {
-                if (_state == "")
+                bool isRotLeft = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateLeft");
+                bool isRotRight = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateRight");
+                if (!(isRotLeft || isRotRight) )
                 {
-                    _state = "GO";
-                    RotateAndGo();
+                    StartCoroutine(RotateAndGo());
                 }
             }
         }
     }
 
-    public void RotateAndGo()
+    public IEnumerator RotateAndGo()
     {
-        if (_animator.isMatchingTarget) return;
+        if (!_animator.isMatchingTarget)
+        {
+            /*
+            Vector3 CorrectPos = new Vector3(Target.position.x, transform.position.y, Target.position.z);
+            float rotAng = Vector3.Angle( transform.TransformDirection(Vector3.forward), (CorrectPos - transform.position) );
+            print("rotAng = " + rotAng);
+            */
+            Quaternion correctRot = Quaternion.LookRotation(Target.position - transform.position);
+            Vector3 angle = correctRot.eulerAngles;
+            angle.x = 0;
+            angle.z = 0;
+            Vector3 curRot = transform.eulerAngles;
+            float dY = Misc.NormalizeAngle(curRot.y) - Misc.NormalizeAngle(angle.y);
+            if (dY > 0)
+            {
+                _animator.SetTrigger("RotLeft");
+            }
+            else
+            {
+                _animator.SetTrigger("RotRight");
+            }
+            print("RotateAndGo() - запуск -> "+_animator.GetCurrentAnimatorStateInfo(0).normalizedTime);
 
-        Vector3 CorrectPos = new Vector3(Target.position.x, transform.position.y, Target.position.z);
-        float rotAng = Vector3.Angle( transform.TransformDirection(Vector3.forward), (CorrectPos - transform.position) );
-        print("rotAng = " + rotAng);
+            bool isRotLeft;
+            bool isRotRight;
+            do
+            {
+                print("проверка в карутине");
+                isRotLeft = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateLeft");
+                isRotRight = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateRight");
 
+                yield return null;
+            } 
+            while (!(isRotLeft || isRotRight));
 
-        _state = "";
+            print("RotateLeft = " + isRotLeft + "  RotateRight = " + isRotRight);
+
+            correctRot.eulerAngles = angle;
+            //print(angle);
+            print("RotateAndGo() - MatchTarget -> " + _animator.GetCurrentAnimatorStateInfo(0).normalizedTime);
+            _animator.MatchTarget(Vector3.zero,
+                                   correctRot,
+                                   AvatarTarget.Root,
+                                   new MatchTargetWeightMask(new Vector3(0, 0, 0), 1),
+                                   _animator.GetCurrentAnimatorStateInfo(0).normalizedTime, 
+                                   0.6f);
+
+        }
     }
 }
