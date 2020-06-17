@@ -103,7 +103,7 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 				// Check if the current sample is visible in the main camera (and therefore shadow map can be sampled). This is required as the shadow buffer is
 				// world aligned and surrounds viewer.
 				float3 projected = input._MainCameraCoords.xyz / input._MainCameraCoords.w;
-				if (projected.z < 1.0 && projected.z > 0.0 && abs(projected.x) < 1.0 && abs(projected.y) < 1.0) // TODO - fix the y component on github?
+				if (projected.z < 1.0 && projected.z > 0.0 && abs(projected.x) < 1.0 && abs(projected.y) < 1.0)
 				{
 					float3 positionWS_0 = positionWS, positionWS_1 = positionWS;
 					if (_JitterDiameters_CurrentFrameWeights[0] > 0.0)

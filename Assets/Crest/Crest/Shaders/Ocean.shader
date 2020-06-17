@@ -187,6 +187,7 @@ Shader "Crest/Ocean URP"
 			"RenderPipeline"="UniversalPipeline"
 			"RenderType"="Transparent"
 			"Queue"="Transparent-100"
+			"DisableBatching"="True"
 		}
 
 		Pass

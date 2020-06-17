@@ -2,6 +2,8 @@
 
 // Copyright 2020 Wave Harmonic Ltd
 
+using UnityEngine;
+
 namespace Crest
 {
     /// <summary>
@@ -14,5 +16,6 @@ namespace Crest
 
         public override float CurrentTime => _time;
         public override float DeltaTime => _deltaTime;
+        public override float DeltaTimeDynamics => DeltaTime;
     }
 }

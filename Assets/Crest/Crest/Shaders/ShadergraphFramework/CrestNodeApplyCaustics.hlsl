@@ -28,8 +28,13 @@ void CrestNodeApplyCaustics_float
 {
 	o_sceneColour = i_sceneColour;
 
-	// We don't want caustics showing above the surface until we can implement it for when the view is above or below the surface.
+	// @HACK: When used by the underwater effect, either scene position or surface height is out of sync leading to
+	// caustics rendering short of the surface. CREST_GENERATED_SHADER_ON limits this to the ocean shader.
+#if CREST_GENERATED_SHADER_ON
+	// We don't want caustics showing above the surface until we can implement it for both cases when the view is either
+	// above or below the surface. We can only do the latter scenario at the moment.
 	if (i_scenePos.y > i_waterSurfaceY) return;
+#endif
 
 	half sceneDepth = i_waterSurfaceY - i_scenePos.y;
 
