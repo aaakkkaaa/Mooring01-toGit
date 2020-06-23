@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Valve.VR;
 
 public class Traveler : MonoBehaviour
 {
@@ -8,6 +9,12 @@ public class Traveler : MonoBehaviour
     public Transform Target;
 
     private Animator _animator;
+
+    private string _state = "";
+    private float _normTimeStart;
+    private float _normTimeCur;
+    private Vector3 _posStart;
+
 
     void Start()
     {
@@ -33,6 +40,7 @@ public class Traveler : MonoBehaviour
                 bool isRotRight = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateRight");
                 if (!(isRotLeft || isRotRight))
                 {
+                    _state = "Go";
                     StartCoroutine(RotateAndGo("Go"));
                 }
             }
@@ -65,7 +73,7 @@ public class Traveler : MonoBehaviour
                 bool isRotRight;
                 do
                 {
-                    print("проверка в карутине Rotate");
+                    //print("проверка в карутине Rotate");
                     isRotLeft = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateLeft");
                     isRotRight = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateRight");
 
@@ -87,6 +95,8 @@ public class Traveler : MonoBehaviour
             }
             else if(task == "Go")
             {
+                _animator.SetTrigger("Go2Steps");
+                /*
                 print("RotateAndGo() - запуск -> " + _animator.GetCurrentAnimatorStateInfo(0).normalizedTime);
                 _animator.SetTrigger("Go2Steps");
                 do
@@ -96,18 +106,44 @@ public class Traveler : MonoBehaviour
                 }
                 while (!_animator.GetCurrentAnimatorStateInfo(0).IsName("Walk"));
 
+            
+                print("RotateAndGo() - MatchTarget -> " + _animator.GetCurrentAnimatorStateInfo(0).normalizedTime);
+
+                Vector3 newPos = Target.position;
+                _animator.MatchTarget( newPos,
+                                        Quaternion.identity,
+                                        AvatarTarget.Root,
+                                        new MatchTargetWeightMask(new Vector3(1, 1, 1), 0),
+                                        _animator.GetCurrentAnimatorStateInfo(0).normalizedTime,
+                                        0.8f);
+                */
             }
-            print("RotateAndGo() - MatchTarget -> " + _animator.GetCurrentAnimatorStateInfo(0).normalizedTime);
 
-            Vector3 newPos = Target.position;
-            _animator.MatchTarget( newPos,
-                                   Quaternion.identity,
-                                   AvatarTarget.Root,
-                                   new MatchTargetWeightMask(new Vector3(1, 1, 1), 0),
-                                   _animator.GetCurrentAnimatorStateInfo(0).normalizedTime,
-                                   0.8f);
+        }
+    }
 
+    private void OnAnimatorMove()
+    {
 
+        if (_state == "Go")
+        {
+            if (!_animator.GetCurrentAnimatorStateInfo(0).IsName("Walk"))
+            {
+                _state = "";
+            }
+            else 
+            { 
+                _normTimeCur = _animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+                float dt = (_normTimeCur - _normTimeStart) / (1.0f - _normTimeStart);
+                Vector3 dL = (Target.localPosition - _posStart) * dt;
+                gameObject.transform.localPosition = _posStart + dL;
+            }
+        }
+        else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Walk"))
+        {
+            _state = "Go";
+            _normTimeStart = _animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+            _posStart = gameObject.transform.localPosition;
         }
     }
 }
