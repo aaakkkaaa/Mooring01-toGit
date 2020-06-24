@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.IO;
 
 public class PathWalker : MonoBehaviour
 {
@@ -37,6 +38,7 @@ public class PathWalker : MonoBehaviour
     // изменение начального угла, приводящее его к желаемому
     private float _deltaY;
 
+    // расстояние, проходимое за полный шаг (левой + правой)
     private float _stepL = 1.17f;
 
     void Start()
@@ -56,7 +58,6 @@ public class PathWalker : MonoBehaviour
             bool isGo2Steps = _animator.GetCurrentAnimatorStateInfo(0).IsName("Go2Steps");
             if (!(isRotLeft || isRotRight || isWalk || isGo2Steps))
             {
-                //StartCoroutine(RotateAndGo("Go"));
                 WalkTo(WalkTarget.name);
             }
         }
@@ -77,7 +78,8 @@ public class PathWalker : MonoBehaviour
         Vector3 curRot = transform.localEulerAngles;
         _angleYStart = curRot.y;
         //print(curRot);
-        _deltaY = Misc.NormalizeAngle(curRot.y) - Misc.NormalizeAngle(angle.y);
+        //_deltaY = Misc.NormalizeAngle(curRot.y) - Misc.NormalizeAngle(angle.y);
+        _deltaY = Misc.NormalizeAngle(curRot.y-angle.y);
         //print(_deltaY);
         if (_deltaY > 0)
         {
@@ -161,6 +163,19 @@ public class PathWalker : MonoBehaviour
             _normTimeStart = _animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
             _posStart = gameObject.transform.localPosition;
         }
+    }
+
+    // вызывается из анимаций поворота в конце
+    void Rotate1End()
+    {
+        print("Rotate1End");
+        // надо смотреть расстояние не до ближайшей точки, а до последней!
+        float toLast = (_path[ _path.Count-1 ].localPosition - _path[0].localPosition).magnitude;
+        if (toLast > _stepL) // идти больше шага
+        {
+            _animator.SetTrigger("GoLong");
+        }
+
     }
 
 }
