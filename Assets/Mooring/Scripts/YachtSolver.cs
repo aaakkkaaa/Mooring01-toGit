@@ -94,11 +94,18 @@ public class YachtSolver : MonoBehaviour
     private Cleat[] _cleats;
 
     // Группа величин для обработки сигнала от ручки газа
-    private float _ThrottleSinal;
+    [HideInInspector]
+    public float ThrottleSignal;
     private float _middleThrottle = 0.46f;
-    private float _ZeroThrottle = 0.03f;
+    private float _ZeroThrottle = 0.05f;
     private float _PositiveMultiplier;
     private float _NegativeMultiplier;
+    private float _ForwardGear = 0.67f; // Сигнал на ручке при включении переднего хода
+    private float _BackwardGear = -0.67f; // Сигнал на ручке при включении заднего хода
+    private float _ForwardGearEV = 0.2f; // Мощность двигателя при включении переднего хода
+    private float _BackwardGearEV = -0.2f; // Мощность двигателя при включении переднего хода
+    private bool _ThrottleCalibrationMode = false;
+    private int _ThrottleCalibrationStep = 0;
 
     private void Awake()
     {
@@ -144,9 +151,62 @@ public class YachtSolver : MonoBehaviour
 
     private void Update()
     {
+
+        // Режим калибровки ручки газ-реверс
+
+        if (_ThrottleCalibrationMode)
+        {
+            ThrottleSignal = ThrottleValue();
+            if (Input.GetKeyDown("q"))
+            {
+                switch (_ThrottleCalibrationStep)
+                {
+                    case 0:
+                        print("Полный назад: " + ThrottleSignal);
+                        _ThrottleCalibrationStep = 1;
+                        break;
+                    case 1:
+                        print("Малый назад: " + ThrottleSignal);
+                        _BackwardGear = ThrottleSignal + _ZeroThrottle;
+                        _ThrottleCalibrationStep = 2;
+                        break;
+                    case 2:
+                        print("Нейтраль: " + ThrottleSignal);
+                        _ThrottleCalibrationStep = 3;
+                        break;
+                    case 3:
+                        print("Малый вперед: " + ThrottleSignal);
+                        _ForwardGear = ThrottleSignal - _ZeroThrottle;
+                        _ThrottleCalibrationStep = 4;
+                        break;
+                    case 4:
+                        print("Полный вперед: " + ThrottleSignal);
+                        _ThrottleCalibrationStep = 5;
+                        break;
+                    case 5:
+                        print("Калибровка ручки газ-реверс завершена.");
+                        _ThrottleCalibrationMode = false;
+                        _ThrottleCalibrationStep = 0;
+                        break;
+                }
+            }
+            return;
+        }
+
+        // Control + z : включить режим калибровки ручки газ-реверс
+        if (Input.GetKeyDown("q"))
+        {
+            if (Input.GetKey("left ctrl") || Input.GetKey("right ctrl"))
+            {
+                print("Включен режим калибровки ручки газ-реверс. Устанавливайте ручку в стационарные положения от ПОЛНЫЙ НАЗАД до ПОЛНЫЙ ВПЕРЕД и нажимайете клавишу q.");
+                _ThrottleCalibrationMode = true;
+                _ThrottleCalibrationStep = 0;
+            }
+        }
+
         // получить управление с клавиатуры
         if (Input.GetKeyDown("up"))
-            engineValue += 0.1f;
+        engineValue += 0.1f;
         else if (Input.GetKeyDown("down"))
             engineValue -= 0.1f;
         if (Input.GetKey("right"))
@@ -160,28 +220,45 @@ public class YachtSolver : MonoBehaviour
             steeringWheel = Mathf.Lerp(-540.0f, 540.0f, (Input.GetAxis("HorizontalJoy") + 1.0f) / 2.0f);
 
             // Положение ручки газа. Приводится из диапазона 0/1 в диапазон -1/1
-            _ThrottleSinal = Input.GetAxis("VerticalJoy") - _middleThrottle;
-            // Малые значения обнуляем
-            if (Mathf.Abs(_ThrottleSinal) < _ZeroThrottle)
-            {
-                _ThrottleSinal = 0.0f;
-            }
-            // Положительное значение
-            if (_ThrottleSinal >= 0.0f)
-            {
-                engineValue = _ThrottleSinal * _PositiveMultiplier;
-            }
-            // Отрицательное значение
+            ThrottleSignal = ThrottleValue();
+            ThrottleSignal = Mathf.Clamp(ThrottleSignal, -1.0f, 1.0f);
+            if (ThrottleSignal >= _ForwardGear)
+                engineValue = _ForwardGearEV + (ThrottleSignal - _ForwardGear) / (1.0f - _ForwardGear) * (1.0f - _ForwardGearEV);
+            else if (ThrottleSignal <= _BackwardGear)
+                engineValue = _BackwardGearEV + (ThrottleSignal - _BackwardGear) / (-1.0f - _BackwardGear) * (-1.0f - _BackwardGearEV);
             else
-            {
-                engineValue = _ThrottleSinal * _NegativeMultiplier;
-            }
+                engineValue = 0;
         }
 
         engineValue = Mathf.Clamp(engineValue, -1.0f, 1.0f);
         steeringWheel = Mathf.Clamp(steeringWheel, -540.0f, 540.0f);
 
     }
+
+    // Положение ручки газа. Приводится из диапазона 0/1 в диапазон -1/1
+    float ThrottleValue()
+    {
+        float TS = Input.GetAxis("VerticalJoy") - _middleThrottle;
+
+        // Малые значения обнуляем
+        if (Mathf.Abs(TS) < _ZeroThrottle)
+        {
+            TS = 0.0f;
+        }
+        // Положительное значение
+        if (TS >= 0.0f)
+        {
+            TS = TS * _PositiveMultiplier;
+        }
+        // Отрицательное значение
+        else
+        {
+            TS = TS * _NegativeMultiplier;
+        }
+
+        return TS;
+    }
+
 
     void FixedUpdate()
     {
