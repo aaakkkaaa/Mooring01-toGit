@@ -28,6 +28,8 @@ public class PathWalker : MonoBehaviour
 
     private float _normTimeStart;
     private float _normTimeCur;
+    // индекс точки, к которой идем
+    private int _idx;
 
     // направление движения на данном шаге
     private Transform _target;
@@ -40,6 +42,8 @@ public class PathWalker : MonoBehaviour
 
     // расстояние, проходимое за полный шаг (левой + правой)
     private float _stepL = 1.17f;
+    // скорость движения при ходьбе
+    private float _stepV = 0.88f;
 
     void Start()
     {
@@ -63,11 +67,12 @@ public class PathWalker : MonoBehaviour
         }
     }
 
-    public void WalkTo(string pointName )
+    // определить путь и начать поворот, потом движение 
+    public void WalkTo(string pointName)
     {
         _path = _pathMan.getPath(CurPos.name, pointName);
         // поворот в сторону следующей точки маршрута
-        _state = "";
+        _state = "WaitRotate";
         _target = _path[1];
         print(_target.name);
         Quaternion correctRot = Quaternion.LookRotation(_target.localPosition - transform.localPosition);
@@ -79,7 +84,7 @@ public class PathWalker : MonoBehaviour
         _angleYStart = curRot.y;
         //print(curRot);
         //_deltaY = Misc.NormalizeAngle(curRot.y) - Misc.NormalizeAngle(angle.y);
-        _deltaY = Misc.NormalizeAngle(curRot.y-angle.y);
+        _deltaY = Misc.NormalizeAngle(curRot.y - angle.y);
         //print(_deltaY);
         if (_deltaY > 0)
         {
@@ -89,12 +94,12 @@ public class PathWalker : MonoBehaviour
         {
             _animator.SetTrigger("RotRight");
         }
-
     }
 
+    // движение и вращение перса
     private void OnAnimatorMove()
     {
-        if (_state == "")   // нужно дождаться, когда заработают анимации, и установить начальные значения
+        if (_state == "WaitRotate")   // нужно дождаться, когда заработают анимации, и установить начальные значения
         {
             bool isRotLeft;
             bool isRotRight;
@@ -108,20 +113,15 @@ public class PathWalker : MonoBehaviour
                 _normTimeStart = _animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
                 print("_normTimeStart = " + _normTimeStart);
             }
-            if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Walk"))
-            {
-                // началась движение
-
-            }
-
         }
-        else if(_state == "Rotate1")
+        else if (_state == "Rotate1")
         {
+            // поворот на месте к первой точке маршрута
             bool isRotLeft;
             bool isRotRight;
             isRotLeft = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateLeft");
             isRotRight = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateRight");
-            if( isRotLeft || isRotRight )
+            if (isRotLeft || isRotRight)
             {
                 _normTimeCur = _animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
                 //print(_normTimeCur);
@@ -134,35 +134,47 @@ public class PathWalker : MonoBehaviour
                 transform.localEulerAngles = lE;
                 //print("dY = " + dY);
             }
-            else
-            {
-                // закончилось начальное вращение
-
-                _state = "";
-            }
-
-
         }
-        if (_state == "Go")
+        else if (_state == "Walk1")
         {
-            if (!_animator.GetCurrentAnimatorStateInfo(0).IsName("Walk"))
+            // идем к очередной точке маршрута _idx
+            _normTimeCur = _animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+            Vector3 direct = (_path[_idx].localPosition - transform.localPosition).normalized;
+            Vector3 dPos = direct * _stepV * Time.deltaTime;
+            Vector3 curPos = transform.localPosition;
+            transform.localPosition = curPos + dPos;
+
+
+
+
+            float l0 = (_path[_idx - 1].localPosition - transform.localPosition).magnitude;     // пройдено
+            float l1 = (_path[_idx - 1].localPosition - _path[_idx].localPosition).magnitude;   // весь отрезок
+            print("l0 = " + l0 + "   l1 = " + l1);
+            if (l0 > l1)
             {
-                _state = "";
+                // надо теперь идти к следующей точке
+                if (_idx < _path.Count - 1)
+                {
+                    _idx++;
+                    _target = _path[_idx];
+                    print(_target.name);
+                }
+
+
+                // надо включить коррекцию направления, временно - скачком
+                Quaternion correctRot = Quaternion.LookRotation(_target.localPosition - transform.localPosition);
+                Vector3 angle = correctRot.eulerAngles;
+                //print(angle);
+                angle.x = 0;
+                angle.z = 0;
+                transform.localEulerAngles = angle;
+
             }
-            else
-            {
-                _normTimeCur = _animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
-                float dt = (_normTimeCur - _normTimeStart) / (1.0f - _normTimeStart);
-                Vector3 dL = (_target.localPosition - _posStart) * dt;
-                gameObject.transform.localPosition = _posStart + dL;
-            }
+
+
         }
-        else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Walk"))
-        {
-            _state = "Go";
-            _normTimeStart = _animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
-            _posStart = gameObject.transform.localPosition;
-        }
+
+
     }
 
     // вызывается из анимаций поворота в конце
@@ -170,12 +182,21 @@ public class PathWalker : MonoBehaviour
     {
         print("Rotate1End");
         // надо смотреть расстояние не до ближайшей точки, а до последней!
-        float toLast = (_path[ _path.Count-1 ].localPosition - _path[0].localPosition).magnitude;
+        float toLast = (_path[_path.Count - 1].localPosition - _path[0].localPosition).magnitude;
         if (toLast > _stepL) // идти больше шага
         {
+            _idx = 1;   // идем к первой точке
+            _normTimeStart = _animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+            _posStart = gameObject.transform.localPosition;
             _animator.SetTrigger("GoLong");
+            _state = "Walk1";
+
+            print("_normTimeStart = " + _normTimeStart);
         }
 
     }
+
+
+
 
 }

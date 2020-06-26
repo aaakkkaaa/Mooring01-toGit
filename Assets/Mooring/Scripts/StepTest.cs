@@ -4,19 +4,27 @@ using UnityEngine;
 
 public class StepTest : MonoBehaviour
 {
-    private Vector3 _curPos;
-    
+    private Vector3 _oldPos;
+    private float _oldTime;
+
     void Start()
     {
-        _curPos = transform.position;
+        _oldPos = transform.position;
+        _oldTime = Time.time;
     }
 
 
     void onStep()
     {
         Vector3 newPos = transform.position;
-        print("длинна шага = "+(_curPos-newPos).magnitude) ;
-        _curPos = newPos;
+        float newTime = Time.time;
+
+        float l = (newPos - _oldPos).magnitude;
+        float t = (newTime - _oldTime);
+
+        print("длинна шага = " + l + "    Время на шаг = " + t + "    Скорость = " + (l / t));
+        _oldPos = newPos;
+        _oldTime = newTime;
     }
 
 }
