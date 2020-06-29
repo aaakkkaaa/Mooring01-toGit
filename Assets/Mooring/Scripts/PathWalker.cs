@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.IO;
+using UnityEditorInternal;
 
 public class PathWalker : MonoBehaviour
 {
@@ -33,12 +34,14 @@ public class PathWalker : MonoBehaviour
 
     // направление движения на данном шаге
     private Transform _target;
-    // стартовая позиция, с которой начинается движение
-    private Vector3 _posStart;
     // начальный угол поворота вокруг Y, с которого начинается поворот
     private float _angleYStart;
+    // целевой угол поворота вокруг Y
+    private float _angleYFinish;
     // изменение начального угла, приводящее его к желаемому
     private float _deltaY;
+    // начальное положение при моделировании последнего шага
+    private Vector3 _posStart;
 
     // расстояние, проходимое за полный шаг (левой + правой)
     private float _stepL = 1.17f;
@@ -82,10 +85,7 @@ public class PathWalker : MonoBehaviour
         angle.z = 0;
         Vector3 curRot = transform.localEulerAngles;
         _angleYStart = curRot.y;
-        //print(curRot);
-        //_deltaY = Misc.NormalizeAngle(curRot.y) - Misc.NormalizeAngle(angle.y);
         _deltaY = Misc.NormalizeAngle(curRot.y - angle.y);
-        //print(_deltaY);
         if (_deltaY > 0)
         {
             _animator.SetTrigger("RotLeft");
@@ -99,12 +99,10 @@ public class PathWalker : MonoBehaviour
     // движение и вращение перса
     private void OnAnimatorMove()
     {
-        if (_state == "WaitRotate")   // нужно дождаться, когда заработают анимации, и установить начальные значения
+        if (_state == "WaitRotate")   // нужно дождаться, когда заработает анимация, и установить начальные значения
         {
-            bool isRotLeft;
-            bool isRotRight;
-            isRotLeft = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateLeft");
-            isRotRight = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateRight");
+            bool isRotLeft = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateLeft");
+            bool isRotRight = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateRight");
             if (isRotLeft || isRotRight)
             {
                 // началось вращение, установим необходимые параметры для следующего входа в OnAnimatorMove
@@ -117,10 +115,8 @@ public class PathWalker : MonoBehaviour
         else if (_state == "Rotate1")
         {
             // поворот на месте к первой точке маршрута
-            bool isRotLeft;
-            bool isRotRight;
-            isRotLeft = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateLeft");
-            isRotRight = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateRight");
+            bool isRotLeft = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateLeft");
+            bool isRotRight = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateRight");
             if (isRotLeft || isRotRight)
             {
                 _normTimeCur = _animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
@@ -144,51 +140,109 @@ public class PathWalker : MonoBehaviour
             Vector3 curPos = transform.localPosition;
             transform.localPosition = curPos + dPos;
 
-
-
-
             float l0 = (_path[_idx - 1].localPosition - transform.localPosition).magnitude;     // пройдено
             float l1 = (_path[_idx - 1].localPosition - _path[_idx].localPosition).magnitude;   // весь отрезок
-            print("l0 = " + l0 + "   l1 = " + l1);
+            //print("l0 = " + l0 + "   l1 = " + l1);
             if (l0 > l1)
             {
-                // надо теперь идти к следующей точке
                 if (_idx < _path.Count - 1)
                 {
+                    // надо теперь идти к следующей точке
                     _idx++;
                     _target = _path[_idx];
                     print(_target.name);
+
+                    // надо включить коррекцию направления, временно - скачком
+                    Quaternion correctRot = Quaternion.LookRotation(_target.localPosition - transform.localPosition);
+                    Vector3 angle = correctRot.eulerAngles;
+                    //print(angle);
+                    angle.x = 0;
+                    angle.z = 0;
+                    transform.localEulerAngles = angle;
                 }
-
-
-                // надо включить коррекцию направления, временно - скачком
-                Quaternion correctRot = Quaternion.LookRotation(_target.localPosition - transform.localPosition);
-                Vector3 angle = correctRot.eulerAngles;
-                //print(angle);
-                angle.x = 0;
-                angle.z = 0;
-                transform.localEulerAngles = angle;
+                else
+                {
+                    // дошли до последней точки, останавливаемся 
+                    _animator.SetTrigger("StayHere");
+                    _state = "StayHere";
+                }
 
             }
 
+        }
+        else if (_state == "StayHere")
+        {
+            // идет запуск анимации iddle, ждем когда она запустится
+            if(_animator.GetCurrentAnimatorStateInfo(0).IsName("Rope_Onboard_Aft_Idle"))
+            {
+                // определим, в какую сторону надо делать поворот
+                print("_target = " + _target);
+                _angleYFinish = _target.transform.localEulerAngles.y;
+                _angleYStart = transform.localEulerAngles.y;
+                _deltaY = Misc.NormalizeAngle(_angleYFinish - _angleYStart);
+                if (_deltaY < 0)
+                {
+                    _animator.SetTrigger("RotLeft");
+                    print("RotLeft");
+                }
+                else
+                {
+                    _animator.SetTrigger("RotRight");
+                    print("RotRight");
+                }
+                _state = "WaitRotate2";
+            }
+        }
+        else if (_state == "WaitRotate2")
+        {
+            bool isRotLeft = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateLeft");
+            bool isRotRight = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateRight");
+            if (isRotLeft || isRotRight)
+            {
+                // началось вращение, установим необходимые параметры для следующего входа в OnAnimatorMove
+                _state = "Rotate2";         // вращение после перемещения
+                _normTimeStart = _animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+                print("Rotate2: _normTimeStart = " + _normTimeStart);
+            }
+        }
+        else if (_state == "Rotate2")
+        {
+            bool isRotLeft = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateLeft");
+            bool isRotRight = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateRight");
+            if (isRotLeft || isRotRight)
+            {
+                _normTimeCur = _animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+                //print(_normTimeCur);
+                float dt = (_normTimeCur - _normTimeStart) / (1.0f - _normTimeStart);
+                //print(dt);
+                float dY = _deltaY * dt;
+                //print("dY = " + dY);
+                Vector3 lE = transform.localEulerAngles;
+                lE.y = _angleYStart + dY;
+                transform.localEulerAngles = lE;
+            }
+            else
+            {
+                _state = "";
+                CurPos = _target.gameObject;
+            }
 
         }
 
 
     }
 
-    // вызывается из анимаций поворота в конце
+    // вызывается из анимации поворота в конце
     void Rotate1End()
     {
-        print("Rotate1End");
-        // надо смотреть расстояние не до ближайшей точки, а до последней!
-        float toLast = (_path[_path.Count - 1].localPosition - _path[0].localPosition).magnitude;
-        if (toLast > _stepL) // идти больше шага
+        if (_state == "Rotate1")
         {
-            _idx = 1;   // идем к первой точке
-            _normTimeStart = _animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
-            _posStart = gameObject.transform.localPosition;
+            print("Rotate1End");
+            float toLast = (_path[_path.Count - 1].localPosition - _path[0].localPosition).magnitude;
+            // идем к первой точке
+            _idx = 1;
             _animator.SetTrigger("GoLong");
+            _normTimeStart = _animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
             _state = "Walk1";
 
             print("_normTimeStart = " + _normTimeStart);
@@ -196,6 +250,11 @@ public class PathWalker : MonoBehaviour
 
     }
 
+    // вызывается из анимации в конце каждого шага
+    void StepEnd()
+    {
+        print("StepEnd()");
+    }
 
 
 
