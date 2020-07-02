@@ -260,6 +260,10 @@ public class Marinero : MonoBehaviour
             }
         }
         rContr.Attractors[rContr.Attractors.Count-1].Fixator = LHand;
+
+        // закрепить на утке частицу каната, наиболее к ней близкую
+        rContr.AttachPointToCleat();
+
     }
 
     // бросок в направлении sailor
@@ -275,7 +279,7 @@ public class Marinero : MonoBehaviour
         startPoint = RHand.transform.position;
 
         // закрепить на утке частицу каната, наиболее к ней близкую
-        rContr.AttachPointToCleat();
+       // rContr.AttachPointToCleat();
 
         // бросок каната
         rContr.ThrowTo(RopeTarget.transform.position - startPoint, 3.5f);

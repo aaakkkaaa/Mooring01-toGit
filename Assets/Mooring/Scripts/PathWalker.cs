@@ -47,6 +47,10 @@ public class PathWalker : MonoBehaviour
     private float _stepL = 1.17f;
     // скорость движения при ходьбе
     private float _stepV = 0.88f;
+    // максимальный угол поворота за одну итерацию коррекции угла
+    private float _dAngleY = 3.0f;
+    // Для остановки корутины в конце движения
+    private IEnumerator _angleCorrector;
 
     void Start()
     {
@@ -74,6 +78,11 @@ public class PathWalker : MonoBehaviour
     public void WalkTo(string pointName)
     {
         _path = _pathMan.getPath(CurPos.name, pointName);
+        if(_path.Count == 0)
+        {
+            print("Не найден путь в " + pointName);
+            return;
+        }
         // поворот в сторону следующей точки маршрута
         _state = "WaitRotate";
         _target = _path[1];
@@ -152,13 +161,9 @@ public class PathWalker : MonoBehaviour
                     _target = _path[_idx];
                     print(_target.name);
 
-                    // надо включить коррекцию направления, временно - скачком
-                    Quaternion correctRot = Quaternion.LookRotation(_target.localPosition - transform.localPosition);
-                    Vector3 angle = correctRot.eulerAngles;
-                    //print(angle);
-                    angle.x = 0;
-                    angle.z = 0;
-                    transform.localEulerAngles = angle;
+                    // запускаем коррекцию угла
+                    _angleCorrector = AngleCorrector();
+                    StartCoroutine(_angleCorrector);
                 }
                 else
                 {
@@ -172,6 +177,7 @@ public class PathWalker : MonoBehaviour
         }
         else if (_state == "StayHere")
         {
+            StopCoroutine(_angleCorrector); 
             // идет запуск анимации iddle, ждем когда она запустится
             if(_animator.GetCurrentAnimatorStateInfo(0).IsName("Rope_Onboard_Aft_Idle"))
             {
@@ -253,9 +259,47 @@ public class PathWalker : MonoBehaviour
     // вызывается из анимации в конце каждого шага
     void StepEnd()
     {
-        print("StepEnd()");
+        //print("StepEnd()");
     }
 
+    // корректировка вращения при ходьбе
+    private IEnumerator AngleCorrector()
+    {
+        float dAngleY;
+        
+        Quaternion correctRot = Quaternion.LookRotation(_target.localPosition - transform.localPosition);
+        Vector3 angle = correctRot.eulerAngles;
+        angle.x = 0;
+        angle.z = 0;
+
+        while ( Mathf.Abs(transform.localEulerAngles.y - angle.y) > _dAngleY)
+        {
+            if(transform.localEulerAngles.y > angle.y)
+            {
+                dAngleY = -_dAngleY;
+            }
+            else
+            {
+                dAngleY = _dAngleY;
+            }
+
+            Vector3 curLocAngle = transform.localEulerAngles;
+            curLocAngle.y += dAngleY;
+            curLocAngle.x = 0;
+            curLocAngle.z = 0;
+            transform.localEulerAngles = curLocAngle;
+            print("transform.localEulerAngles = " + transform.localEulerAngles);
+            yield return new WaitForFixedUpdate(); ;
+            correctRot = Quaternion.LookRotation(_target.localPosition - transform.localPosition);
+            angle = correctRot.eulerAngles;
+        }
+        // встаем в правильном направлении и заканчиваем вращение
+
+        transform.localEulerAngles = angle;
+        
+        yield return null;
+
+    }
 
 
 }

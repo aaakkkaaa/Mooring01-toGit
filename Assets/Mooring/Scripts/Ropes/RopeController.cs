@@ -363,7 +363,7 @@ public class RopeController : MonoBehaviour
         else
         {
             AttachOnShoreIdx = CollPoints[(CollPoints.Count - 1)/ 2];
-            CurState = "ATTACH";
+            //CurState = "ATTACH";
             print("AttachOnShoreIdx = " + AttachOnShoreIdx);
             GameObject center = _workCleat.transform.Find("Center").gameObject;
             AddConnect(center, AttachOnShoreIdx);
