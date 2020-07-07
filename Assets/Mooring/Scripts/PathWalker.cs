@@ -132,6 +132,17 @@ public class PathWalker : MonoBehaviour
                 transform.localEulerAngles = lE;
                 //print("dY = " + dY);
             }
+            else
+            {
+                // поворот закончился
+                float toLast = (_path[_path.Count - 1].localPosition - _path[0].localPosition).magnitude;
+                // идем к первой точке
+                _idx = 1;
+                _animator.SetTrigger("GoLong");
+                _normTimeStart = _animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+                _state = "Walk1";
+
+            }
         }
         else if (_state == "Walk1")
         {
@@ -170,9 +181,12 @@ public class PathWalker : MonoBehaviour
         }
         else if (_state == "StayHere")
         {
-            StopCoroutine(_angleCorrector); 
+            if (_angleCorrector != null)
+            {
+                StopCoroutine(_angleCorrector);
+            }
             // идет запуск анимации iddle, ждем когда она запустится
-            if(_animator.GetCurrentAnimatorStateInfo(0).IsName("Rope_Onboard_Aft_Idle"))
+            if(_animator.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
             {
                 // определим, в какую сторону надо делать поворот
                 print("_target = " + _target);
@@ -234,6 +248,7 @@ public class PathWalker : MonoBehaviour
     // вызывается из анимации поворота в конце
     void Rotate1End()
     {
+        /*
         print("_state = " + _state);
         if (_state == "Rotate1")
         {
@@ -247,6 +262,7 @@ public class PathWalker : MonoBehaviour
 
             print("_normTimeStart = " + _normTimeStart);
         }
+        */
 
     }
 
