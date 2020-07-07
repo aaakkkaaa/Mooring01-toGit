@@ -7,10 +7,8 @@ using UnityEditorInternal;
 
 public class PathWalker : MonoBehaviour
 {
-    // параметры базовой утки, левой если смотреть со стороны маринеро
-    public Transform BaseTransf;        // не null только для маринеро
-    // параметры текущей утки
-    public Transform CurrTransf;        // не null только для маринеро
+    // Допустимый путь для этого персонажа
+    public List<Transform> Points;
 
     // Где мы сейчас
     public GameObject CurPos;
@@ -19,9 +17,6 @@ public class PathWalker : MonoBehaviour
 
     // маршрутные точки, последняя - цель, там надо будет развернуться
     private List<Transform> _path;
-
-    // хранитель путей
-    private PathManager _pathMan;
 
     private Animator _animator;
 
@@ -55,8 +50,6 @@ public class PathWalker : MonoBehaviour
     void Start()
     {
         _animator = gameObject.GetComponent<Animator>();
-        _pathMan = FindObjectOfType<PathManager>();
-        //print( name + ".PathWalker -> _pathMan = " + _pathMan.name);
     }
 
     void Update()
@@ -77,7 +70,7 @@ public class PathWalker : MonoBehaviour
     // определить путь и начать поворот, потом движение 
     public void WalkTo(string pointName)
     {
-        _path = _pathMan.getPath(CurPos.name, pointName);
+        _path = DetectPath(CurPos.name, pointName);
         if(_path.Count == 0)
         {
             print("Не найден путь в " + pointName);
@@ -115,7 +108,7 @@ public class PathWalker : MonoBehaviour
             if (isRotLeft || isRotRight)
             {
                 // началось вращение, установим необходимые параметры для следующего входа в OnAnimatorMove
-                //print("началось вращение");
+                print("началось вращение");
                 _state = "Rotate1";         // вращение перед перемещением
                 _normTimeStart = _animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
                 print("_normTimeStart = " + _normTimeStart);
@@ -241,9 +234,10 @@ public class PathWalker : MonoBehaviour
     // вызывается из анимации поворота в конце
     void Rotate1End()
     {
+        print("_state = " + _state);
         if (_state == "Rotate1")
         {
-            print("Rotate1End");
+            print(gameObject.name + " -> Rotate1End");
             float toLast = (_path[_path.Count - 1].localPosition - _path[0].localPosition).magnitude;
             // идем к первой точке
             _idx = 1;
@@ -268,13 +262,15 @@ public class PathWalker : MonoBehaviour
         float dAngleY;
         
         Quaternion correctRot = Quaternion.LookRotation(_target.localPosition - transform.localPosition);
-        Vector3 angle = correctRot.eulerAngles;
-        angle.x = 0;
-        angle.z = 0;
+        Vector3 corrAngle = correctRot.eulerAngles;
+        corrAngle.x = 0;
+        corrAngle.z = 0;
 
-        while ( Mathf.Abs(transform.localEulerAngles.y - angle.y) > _dAngleY)
+        while ( Mathf.Abs(transform.localEulerAngles.y - corrAngle.y) > _dAngleY)
         {
-            if(transform.localEulerAngles.y > angle.y)
+            print("transform.localEulerAngles.y = " + transform.localEulerAngles.y + "    angle.y = " + corrAngle.y);
+
+            if (Misc.NormalizeAngle(transform.localEulerAngles.y - corrAngle.y) > 0)
             {
                 dAngleY = -_dAngleY;
             }
@@ -282,7 +278,6 @@ public class PathWalker : MonoBehaviour
             {
                 dAngleY = _dAngleY;
             }
-
             Vector3 curLocAngle = transform.localEulerAngles;
             curLocAngle.y += dAngleY;
             curLocAngle.x = 0;
@@ -291,15 +286,58 @@ public class PathWalker : MonoBehaviour
             print("transform.localEulerAngles = " + transform.localEulerAngles);
             yield return new WaitForFixedUpdate(); ;
             correctRot = Quaternion.LookRotation(_target.localPosition - transform.localPosition);
-            angle = correctRot.eulerAngles;
+            corrAngle = correctRot.eulerAngles;
         }
         // встаем в правильном направлении и заканчиваем вращение
 
-        transform.localEulerAngles = angle;
+        transform.localEulerAngles = corrAngle;
         
         yield return null;
 
     }
+
+    public List<Transform> DetectPath(string start, string finish)
+    {
+        List<Transform> result = new List<Transform>();
+
+        // если начало и конец совпадают, вернем пустой список
+        if (start == finish)
+        {
+            return result;
+        }
+
+        // определим индексы в списке Points начальной и конечной точек маршрута
+        int iStart = -1;
+        int iFinish = -1;
+        for (int i = 0; i < Points.Count; i++)
+        {
+            if (Points[i].name == start)
+            {
+                iStart = i;
+            }
+            if (Points[i].name == finish)
+            {
+                iFinish = i;
+            }
+        }
+
+        // если не нашелся какой-то конец маршрута, вернем пустой список
+        if (iStart == -1 || iFinish == -1)
+        {
+            return result;
+        }
+
+        // сформируем список из маршрутных точек
+        int step = (iStart < iFinish) ? 1 : -1;
+        for (int i = iStart; i != iFinish; i += step)
+        {
+            result.Add(Points[i]);
+        }
+        result.Add(Points[iFinish]);
+
+        return result;
+    }
+
 
 
 }
