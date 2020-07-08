@@ -37,6 +37,12 @@ namespace Crest
         {
             if (OceanRenderer.Instance == null || OceanRenderer.Instance._lodDataShadow == null) return;
 
+            // Only sample shadows for the main camera.
+            if (!ReferenceEquals(OceanRenderer.Instance.Viewpoint, renderingData.cameraData.camera.transform))
+            {
+                return;
+            }
+
             if (context == null)
                 throw new System.ArgumentNullException("context");
 

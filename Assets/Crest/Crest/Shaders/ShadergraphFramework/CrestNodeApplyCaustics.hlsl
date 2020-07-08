@@ -58,7 +58,7 @@ void CrestNodeApplyCaustics_float
 	}
 
 	// Scale caustics strength by primary light, depth fog density and scene depth.
-	half causticsStrength = lerp(i_strength * i_lightCol, 0.0, saturate(1.0 - exp(-i_depthFogDensity.xyz * sceneDepth)));
+	half3 causticsStrength = lerp(i_strength * i_lightCol, 0.0, saturate(1.0 - exp(-i_depthFogDensity.xyz * sceneDepth)));
 
 //#if _SHADOWS_ON
 //	{

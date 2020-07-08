@@ -215,6 +215,7 @@ Shader "Crest/Ocean URP"
 			// for VFACE
 			#pragma target 3.0
 			#pragma multi_compile_fog
+			#pragma multi_compile_instancing
 
 			#pragma shader_feature _APPLYNORMALMAPPING_ON
 			#pragma shader_feature _SUBSURFACESCATTERING_ON
@@ -257,6 +258,8 @@ Shader "Crest/Ocean URP"
 			struct Attributes
 			{
 				real3 positionOS : POSITION;
+
+				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct Varyings
@@ -269,11 +272,16 @@ Shader "Crest/Ocean URP"
 				#if _FLOW_ON
 				real2 flow : TEXCOORD4;
 				#endif
+
+				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
 			Varyings Vert(Attributes input)
 			{
 				Varyings o = (Varyings)0;
+
+				UNITY_SETUP_INSTANCE_ID(input);
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
 				// Move to world space
 				o.positionWS_fogFactor.xyz = TransformObjectToWorld(input.positionOS);
@@ -329,28 +337,36 @@ Shader "Crest/Ocean URP"
 				}
 
 				// Data that needs to be sampled at the displaced position
-				if (wt_smallerLod > 0.001)
+				if (wt_smallerLod > 0.0001)
 				{
 					const float3 uv_slice_smallerLodDisp = WorldToUV(o.positionWS_fogFactor.xz);
 
 					#if _SUBSURFACESHALLOWCOLOUR_ON
+					// The minimum sampling weight is lower (0.0001) than others to fix shallow water colour popping.
 					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, wt_smallerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 					#endif
 
 					#if _SHADOWS_ON
-					SampleShadow(_LD_TexArray_Shadow, uv_slice_smallerLodDisp, wt_smallerLod, o.n_shadow.zw);
+					if (wt_smallerLod > 0.001)
+					{
+						SampleShadow(_LD_TexArray_Shadow, uv_slice_smallerLodDisp, wt_smallerLod, o.n_shadow.zw);
+					}
 					#endif
 				}
-				if (wt_biggerLod > 0.001)
+				if (wt_biggerLod > 0.0001)
 				{
 					const float3 uv_slice_biggerLodDisp = WorldToUV_BiggerLod(o.positionWS_fogFactor.xz);
 
 					#if _SUBSURFACESHALLOWCOLOUR_ON
+					// The minimum sampling weight is lower (0.0001) than others to fix shallow water colour popping.
 					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 					#endif
 
 					#if _SHADOWS_ON
-					SampleShadow(_LD_TexArray_Shadow, uv_slice_biggerLodDisp, wt_biggerLod, o.n_shadow.zw);
+					if (wt_biggerLod > 0.001)
+					{
+						SampleShadow(_LD_TexArray_Shadow, uv_slice_biggerLodDisp, wt_biggerLod, o.n_shadow.zw);
+					}
 					#endif
 				}
 
@@ -377,6 +393,9 @@ Shader "Crest/Ocean URP"
 
 			half4 Frag(const Varyings input, const float facing : VFACE) : SV_Target
 			{
+				// We need this when sampling a screenspace texture.
+				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
 				const bool underwater = IsUnderwater(facing);
 				const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;
 
@@ -386,7 +405,7 @@ Shader "Crest/Ocean URP"
 				real3 screenPos = input.foam_screenPosXYW.yzw;
 				real2 uvDepth = screenPos.xy / screenPos.z;
 
-				float sceneZ01 = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(uvDepth));
+				float sceneZ01 = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(uvDepth)).x;
 				float sceneZ = LinearEyeDepth(sceneZ01, _ZBufferParams);
 
 				// Normal - geom + normal mapping. Subsurface scattering.
@@ -432,6 +451,7 @@ Shader "Crest/Ocean URP"
 				{
 					SampleClip(_LD_TexArray_ClipSurface, WorldToUV_BiggerLod(input.positionWS_fogFactor.xz), wt_biggerLod, clipVal);
 				}
+				clipVal = lerp(_CrestClipByDefault, clipVal, wt_smallerLod + wt_biggerLod);
 				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
 				clip(-clipVal + 0.5);
 				#endif
@@ -449,7 +469,7 @@ Shader "Crest/Ocean URP"
 
 				// Compute color of ocean - in-scattered light + refracted scene
 				half3 scatterCol = ScatterColour(input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, lightCol, sss);
-				real3 col = OceanEmission(view, n_pixel, lightCol, lightDir, input.foam_screenPosXYW.yzw, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture, underwater, scatterCol);
+				real3 col = OceanEmission(view, n_pixel, lightCol, lightDir, input.foam_screenPosXYW.yzw, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, underwater, scatterCol);
 
 				// Light that reflects off water surface
 

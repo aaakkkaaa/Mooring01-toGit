@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Obi;
 using System;
-using System.Runtime.Remoting.Metadata.W3cXsd2001;
+//using System.Runtime.Remoting.Metadata.W3cXsd2001;
 
 public class Marinero : MonoBehaviour
 {

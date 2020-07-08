@@ -72,28 +72,36 @@ void CrestNodeSampleOceanData_float
 	}
 
 	// Data that needs to be sampled at the displaced position
-	if (wt_smallerLod > 0.001)
+	if (wt_smallerLod > 0.0001)
 	{
 		const float3 uv_slice_smallerLodDisp = WorldToUV(i_positionXZWS + o_displacement.xz, i_oceanPosScale0, i_oceanParams0, i_sliceIndex0);
 
 //#if _SUBSURFACESHALLOWCOLOUR_ON
+		// The minimum sampling weight is lower (0.0001) than others to fix shallow water colour popping.
 		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, wt_smallerLod, o_oceanDepth);
 //#endif
 
 //#if _SHADOWS_ON
-		SampleShadow(_LD_TexArray_Shadow, uv_slice_smallerLodDisp, wt_smallerLod, o_shadow);
+		if (wt_smallerLod > 0.001)
+		{
+			SampleShadow(_LD_TexArray_Shadow, uv_slice_smallerLodDisp, wt_smallerLod, o_shadow);
+		}
 //#endif
 	}
-	if (wt_biggerLod > 0.001)
+	if (wt_biggerLod > 0.0001)
 	{
 		const float3 uv_slice_biggerLodDisp = WorldToUV(i_positionXZWS + o_displacement.xz, i_oceanPosScale1, i_oceanParams1, i_sliceIndex0 + 1.0);
 
 //#if _SUBSURFACESHALLOWCOLOUR_ON
+		// The minimum sampling weight is lower (0.0001) than others to fix shallow water colour popping.
 		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, o_oceanDepth);
 //#endif
 
 //#if _SHADOWS_ON
-		SampleShadow(_LD_TexArray_Shadow, uv_slice_biggerLodDisp, wt_biggerLod, o_shadow);
+		if (wt_biggerLod > 0.001)
+		{
+			SampleShadow(_LD_TexArray_Shadow, uv_slice_biggerLodDisp, wt_biggerLod, o_shadow);
+		}
 //#endif
 	}
 

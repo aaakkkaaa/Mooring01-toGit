@@ -35,6 +35,11 @@ public class RippleGenerator : MonoBehaviour
 
     void Update()
     {
+        if (OceanRenderer.Instance == null)
+        {
+            return;
+        }
+
         if (_animate)
         {
             float t = OceanRenderer.Instance.CurrentTime;

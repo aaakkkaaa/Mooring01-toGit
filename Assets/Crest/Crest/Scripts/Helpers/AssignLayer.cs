@@ -21,7 +21,7 @@ namespace Crest
             enabled = false;
 
 #if UNITY_EDITOR
-            if (!Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
+            if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
             {
                 return;
             }
@@ -40,7 +40,7 @@ namespace Crest
             {
                 showMessage
                 (
-                    "Layer name required by AssignLayer script. Click this error to see the script in question.",
+                    "Layer name required by AssignLayer script.",
                     ValidatedHelper.MessageType.Error, this
                 );
 
@@ -51,7 +51,7 @@ namespace Crest
             {
                 showMessage
                 (
-                    $"Layer {_layerName} does not exist in the project, please add it.",
+                    $"Layer <i>{_layerName}</i> does not exist in the project, please add it.",
                     ValidatedHelper.MessageType.Error, this
                 );
 

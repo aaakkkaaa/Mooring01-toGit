@@ -8,10 +8,13 @@
 // - HDRP - No RenderSingleCamera API it seems, and I dont think calling PopulateCache() on Start() worked, so PopulateCache() called from Update()
 
 using System;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Crest
 {
@@ -51,7 +54,7 @@ namespace Crest
         bool _hideDepthCacheCam = true;
 
         [Tooltip("The layers to render into the depth cache."), SerializeField]
-        string[] _layerNames = null;
+        string[] _layerNames = new string[0];
 
         [Tooltip("The resolution of the cached depth - lower will be more efficient."), SerializeField]
         int _resolution = 512;
@@ -91,7 +94,7 @@ namespace Crest
             }
 
 #if UNITY_EDITOR
-            if (_runValidationOnStart)
+            if (EditorApplication.isPlaying && _runValidationOnStart)
             {
                 Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog);
             }
@@ -261,6 +264,13 @@ namespace Crest
         // We populate the cache here because we need a ScriptableRenderContext in order to populate the cache. Pain in the neck!
         public void BeginCameraRendering(ScriptableRenderContext context, Camera camera)
         {
+            // BeginCameraRendering is called outside of this object's lifetime so we need to guard here.
+            if (this == null)
+            {
+                RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
+                return;
+            }
+
             if (_type == OceanDepthCacheType.Baked)
             {
                 RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
@@ -297,14 +307,23 @@ namespace Crest
             // Copy from depth buffer into the cache
             Graphics.Blit(null, _cacheTexture, copyDepthMaterial);
 
-            if (!_forceAlwaysUpdateDebug
+            var leaveEnabled = _forceAlwaysUpdateDebug
 #if UNITY_EDITOR
-                && !_refreshEveryFrameInEditMode
+                || (_refreshEveryFrameInEditMode && !EditorApplication.isPlaying)
 #endif
-                )
+                ;
+            if (!leaveEnabled)
             {
                 _camDepthCache.targetTexture = null;
                 RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
+
+#if UNITY_EDITOR
+                if (EditorApplication.isPlaying)
+#endif
+                {
+                    // Only disable component when in play mode, otherwise it changes authoring data
+                    enabled = false;
+                }
             }
         }
 
@@ -438,7 +457,7 @@ namespace Crest
             }
             else
             {
-                if (_layerNames == null || _layerNames.Length == 0)
+                if (_layerNames.Length == 0)
                 {
                     showMessage
                     (
@@ -524,7 +543,7 @@ namespace Crest
                 isValid = false;
             }
 
-            if (Mathf.Abs(transform.position.y - ocean.Root.position.y) > 0.00001f)
+            if (ocean != null && ocean.Root != null && Mathf.Abs(transform.position.y - ocean.Root.position.y) > 0.00001f)
             {
                 showMessage
                 (

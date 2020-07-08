@@ -180,7 +180,7 @@ public class sDevices : MonoBehaviour
                 }
             }
 
-            _Record.MyLog("EV = " + EV + " _EngineConst.volume = " + _EngineConst.volume + " _EngineVar.volume = " + _EngineVar.volume + " _EngineVar.pitch = " + _EngineVar.pitch + " _Propeller.volume = " + _Propeller.volume + " _Propeller.pitch = " + _Propeller.pitch);
+            //_Record.MyLog("EV = " + EV + " _EngineConst.volume = " + _EngineConst.volume + " _EngineVar.volume = " + _EngineVar.volume + " _EngineVar.pitch = " + _EngineVar.pitch + " _Propeller.volume = " + _Propeller.volume + " _Propeller.pitch = " + _Propeller.pitch);
 
             // Компас -----------------------------
 

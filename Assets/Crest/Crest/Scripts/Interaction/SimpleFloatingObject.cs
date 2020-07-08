@@ -84,7 +84,6 @@ namespace Crest
 
             if (_debugDraw) VisualiseCollisionArea.DebugDrawCross(undispPos, 1f, Color.red);
 
-            if (QueryFlow.Instance)
             {
                 _sampleFlowHelper.Init(transform.position, ObjectWidth);
 

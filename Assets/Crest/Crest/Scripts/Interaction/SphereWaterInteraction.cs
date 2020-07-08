@@ -65,7 +65,7 @@ namespace Crest
             }
 
 #if UNITY_EDITOR
-            if (!Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
+            if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
             {
                 enabled = false;
                 return;
@@ -93,12 +93,6 @@ namespace Crest
             int simsActive;
             if (!LateUpdateCountOverlappingSims(out simsActive, out int simsPresent))
             {
-                if (simsPresent == 0)
-                {
-                    // Counting non-existent sims is expensive - stop updating if none found
-                    enabled = false;
-                }
-
                 // No sims running - abort. don't bother switching off renderer - camera wont be active
                 return;
             }
@@ -179,7 +173,6 @@ namespace Crest
                 vel = Vector3.zero;
             }
 
-            if (QueryFlow.Instance)
             {
                 _sampleFlowHelper.Init(transform.position, _object.ObjectWidth);
                 Vector2 surfaceFlow = Vector2.zero;

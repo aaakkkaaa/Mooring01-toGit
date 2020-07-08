@@ -32,6 +32,8 @@ Shader "Crest/Underwater Curtain"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
+			#pragma multi_compile_instancing
+
 			#pragma shader_feature _SUBSURFACESCATTERING_ON
 			#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
 			#pragma shader_feature _TRANSPARENCY_ON
@@ -64,6 +66,8 @@ Shader "Crest/Underwater Curtain"
 			{
 				float3 positionOS : POSITION;
 				float2 uv : TEXCOORD0;
+
+				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct Varyings
@@ -73,11 +77,16 @@ Shader "Crest/Underwater Curtain"
 				half4 foam_screenPos : TEXCOORD1;
 				half4 grabPos : TEXCOORD2;
 				float3 positionWS : TEXCOORD3;
+
+				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
+
+				UNITY_SETUP_INSTANCE_ID(input);
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
 				// Goal of this vert shader is to place a sheet of triangles in front of the camera. The geometry has
 				// two rows of verts, the top row and the bottom row (top and bottom are view relative). The bottom row
@@ -164,13 +173,16 @@ Shader "Crest/Underwater Curtain"
 
 			half4 Frag(Varyings input) : SV_Target
 			{
+				// We need this when sampling a screenspace texture.
+				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
 				const half3 rawView = _WorldSpaceCameraPos - input.positionWS;
 				const half3 view = normalize(rawView);
 
 				const float pixelZ = LinearEyeDepth(input.positionCS.z, _ZBufferParams);
 				const half3 screenPos = input.foam_screenPos.yzw;
 				const half2 uvDepth = screenPos.xy / screenPos.z;
-				const float sceneZ01 = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(uvDepth));
+				const float sceneZ01 = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(uvDepth)).x;
 				const float sceneZ = LinearEyeDepth(sceneZ01, _ZBufferParams);
 
 				const Light lightMain = GetMainLight();
@@ -194,7 +206,7 @@ Shader "Crest/Underwater Curtain"
 				// have needed to do this, but that function doesn't seem to exist in URP?
 				// https://docs.unity3d.com/Manual/SinglePassStereoRendering.html
 				float2 uvScreenSpace = UnityStereoTransformScreenSpaceTex(input.grabPos.xy / input.grabPos.w);
-				real3 sceneColour = SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, uvScreenSpace).rgb;
+				real3 sceneColour = SAMPLE_TEXTURE2D_X(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, uvScreenSpace).rgb;
 
 #if _CAUSTICS_ON
 				if (sceneZ01 != 0.0)

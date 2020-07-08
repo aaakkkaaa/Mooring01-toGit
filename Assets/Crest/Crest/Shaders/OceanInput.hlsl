@@ -9,19 +9,12 @@
 
 /////////////////////////////
 // Samplers
-#if defined(TEXTURE2D)
-TEXTURE2D(_CameraDepthTexture);
-SAMPLER(sampler_CameraDepthTexture);
-#else
-UNITY_DECLARE_TEX2D(_CameraDepthTexture);
-#endif
 
-#if defined(TEXTURE2D)
-TEXTURE2D(_CameraOpaqueTexture);
+TEXTURE2D_X(_CameraDepthTexture);
+SAMPLER(sampler_CameraDepthTexture);
+
+TEXTURE2D_X(_CameraOpaqueTexture);
 SAMPLER(sampler_CameraOpaqueTexture);
-#else
-UNITY_DECLARE_TEX2D(_CameraOpaqueTexture);
-#endif
 
 sampler2D _Normals;
 sampler2D _ReflectionTex;

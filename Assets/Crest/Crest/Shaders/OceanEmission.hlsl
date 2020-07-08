@@ -151,7 +151,7 @@ void ApplyCaustics(in const float3 scenePos, in const half3 i_lightCol, in const
 
 half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const half3 i_lightCol, in const float3 i_lightDir,
 	in const real3 i_grabPosXYW, in const float i_pixelZ, in const half2 i_uvDepth, in const float i_sceneZ, in const float i_sceneZ01,
-	in const half3 i_bubbleCol, in sampler2D i_normals, Texture2D<float4> i_cameraDepths, in const bool i_underwater, in const half3 i_scatterCol)
+	in const half3 i_bubbleCol, in sampler2D i_normals, in const bool i_underwater, in const half3 i_scatterCol)
 {
 	half3 col = i_scatterCol;
 
@@ -173,7 +173,7 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const ha
 		const half2 refractOffset = _RefractionStrength * i_n_pixel.xz * min(1.0, 0.5*(i_sceneZ - i_pixelZ)) / i_sceneZ;
 		half2 uvBackgroundRefract = uvBackground + refractOffset;
 
-		const float sceneZRefractDevice = SAMPLE_DEPTH_TEXTURE(i_cameraDepths, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(i_uvDepth + refractOffset));
+		const float sceneZRefractDevice = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(i_uvDepth + refractOffset)).x;
 		const float sceneZRefract = LinearEyeDepth(sceneZRefractDevice, _ZBufferParams);
 
 		float2 scenePosNDC = uvBackground;
@@ -193,7 +193,7 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const ha
 			uvBackgroundRefract = uvBackground;
 		}
 
-		sceneColour = SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, UnityStereoTransformScreenSpaceTex(uvBackgroundRefract)).rgb;
+		sceneColour = SAMPLE_TEXTURE2D_X(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, UnityStereoTransformScreenSpaceTex(uvBackgroundRefract)).rgb;
 
 		// TODO
 #if _CAUSTICS_ON
@@ -216,7 +216,7 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const ha
 		const half2 refractOffset = _RefractionStrength * i_n_pixel.xz;
 		const half2 uvBackgroundRefract = uvBackground + refractOffset;
 
-		sceneColour = SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, UnityStereoTransformScreenSpaceTex(uvBackgroundRefract)).rgb;
+		sceneColour = SAMPLE_TEXTURE2D_X(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, UnityStereoTransformScreenSpaceTex(uvBackgroundRefract)).rgb;
 		depthFogDistance = i_pixelZ;
 		// keep alpha at 0 as UnderwaterReflection shader handles the blend
 		// appropriately when looking at water from below
