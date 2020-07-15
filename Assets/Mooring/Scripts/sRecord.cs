@@ -58,6 +58,7 @@ public class sRecord : MonoBehaviour
     // Добавить в словарь имя файла и созданный объект StreamWriter
     void AddToDic(String myRecFileName)
     {
+        // TODO надо проверять, и если файл уже открыт то .....
         _RecFile.Add(myRecFileName, new StreamWriter(Path.Combine(RecDir, myRecFileName + ".txt")));
     }
 

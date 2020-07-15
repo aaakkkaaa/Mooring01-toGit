@@ -422,9 +422,10 @@ public class RopeController : MonoBehaviour
             //transform.SetParent(GameObject.Find("BakedRope").transform);
             gameObject.SetActive(false);
             // запустить физику
-
-
-
+        }
+        else
+        {
+            print("Нет объекта Trick");
         }
     }
 

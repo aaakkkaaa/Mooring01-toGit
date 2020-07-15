@@ -56,13 +56,6 @@ public class sAssist : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKey("left ctrl") || Input.GetKey("right ctrl"))
-        {
-            if (Input.GetKeyDown("m")) // Проверка меню
-            {
-                _MessageScr.ShowMessage("Проверка меню", 2f);
-            }
-        }
     }
 
 
