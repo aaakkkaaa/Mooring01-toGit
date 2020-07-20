@@ -24,18 +24,21 @@ public class sRecord : MonoBehaviour
     [SerializeField]
     bool _WriteLog = true;
 
-    // Параметры точного времени
-    Stopwatch _StopWatch; // таймер точного времени
-    private long StartTime; // время начала работы программы
+    // Класс точного времени
+    sTime _Time;
+
+    //// Параметры точного времени
+    //Stopwatch _StopWatch; // таймер точного времени
+    //private long StartTime; // время начала работы программы
 
     void Awake()
     {
 
-        // Запуск таймера точного времени
-        _StopWatch = new Stopwatch();
-        _StopWatch.Start();
-        // Время начала работы программы
-        StartTime = _StopWatch.ElapsedMilliseconds;
+        //// Запуск таймера точного времени
+        //_StopWatch = new Stopwatch();
+        //_StopWatch.Start();
+        //// Время начала работы программы
+        //StartTime = _StopWatch.ElapsedMilliseconds;
 
 
         // ********************** Запись данных в файлы ********************************************
@@ -48,11 +51,14 @@ public class sRecord : MonoBehaviour
         {
             // Файл для записи по умолчанию
             AddToDic("Main");
-            //// Файл для записи получаемых данных
-            //AddToDic("RawData");
+            // Файл для записи трека
+            AddToDic("Track");
             //// Файл для записи в фоновом потоке
             //AddToDic("Thread");
         }
+
+        // Класс точного времени
+        _Time = transform.GetComponent<sTime>();
     }
 
     // Добавить в словарь имя файла и созданный объект StreamWriter
@@ -62,11 +68,6 @@ public class sRecord : MonoBehaviour
         _RecFile.Add(myRecFileName, new StreamWriter(Path.Combine(RecDir, myRecFileName + ".txt")));
     }
 
-    // Возвращает текщее время работы программы
-    int CurrentTime()
-    {
-        return (int)(_StopWatch.ElapsedMilliseconds - StartTime);
-    }
 
     // ****************  Перегруженные функции для записи лог-файлов   ********************************
     // Запись в указанный файл
@@ -74,7 +75,7 @@ public class sRecord : MonoBehaviour
     {
         if (_WriteLog)
         {
-            _RecFile[myRecName].WriteLine(CurrentTime() + "\t" + myInfo.Replace(".", ","));
+            _RecFile[myRecName].WriteLine(_Time.CurrentTimeMilliSec() + "\t" + myInfo.Replace(".", ","));
         }
     }
 
@@ -83,7 +84,16 @@ public class sRecord : MonoBehaviour
     {
         if (_WriteLog)
         {
-            _RecFile["Main"].WriteLine(CurrentTime() + "\t" + myInfo.Replace(".", ","));
+            _RecFile["Main"].WriteLine(_Time.CurrentTimeMilliSec() + "\t" + myInfo.Replace(".", ","));
+        }
+    }
+
+    // Запись в файл по умолчанию без автоматической вставки времени
+    public void MyLog(String myInfo, bool writeTime)
+    {
+        if (_WriteLog)
+        {
+            _RecFile["Main"].WriteLine(myInfo.Replace(".", ","));
         }
     }
 
@@ -92,7 +102,7 @@ public class sRecord : MonoBehaviour
     {
         if (_WriteLog)
         {
-            int myCurrentTime = CurrentTime();
+            int myCurrentTime = _Time.CurrentTimeMilliSec();
             _RecFile[myRecName1].WriteLine(myInfo.Replace(".", ",") + " CurrentTime = " + myCurrentTime);
             _RecFile[myRecName2].WriteLine(myInfo.Replace(".", ",") + " CurrentTime = " + myCurrentTime);
         }

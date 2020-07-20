@@ -16,8 +16,8 @@ public class MenuController : MonoBehaviour
     private Text _windValTxt;
     private Slider _windDir;
     private Text _windDirTxt;
-    private Slider _waveValue;
-    private Text _waveValTxt;
+    private Slider _waveVolume;
+    private Text _waveVolTxt;
 
     // настройка ветра
     private Wind _wind;
@@ -67,8 +67,8 @@ public class MenuController : MonoBehaviour
             _windDir = GameObject.Find("MainMenu/Canvas/WindDirection").GetComponent<Slider>();
             _windDirTxt = GameObject.Find("MainMenu/Canvas/WindDirTxt").GetComponent<Text>();
 
-            _waveValue = GameObject.Find("MainMenu/Canvas/WaveValume").GetComponent<Slider>();
-            _waveValTxt = GameObject.Find("MainMenu/Canvas/WaveValueTxt").GetComponent<Text>();
+            _waveVolume = GameObject.Find("MainMenu/Canvas/WaveVolume").GetComponent<Slider>();
+            _waveVolTxt = GameObject.Find("MainMenu/Canvas/WaveVolumeTxt").GetComponent<Text>();
 
             // найти объекты, которые пересоздаются при каждой загрузке сцены
             FindObjects();
@@ -93,6 +93,9 @@ public class MenuController : MonoBehaviour
         GameObject waves = GameObject.Find("Environment/Waves");
         ShapeGerstnerBatched shapeGer = waves.GetComponent<ShapeGerstnerBatched>();
         _waveSpect = shapeGer._spectrum;
+
+        // Установить начальное значение волнения
+        _waveSpect._multiplier = 0.1f;
     }
 
     void Update()
@@ -174,8 +177,8 @@ public class MenuController : MonoBehaviour
             _windValTxt.text = string.Format("{0:F1}", _windValue.value);
             _windDir.value = _wind.WindDir[0].angle;
             _windDirTxt.text = string.Format("{0:F1}", _windDir.value);
-            //WaveValume.value = _waveSpect._multiplier;
-            //WaveValueTxt.text = string.Format("{0:F1}", _windValue.value);
+            _waveVolume.value = _waveSpect._multiplier;
+            _waveVolTxt.text = string.Format("{0:F1}", _waveVolume.value);
         }
     }
 
@@ -192,5 +195,12 @@ public class MenuController : MonoBehaviour
         _windDirTxt.text = string.Format("{0:F1}", _windDir.value);
     }
 
+    public void onWaveVolumeChange()
+    {
+        print("_waveSpect._multiplier = " + _waveSpect._multiplier);
+        _waveSpect._multiplier = _waveVolume.value;
+        print("_waveSpect._multiplier = " + _waveSpect._multiplier);
+        _waveVolTxt.text = string.Format("{0:F1}", _waveVolume.value);
+    }
 
 }

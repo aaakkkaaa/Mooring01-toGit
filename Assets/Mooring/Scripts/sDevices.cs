@@ -94,7 +94,7 @@ public class sDevices : MonoBehaviour
     sRecord _Record;
 
     // Счетчик для записи в файл
-    int _RecCount = 0;
+    //int _RecCount = 0;
 
     // Start is called before the first frame update
     void Start()

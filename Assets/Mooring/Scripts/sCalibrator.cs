@@ -153,17 +153,19 @@ public class sCalibrator : MonoBehaviour
     {
         // Коэфициент масштабирования
         float Proportions = CameraHeight / _ModelEyesHeight;
-        print("Коефициент масштабирования модели курсанта: " + Proportions);
+        print("Коэфициент масштабирования модели курсанта: " + Proportions);
         // Масштабируем модель
         transform.localScale = Vector3.one * Proportions;
         // Масштабируем смещение таргета головы и рук пользователя относительно камеры и трекеров
         _CadetHeadTarget.localPosition *= Proportions;
         _VRIK.solver.leftArm.target.localPosition *= Proportions;
         _VRIK.solver.rightArm.target.localPosition *= Proportions;
-        // Масштабируем смещение таргета головы и рук пользователя относительно камеры и трекеров
-        _CadetHeadTarget.localPosition *= Proportions;
-        _VRIK.solver.leftArm.target.localPosition *= Proportions;
-        _VRIK.solver.rightArm.target.localPosition *= Proportions;
+        //// Масштабируем смещение таргета головы и рук пользователя относительно камеры и трекеров
+        //_CadetHeadTarget.localPosition *= Proportions;
+        //_VRIK.solver.leftArm.target.localPosition *= Proportions;
+        //_VRIK.solver.rightArm.target.localPosition *= Proportions;
+
+        // Ошибка? - проверить
         // Масштабируем смещение точек - целей на штурвале
         _HelmHandPlaceLeft.localPosition *= Proportions;
         _HelmHandPlaceRight.localPosition *= Proportions;
@@ -286,24 +288,6 @@ public class sCalibrator : MonoBehaviour
 
     private void CorrectOneTarget(Transform Target, Transform PatternJoint, string ConsoleText)
     {
-        //print(ConsoleText + ": " + Target.name + ".  Было: pos = " + Target.localPosition.ToString("F3") + ", eu = " + Target.localEulerAngles);
-        //Target.SetPositionAndRotation(PatternJoint.position, PatternJoint.rotation);
-        //print(ConsoleText + ": " + Target.name + ". Стало: pos = " + Target.localPosition.ToString("F3") + ", eu = " + Target.localEulerAngles);
-        //print("Положение трекеров:");
-        //print("Аватар: pos = " + transform.localPosition.ToString("F3") + ", eu = " + transform.localEulerAngles.ToString("F1"));
-        //print("Камера. Локально: pos = " + _Camera.localPosition.ToString("F3") + ", eu = " + _Camera.localEulerAngles.ToString("F1"));
-        //print("Камера. Глобально: pos = " + _Camera.position.ToString("F3") + ", eu = " + _Camera.eulerAngles.ToString("F1"));
-        //print("Голова. Цель: pos = " + _VRIK.solver.spine.headTarget.position.ToString("F3") + ", eu = " + _VRIK.solver.spine.headTarget.eulerAngles.ToString("F1"));
-        //print("Голова. Сустав: pos = " + _VRIK.references.head.position.ToString("F3") + ", eu = " + _VRIK.references.head.eulerAngles.ToString("F1"));
-        //print("Левый трекер. Локально: pos = " + _TrackerLeft.localPosition.ToString("F3") + ", eu = " + _TrackerLeft.localEulerAngles.ToString("F1"));
-        //print("Левый трекер. Глобально: pos = " + _TrackerLeft.position.ToString("F3") + ", eu = " + _TrackerLeft.eulerAngles.ToString("F1"));
-        //print("Левая рука. Цель: pos = " + _VRIK.solver.leftArm.target.position.ToString("F3") + ", eu = " + _VRIK.solver.leftArm.target.eulerAngles.ToString("F1"));
-        //print("Левая рука. Сустав: pos = " + _VRIK.references.leftHand.position.ToString("F3") + ", eu = " + _VRIK.references.leftHand.eulerAngles.ToString("F1"));
-        //print("Правый трекер. Локально: pos = " + _TrackerRight.localPosition.ToString("F3") + ", eu = " + _TrackerRight.localEulerAngles.ToString("F1"));
-        //print("Правый трекер. Глобально: pos = " + _TrackerRight.position.ToString("F3") + ", eu = " + _TrackerRight.eulerAngles.ToString("F1"));
-        //print("Правая рука. Цель: pos = " + _VRIK.solver.rightArm.target.position.ToString("F3") + ", eu = " + _VRIK.solver.rightArm.target.eulerAngles.ToString("F1"));
-        //print("Правая рука. Сустав: pos = " + _VRIK.references.rightHand.position.ToString("F3") + ", eu = " + _VRIK.references.rightHand.eulerAngles.ToString("F1"));
-        //print("Консоль: " + _Console.localPosition.y);
 
         _Record.MyLog(ConsoleText + ": " + Target.name + ".  Было: pos =\t" + tab(Target.localPosition,"F3") + "\teu =\t" + tab(Target.localEulerAngles,"F1"));
         Target.SetPositionAndRotation(PatternJoint.position, PatternJoint.rotation);

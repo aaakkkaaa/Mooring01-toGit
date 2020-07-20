@@ -20,6 +20,10 @@ public class sBump : MonoBehaviour
     AudioSource _Crash; // Удвр + стекло
     AudioSource _Scrape; //Скрежет
 
+    // Класс для записи в файл
+    //[SerializeField]
+    //sRecord _Record;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -71,6 +75,7 @@ public class sBump : MonoBehaviour
             {
                 _Impact.volume = Mathf.Clamp(collision.relativeVelocity.magnitude + 0.5f, 0, 5) / 3;
                 _Impact.Play();
+                print("Столкновение с объектом: " + collision.gameObject);
             }
         }
     }
