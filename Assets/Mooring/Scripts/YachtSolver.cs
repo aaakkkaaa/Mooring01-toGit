@@ -88,9 +88,9 @@ public class YachtSolver : MonoBehaviour
     public float FengX;                     // боковая сила от винта, возникает при изменениях мощности
     public float MengX;                     // Момент от винта
 
-    public float FwingX;                    // сила ветра по X
-    public float FwingZ;                    // сила ветра по Z
-    public float Mwing;                     // момент от ветра
+    public float FwindX;                    // сила ветра по X
+    public float FwindZ;                    // сила ветра по Z
+    public float Mwind;                     // момент от ветра
 
     public float FropeX;                    // сила натяжения по X
     public float FropeZ;                    // сила натяжения по Z
@@ -390,9 +390,9 @@ public class YachtSolver : MonoBehaviour
         float fWind = WindForce(wAngle, wValue);           // возвращается абс. величина силы!
         //print("fWind = " + fWind);
         Vector3 FwingVec = Vector3.Normalize(wLocal) * fWind;
-        FwingX = FwingVec.x;
-        FwingZ = FwingVec.z;
-        Mwing = WindMoment(wAngle, wValue);
+        FwindX = FwingVec.x;
+        FwindZ = FwingVec.z;
+        Mwind = WindMoment(wAngle, wValue);
         //print("FwingZ = " + FwingZ + "   FwingX = " + FwingX + "   Mwing = " + Mwing);
 
         // Натяжение канатов
@@ -410,30 +410,37 @@ public class YachtSolver : MonoBehaviour
 
         // Численное интегрирование:
         // Интегрируем dVz/dt - продольная скорость по Z
-        float rotToVz = _Mxx * OmegaY * Vx;
-        float dVz = dt * (Feng + FresZ + FrudVzZ + FrudEnZ + FwingZ + FropeZ + rotToVz) / _Mzz;
-        //float dVz = dt * (Feng + FresZ) / _Mzz;
-
+        //float rotToVz = _Mxx * OmegaY * Vx;
+        float rotToVz = _Mxx * OmegaY * Vx * 0.2f;
+        float dVz = dt * (Feng + FresZ + FrudVzZ + FrudEnZ + FwindZ + FropeZ + rotToVz) / _Mzz;
+/*
         if (_Time.CurrentTimeMilliSec() > _nextLogTime - 20)
         {
-            _Record.MyLog(_Time.CurrentTimeSec() + "\t" + Vz + "\t" + Feng + "\t" + FresZ + "\t" + FrudVzZ + "\t" + FrudEnZ + "\t" + FwingZ + "\t" + FropeZ + "\t" + rotToVz + "\t" + _Mzz + "\t" + dt + "\t" + dVz, false);
+            _Record.MyLog(_Time.CurrentTimeSec() + "\t" + Vz + "\t" + Feng + "\t" + FresZ + "\t" + FrudVzZ + "\t" + FrudEnZ + "\t" + FwindZ + "\t" + FropeZ + "\t" + rotToVz + "\t" + _Mzz + "\t" + dt + "\t" + dVz, false);
             _nextLogTime += 1000;
         }
-
+*/
         // Интегрируем dVx/dt - боковая скорость по X
-        float rotToVx = -_Mzz * OmegaY * Vz;
-        float dVx = dt * (FrudVzX + FrudEnX + FresX + FengX + FwingX + FropeX + rotToVx) / _Mxx;
+//        float rotToVx = -_Mzz * OmegaY * Vz;
+        float rotToVx = -_Mzz * OmegaY * Vz * 0.2f;
+        float dVx = dt * (FrudVzX + FrudEnX + FresX + FengX + FwindX + FropeX + rotToVx) / _Mxx;
         //print("FrudX = " + FrudX + "   FresX = " + FresX + "   rotToVy = " + rotToVx + "   dVx = "+ dVx + "   Vx = "+Vx);
 
         // Интегрируем dOmegaY/dt - момент вокруг вертикальной оси Y
         float vToRot = (_Mzz - _Mxx) * Vx * Vz;
-        float dOmegaY = dt * (MrudVzX + MrudEnX + MresBody + MengX + MrudResZ + Mwing + Mrope + vToRot) / _Jyy;
+
+        float dOmegaY = dt * (MrudVzX + MrudEnX + MresBody + MengX + MrudResZ + Mwind + Mrope + vToRot) / _Jyy;
+
+        if (_Time.CurrentTimeMilliSec() > _nextLogTime - 20)
+        {
+            _Record.MyLog(_Time.CurrentTimeSec() + "\t" + RuderValue + "\t" + Beta + "\t" + MrudVzX + "\t" + MrudEnX + "\t" + MresBody + "\t" + MengX + "\t" + MrudResZ + "\t" + Mwind + "\t" + Mrope + "\t" + vToRot + "\t" + _Mzz + "\t" + _Jyy + "\t" + dOmegaY + "\t" + OmegaY, false);
+            _nextLogTime += 1000;
+        }
 
         // Новые скорости
         Vz += dVz;
         Vx += dVx;
         OmegaY += dOmegaY;
-        //OmegaY = 0; // KAI: временно
 
         // Рассчет и изменение положения
         Vector3 localV = new Vector3(Vx, 0, Vz);
@@ -471,12 +478,6 @@ public class YachtSolver : MonoBehaviour
         {
             Beta *= KBetaBack;
         }
-
-        //Beta = 0;
-
-        //print("");
-        //print("Vz = " + Vz + "   Vx = " + Vx);
-        //print("ruder = " + RuderValue + "   Beta = " + Beta + "   ruder - Beta = " + (RuderValue - Beta));
 
 
     }
