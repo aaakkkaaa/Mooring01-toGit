@@ -37,15 +37,15 @@ public class YachtSolver : MonoBehaviour
 //    private float M0 = 8680f;                // водоизмещение = вес яхты в кг
     private float M0 = 12000f;                // водоизмещение = вес яхты в кг
     private float Jy = 35000f;               // момент инерции относительно вертикальной оси
-    public float K11 = 0.3f;                // коеф. для расчета массы с учетом присоединенной Mzz = (1+K11)*M0
-    public float K66 = 0.5f;                // коеф. для расчета массы и момента с учетом прис.  Jyy = (1+K66)*Jy; Mxx = (1+K66)*M0
-    public float KFrudX = 0.9f;             // Подгонка, для реализма эффективности руля
-    public float KBetaForv = 0.7f;          // Чтобы уменьшить влияние Beta, так как руль обдувается водой винта (3 стр 55)
-    public float KBetaBack = 1.0f;          // Чтобы уменьшить влияние Beta, так как руль обдувается водой винта (3 стр 55)
-    public float KrudVzxContraEnx = 0.7f;   // Соотношение влияния руля в потоке воды и руля в потоке винта
-    public float KwindF2 = 1.0f;             // Для подстройки влияния ветра на силу - множитель при V*V
-    public float KwindF1 = 10.0f;            // Для подстройки влияния ветра на силу - множитель при V
-    public float KwindM = 1.0f;             // Для подстройки влияния ветра на момент
+    private float K11 = 0.3f;                // коеф. для расчета массы с учетом присоединенной Mzz = (1+K11)*M0
+    private float K66 = 0.5f;                // коеф. для расчета массы и момента с учетом прис.  Jyy = (1+K66)*Jy; Mxx = (1+K66)*M0
+    private float KFrudX = 1.1f;             // Подгонка, для реализма эффективности руля
+    private float KBetaForv = 0.7f;          // Чтобы уменьшить влияние Beta, так как руль обдувается водой винта (3 стр 55)
+    private float KBetaBack = 1.0f;          // Чтобы уменьшить влияние Beta, так как руль обдувается водой винта (3 стр 55)
+    private float KrudVzxContraEnx = 0.7f;   // Соотношение влияния руля в потоке воды и руля в потоке винта
+    private float KwindF2 = 1.0f;             // Для подстройки влияния ветра на силу - множитель при V*V
+    private float KwindF1 = 10.0f;            // Для подстройки влияния ветра на силу - множитель при V
+    private float KwindM = 1.0f;             // Для подстройки влияния ветра на момент
 
     // занос кормы
     public int DirectV = 1;                 // направление вращения, +1 - правый винт, -1 - левый;
@@ -146,10 +146,8 @@ public class YachtSolver : MonoBehaviour
 
         _KresX2 = _KresZ2 * 20;               // подбором
         _KresX1 = _KresX2 * 3.0f;             // подбором 
-//        _KresOmega2 = _KresZ2 * 30;           // подбором
-//        _KresOmega1 = _KresZ2;                // подбором
-        _KresOmega2 = _KresZ2 * 30 * 16;           // подбором
-        _KresOmega1 = _KresZ2 * 16;                // подбором
+        _KresOmega2 = _KresZ2 * 30 * 10;      // подбором
+        _KresOmega1 = _KresZ2 * 16;           // подбором
         // массы и момент инерции с учетом присоединенных масс
         _Mzz = (1 + K11) * M0;
         _Mxx = (1 + K66) * M0;
@@ -289,8 +287,8 @@ public class YachtSolver : MonoBehaviour
 
     void FixedUpdate()
     {
-        float dt = Time.fixedDeltaTime;
 
+        float dt = Time.fixedDeltaTime;
         // поворот пера руля
         RuderValue = -steeringWheel * 35 / 540;
         // сила тяги
@@ -332,7 +330,8 @@ public class YachtSolver : MonoBehaviour
         MrudVzX = -FrudVzX * Lbody / 2;
         // print("RuderValue = " + RuderValue + "   Beta = " + Beta + "   Итого = " + (RuderValue - Beta));
 
-        // силы и момент на руле от работы винта - возникают только при кручении винта вперед
+        // силы и момент на руле от работы винта - возникают НЕ только при кручении винта вперед
+        
         if (Feng > 0)
         {
             float VeffRud = Mathf.Sqrt(Feng / 440);
@@ -346,8 +345,13 @@ public class YachtSolver : MonoBehaviour
         }
         else
         {
-            FrudEnZ = FrudEnX = MrudEnX = 0.0f;
+            //FrudEnZ = FrudEnX = MrudEnX = 0.0f;
 
+            float VeffRud = Mathf.Sqrt(-Feng / 440);
+            FrudEnX = -Mathf.Sign(RuderValue) * FruderX(RuderValue, VeffRud);
+            FrudEnX *= (1 - KrudVzxContraEnx);
+            MrudEnX = -FrudEnX * Lbody / 2;
+            FrudEnZ = 0.0f;
         }
 
         // Момент на руле из-за сопротивления руля воде при наличии угла Beta
@@ -433,7 +437,7 @@ public class YachtSolver : MonoBehaviour
 
         if (_Time.CurrentTimeMilliSec() > _nextLogTime - 20)
         {
-            _Record.MyLog(_Time.CurrentTimeSec() + "\t" + RuderValue + "\t" + Beta + "\t" + MrudVzX + "\t" + MrudEnX + "\t" + MresBody + "\t" + MengX + "\t" + MrudResZ + "\t" + Mwind + "\t" + Mrope + "\t" + vToRot + "\t" + _Mzz + "\t" + _Jyy + "\t" + dOmegaY + "\t" + OmegaY, false);
+            _Record.MyLog(_Time.CurrentTimeSec() + "\t" + RuderValue + "\t" + Beta + "\t" + MrudVzX + "\t" + MrudEnX + "\t" + MresBody + "\t" + MengX + "\t" + MrudResZ + "\t" + vToRot + "\t" + dOmegaY + "\t" + OmegaY, false);
             _nextLogTime += 1000;
         }
 
