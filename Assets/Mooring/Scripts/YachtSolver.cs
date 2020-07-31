@@ -435,12 +435,6 @@ public class YachtSolver : MonoBehaviour
 
         float dOmegaY = dt * (MrudVzX + MrudEnX + MresBody + MengX + MrudResZ + Mwind + Mrope + vToRot) / _Jyy;
 
-        if (_Time.CurrentTimeMilliSec() > _nextLogTime - 20)
-        {
-            _Record.MyLog(_Time.CurrentTimeSec() + "\t" + RuderValue + "\t" + Beta + "\t" + MrudVzX + "\t" + MrudEnX + "\t" + MresBody + "\t" + MengX + "\t" + MrudResZ + "\t" + vToRot + "\t" + dOmegaY + "\t" + OmegaY, false);
-            _nextLogTime += 1000;
-        }
-
         // Новые скорости
         Vz += dVz;
         Vx += dVx;
@@ -457,6 +451,13 @@ public class YachtSolver : MonoBehaviour
         Vector3 rot = transform.eulerAngles;
         rot.y += OmegaY * 180 / Mathf.PI * dt;
         transform.eulerAngles = rot;
+
+        if (_Time.CurrentTimeMilliSec() > _nextLogTime - 20)
+        {
+            //_Record.MyLog(_Time.CurrentTimeSec() + "\t" + RuderValue + "\t" + Beta + "\t" + MrudVzX + "\t" + MrudEnX + "\t" + MresBody + "\t" + MengX + "\t" + MrudResZ + "\t" + vToRot + "\t" + dOmegaY + "\t" + OmegaY, false);
+            _Record.MyLog(_Time.CurrentTimeSec() + "\t" + Vz + "\t" + Vx + "\t" + Beta + "\t" + vToRot + "\t" + dOmegaY + "\t" + OmegaY + "\t" + rot.y, false);
+            _nextLogTime += 1000;
+        }
 
 
         // определение угла Beta между продольной осью и скоростью

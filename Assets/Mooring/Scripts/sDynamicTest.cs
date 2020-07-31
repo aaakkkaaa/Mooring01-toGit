@@ -45,6 +45,7 @@ public class sDynamicTest : MonoBehaviour
         public float z; // Начальная координата Z
         public float v; // Начальная скорость
         public int a; // Начальное угловое положение
+        public float vx; // Начальная поперечная скорость 
     }
 
     InitialPars _IniPars;
@@ -92,6 +93,7 @@ public class sDynamicTest : MonoBehaviour
                 float.TryParse(CommandData[1], out _IniPars.z); // Начальная координата Z
                 float.TryParse(CommandData[2], out _IniPars.v); // Начальная скорость
                 int.TryParse(CommandData[3], out _IniPars.a); // Начальный угол
+                float.TryParse(CommandData[4], out _IniPars.vx);
             }
             else if (i == 2) // Третья строка - второй заголовок. Пропускаем
             {
@@ -171,6 +173,7 @@ public class sDynamicTest : MonoBehaviour
                 _AftGPS.parent = _MainShip;
                 // Скорость
                 _YachtSolver.Vz = _IniPars.v;
+                _YachtSolver.Vx = _IniPars.vx;
             }
             _YachtSolver.engineValue = _Command[i].EnVal;
             _YachtSolver.steeringWheel = _Command[i].StWh;

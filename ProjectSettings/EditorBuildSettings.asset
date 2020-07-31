@@ -4,5 +4,11 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Mooring/Scenes/Base.unity
+    guid: 038024786546ea4499a2c01f72b09202
+  - enabled: 1
+    path: Assets/Mooring/Scenes/LocationTivat1.unity
+    guid: 89cf65aa152d59f44b4e1094e3da62ba
   m_configObjects: {}

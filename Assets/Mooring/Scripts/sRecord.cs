@@ -65,6 +65,13 @@ public class sRecord : MonoBehaviour
     void AddToDic(String myRecFileName)
     {
         // TODO надо проверять, и если файл уже открыт то .....
+        if( _RecFile.ContainsKey(myRecFileName) )
+        {
+            StreamWriter sw = _RecFile[myRecFileName];
+            sw.Close();
+            sw.Dispose();
+            _RecFile.Remove(myRecFileName);
+        }
         _RecFile.Add(myRecFileName, new StreamWriter(Path.Combine(RecDir, myRecFileName + ".txt")));
     }
 
@@ -73,9 +80,13 @@ public class sRecord : MonoBehaviour
     // Запись в указанный файл
     public void MyLog(string myRecName, String myInfo)
     {
+        print("myRecName = "+ myRecName);
         if (_WriteLog)
         {
-            _RecFile[myRecName].WriteLine(_Time.CurrentTimeMilliSec() + "\t" + myInfo.Replace(".", ","));
+            if (_RecFile.ContainsKey(myRecName))
+            {
+                _RecFile[myRecName].WriteLine(_Time.CurrentTimeMilliSec() + "\t" + myInfo.Replace(".", ","));
+            }
         }
     }
 
