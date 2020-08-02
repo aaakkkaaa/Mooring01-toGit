@@ -91,6 +91,7 @@
     <Compile Include="Assets\Mooring\Scripts\sCalibrator.cs" />
     <Compile Include="Assets\Mooring\Scripts\sDevices.cs" />
     <Compile Include="Assets\Mooring\Scripts\sDynamicTest.cs" />
+    <Compile Include="Assets\Mooring\Scripts\sGlobalSettings.cs" />
     <Compile Include="Assets\Mooring\Scripts\sHideSelf.cs" />
     <Compile Include="Assets\Mooring\Scripts\sRecord.cs" />
     <Compile Include="Assets\Mooring\Scripts\sSailorM_IK.cs" />

@@ -169,7 +169,7 @@ public class YachtSolver : MonoBehaviour
         print("Окончательно установлено положение ручки в центре _middleThrottle = " + _middleThrottle);
         _PositiveMultiplier = 1.0f / (1.0f - _middleThrottle);
         _NegativeMultiplier = 1.0f / _middleThrottle;
-
+        
         _Record.MyLog("K_EnvalToFeng:\t" + K_EnvalToFeng + "\tengBack:\t" + engBack + "\tLbody:\t" + Lbody + "\tM0:\t" + M0 + "\tJy:\t" + Jy + 
             "\tK11:\t" + K11 + "\tK66:\t" + K66 + "\tKFrudX:\t" + KFrudX + "\tKBetaForv:\t" + KBetaForv + "\tKBetaBack:\t" + KBetaBack + "\tKrudVzxContraEnx:\t" + KrudVzxContraEnx);
         _Record.MyLog("DirectV:\t" + DirectV + "\tKzanos:\t" + Kzanos + "\tTzanos:\t" + Tzanos);
@@ -178,12 +178,25 @@ public class YachtSolver : MonoBehaviour
         _Record.MyLog("\t_Kprop1:\t" + _Kprop1 + "\t_Kprop2:\t" + _Kprop2 + "\t_Kprop3:\t" + _Kprop3 + "\t_Kprop4:\t" + _Kprop4 + "\n");
 
         _Record.MyLog("EngineV:\tKprop4:\tFeng\tRuderValue\tFresZ\tFresX\tFrudVzZ\tFrudVzX\tMrudVzX\tFrudEnZ\tFrudEnX\tMrudEnX\tMrudResZ\tMresBody\tFengX\tMengX\tFwindZ\tFwindX\tMwind\tdVz\tVz\tdVx\tVx\tdOmegaY\tOmegaY\tBeta\tdt");
-
+        
     }
+
+    /* Вывод для контроля частоты кадров
+    private int FrameCount = 0;
+    private int FrameCount2 = 0;
+    */
 
     private void Update()
     {
-
+        /* Вывод для контроля частоты кадров
+        FrameCount++;
+        FrameCount2++;
+        if (FrameCount2 >= 25)
+        {
+            FrameCount2 = 0;
+            _Record.MyLog(FrameCount.ToString());
+        }
+        */
         // Режим калибровки ручки газ-реверс
 
         if (_ThrottleCalibrationMode)

@@ -9,83 +9,41 @@ using UnityEngine;
 
 public class sRecord : MonoBehaviour
 // ********************** Запись данных в файлы ********************************************
+/*
+                   Main     - Файл для записи по умолчанию
+*/
+
 {
+    // Класс с параметрами для записи логов
+    private sGlobalSettings _GlobalS;
 
     // Папка для записи файлов
-    public String RecDir = "Record";
-    // Словарь - массив файлов для записи данных. Ключ - имя файла, значение - объект StreamWriter
-    Dictionary<String, StreamWriter> _RecFile = new Dictionary<String, StreamWriter>();
-    /*
-    Main     - Файл для записи по умолчанию
-    */
-
-
-    // Отладочный параметр - запиcывать ли логи
-    [SerializeField]
-    bool _WriteLog = true;
+    public string RecDir;
 
     // Класс точного времени
     sTime _Time;
 
-    //// Параметры точного времени
-    //Stopwatch _StopWatch; // таймер точного времени
-    //private long StartTime; // время начала работы программы
-
-    void Awake()
+    void OnEnable()
     {
+        // Ссылка на класс с параметрами для записи логов
+        _GlobalS = GameObject.Find("GlobalS").GetComponent<sGlobalSettings>();
 
-        //// Запуск таймера точного времени
-        //_StopWatch = new Stopwatch();
-        //_StopWatch.Start();
-        //// Время начала работы программы
-        //StartTime = _StopWatch.ElapsedMilliseconds;
-
-
-        // ********************** Запись данных в файлы ********************************************
-
-        // Создать папку
-        Directory.CreateDirectory(RecDir);
-        RecDir = Path.Combine(Directory.GetCurrentDirectory(), RecDir);
-
-        if (_WriteLog)
-        {
-            // Файл для записи по умолчанию
-            AddToDic("Main");
-            // Файл для записи трека
-            AddToDic("Track");
-            //// Файл для записи в фоновом потоке
-            //AddToDic("Thread");
-        }
+        // Папка для записи файлов
+        RecDir = _GlobalS.RecDir;
 
         // Класс точного времени
         _Time = transform.GetComponent<sTime>();
     }
 
-    // Добавить в словарь имя файла и созданный объект StreamWriter
-    void AddToDic(String myRecFileName)
-    {
-        // TODO надо проверять, и если файл уже открыт то .....
-        if( _RecFile.ContainsKey(myRecFileName) )
-        {
-            StreamWriter sw = _RecFile[myRecFileName];
-            sw.Close();
-            sw.Dispose();
-            _RecFile.Remove(myRecFileName);
-        }
-        _RecFile.Add(myRecFileName, new StreamWriter(Path.Combine(RecDir, myRecFileName + ".txt")));
-    }
-
-
     // ****************  Перегруженные функции для записи лог-файлов   ********************************
     // Запись в указанный файл
     public void MyLog(string myRecName, String myInfo)
     {
-        print("myRecName = "+ myRecName);
-        if (_WriteLog)
+        if (_GlobalS.WriteLog)
         {
-            if (_RecFile.ContainsKey(myRecName))
+            if (_GlobalS.RecFile.ContainsKey(myRecName))
             {
-                _RecFile[myRecName].WriteLine(_Time.CurrentTimeMilliSec() + "\t" + myInfo.Replace(".", ","));
+                _GlobalS.RecFile[myRecName].WriteLine(_Time.CurrentTimeMilliSec() + "\t" + myInfo.Replace(".", ","));
             }
         }
     }
@@ -93,29 +51,35 @@ public class sRecord : MonoBehaviour
     // Запись в файл по умолчанию
     public void MyLog(String myInfo)
     {
-        if (_WriteLog)
-        {
-            _RecFile["Main"].WriteLine(_Time.CurrentTimeMilliSec() + "\t" + myInfo.Replace(".", ","));
-        }
+        MyLog("Main", myInfo);
     }
 
     // Запись в файл по умолчанию без автоматической вставки времени
     public void MyLog(String myInfo, bool writeTime)
     {
-        if (_WriteLog)
+        if (_GlobalS.WriteLog)
         {
-            _RecFile["Main"].WriteLine(myInfo.Replace(".", ","));
+            if (_GlobalS.RecFile.ContainsKey("Main"))
+            {
+                _GlobalS.RecFile["Main"].WriteLine(myInfo.Replace(".", ","));
+            }
         }
     }
 
     // Запись в два файла
     public void MyLog(string myRecName1, string myRecName2, String myInfo)
     {
-        if (_WriteLog)
+        if (_GlobalS.WriteLog)
         {
             int myCurrentTime = _Time.CurrentTimeMilliSec();
-            _RecFile[myRecName1].WriteLine(myInfo.Replace(".", ",") + " CurrentTime = " + myCurrentTime);
-            _RecFile[myRecName2].WriteLine(myInfo.Replace(".", ",") + " CurrentTime = " + myCurrentTime);
+            if (_GlobalS.RecFile.ContainsKey(myRecName1))
+            {
+                _GlobalS.RecFile[myRecName1].WriteLine(myInfo.Replace(".", ",") + " CurrentTime = " + myCurrentTime);
+            }
+            if (_GlobalS.RecFile.ContainsKey(myRecName2))
+            {
+                _GlobalS.RecFile[myRecName2].WriteLine(myInfo.Replace(".", ",") + " CurrentTime = " + myCurrentTime);
+            }
         }
     }
 
@@ -136,10 +100,10 @@ public class sRecord : MonoBehaviour
     // Закрыть один лог-файл и удалить его запись из словаря лог-файлов
     public void Close(string myRecName)
     {
-        if (_WriteLog)
+        if (_GlobalS.WriteLog)
         {
-            _RecFile[myRecName].Close();
-            _RecFile.Remove(myRecName);
+            _GlobalS.RecFile[myRecName].Close();
+            _GlobalS.RecFile.Remove(myRecName);
         }
     }
 
@@ -147,10 +111,10 @@ public class sRecord : MonoBehaviour
     public void CloseAll()
     {
         // Закрыть все открытые лог-файлы
-        List<String> myKeys = new List<String>(_RecFile.Keys);
+        List<String> myKeys = new List<String>(_GlobalS.RecFile.Keys);
         for (int i = 0; i < myKeys.Count; i++)
         {
-            _RecFile[myKeys[i]].Close();
+            _GlobalS.RecFile[myKeys[i]].Close();
         }
     }
 
