@@ -103,6 +103,7 @@ public class sRecord : MonoBehaviour
         if (_GlobalS.WriteLog)
         {
             _GlobalS.RecFile[myRecName].Close();
+            _GlobalS.RecFile[myRecName].Dispose();
             _GlobalS.RecFile.Remove(myRecName);
         }
     }
@@ -115,6 +116,8 @@ public class sRecord : MonoBehaviour
         for (int i = 0; i < myKeys.Count; i++)
         {
             _GlobalS.RecFile[myKeys[i]].Close();
+            _GlobalS.RecFile[myKeys[i]].Dispose();
+            _GlobalS.RecFile.Remove(myKeys[i]);
         }
     }
 

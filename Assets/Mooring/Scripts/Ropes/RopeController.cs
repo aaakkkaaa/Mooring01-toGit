@@ -83,6 +83,11 @@ public class RopeController : MonoBehaviour
             _solver = _rope.solver;
         }
 
+        if( transform.parent != _solver.transform )
+        {
+            return;
+        }
+
         if (CurState == "ATTRACT")
         {
             for (int i = 0; i < Attractors.Count; i++)

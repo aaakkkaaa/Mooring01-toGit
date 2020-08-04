@@ -11,9 +11,18 @@ public class MenuController : MonoBehaviour
     // нужно ли грузить сразу сцену, до выбора в меню
     public bool LoadDefaultScene = true;
     public string DefaultLocationScene;
+    public string DefaultLessonScene;
 
-    // текущая загруженная сцена
-    private string _scene = "";
+    // имя сцены локации, для загрузки ее после выгрузки прежней сцены
+    private string _loadedLocationScene;
+    // имя сцены урока, чтобы начать ее грузить после окончания загрузки сцены локации
+    private string _loadedtLessonScene;
+
+    // текущие загруженные сцены
+    private string _sceneLoc = "";
+    private string _sceneLes = "";
+    // счетчик выгруженных сцен
+    private int numUnload;
 
     // меню
     private GameObject _menuCanvas;
@@ -81,27 +90,49 @@ public class MenuController : MonoBehaviour
         FirstLoad = true;
 
         // проверка, загружены ли уже сцены локации и урока
+        GameObject marina = GameObject.Find("Marina");
         _stand = GameObject.Find("Stand");
-        if(_stand != null)
+        if (marina != null)
         {
-            print("Сцены локации и урока загружены в редакторе!");
-            _scene = _stand.scene.name;
-            FindObjects();
-            UISetup();
+            _sceneLoc = marina.scene.name;
+            if(_stand != null)
+            {
+                print("Сцены локации и урока загружены в редакторе!");
+                _sceneLes = _stand.scene.name;
+                FindObjects();
+                UISetup();
+                _menuCanvas.SetActive(false);
+            }
+            else
+            {
+                if (LoadDefaultScene && DefaultLessonScene != "")
+                {
+                    print("Загрузка сцены урока по умолчанию");
+                    SceneManager.sceneLoaded += OnSceneLessonLoaded;
+                    SceneManager.LoadSceneAsync(DefaultLessonScene, LoadSceneMode.Additive);
+                    _menuCanvas.SetActive(false);
+                }
+                else
+                {
+                    // сцена урока не загружена и по умолчанию не грузится, надо показать меню
+                    _menuCanvas.SetActive(true);
+                }
+            }
         }
         else
         {
-            print("Загрузка сцены локации и урока по умолчанию");
-            if(LoadDefaultScene && DefaultLocationScene != "")
+            if(LoadDefaultScene && DefaultLocationScene != "" && DefaultLessonScene != "")
             {
-                SceneManager.sceneLoaded += OnSceneLoaded;
+                print("Загрузка сцены локации по умолчанию");
+                _loadedtLessonScene = DefaultLessonScene;
+                SceneManager.sceneLoaded += OnSceneLocationLoaded;
                 SceneManager.LoadSceneAsync(DefaultLocationScene, LoadSceneMode.Additive);
-                _scene = DefaultLocationScene;
+            }
+            else
+            {
+                _menuCanvas.SetActive(true);
             }
         }
-
-        // скроем меню
-        _menuCanvas.SetActive(false);
         
     }
 
@@ -149,18 +180,41 @@ public class MenuController : MonoBehaviour
     private void LoadLesson1()
     {
         print("LoadLesson1()");
+        _loadedLocationScene = "LocationTivat1";
+        _loadedtLessonScene = "Lesson01";
 
-        if(_scene != "")
+        // сохранить настройки калибровки
+        if(_sceneLes != "")
         {
-            // сохранить настройки калибровки
             СalibrationSave();
-
-            SceneManager.UnloadSceneAsync(_scene);
         }
 
-        SceneManager.sceneLoaded += OnSceneLoaded;
-        SceneManager.LoadSceneAsync(DefaultLocationScene, LoadSceneMode.Additive);
+        if (_sceneLoc == _loadedLocationScene)
+        {
+            print("Локация прежняя");
+            if (_sceneLes != "")
+            {
+                print("Выгружаем урок " + _sceneLes);
+                SceneManager.sceneUnloaded += OnSceneLessonUnLoaded;
+                SceneManager.UnloadSceneAsync(_sceneLes);
+            }
+            else
+            {
+                print("Урок не загружен - загружаем новый" + _sceneLes);
+                SceneManager.sceneLoaded += OnSceneLessonLoaded;
+                SceneManager.LoadSceneAsync(_loadedtLessonScene, LoadSceneMode.Additive);
+            }
+        }
+        else
+        {
+            print("Выгружаем сцену локации и урока");
+            numUnload = 0;
+            SceneManager.sceneUnloaded += OnSceneBothUnLoaded;
+        }
+
     }
+
+
 
     // сохранить настройки калибровки
     private void СalibrationSave()
@@ -176,15 +230,53 @@ public class MenuController : MonoBehaviour
         _cameraRIGLocPos = _vrik.solver.leftArm.target.parent.parent.localPosition;
 
         print("Настройки калибровки сохранены");
+        FirstLoad = false;
     }
 
-    // сцена загрузилась
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    // сцена урока выгрузилась, а сцена прежняя - сразу можно загружать новый урок
+    private void OnSceneLessonUnLoaded(Scene scene)
     {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-        _scene = scene.name;
+        SceneManager.sceneUnloaded -= OnSceneLessonUnLoaded;
 
-        print("OnSceneLoaded: " + scene.name + "    LoadSceneMode: " + mode);
+        SceneManager.sceneLoaded += OnSceneLessonLoaded;
+        SceneManager.LoadSceneAsync(_loadedtLessonScene, LoadSceneMode.Additive);
+    }
+
+    // сцена урока выгрузилась, а сцена прежняя - сразу можно загружать новый урок
+    private void OnSceneBothUnLoaded(Scene scene)
+    {
+        numUnload++;
+        if(numUnload == 2)
+        {
+            print("Выгрузились старый урок и локация");
+            SceneManager.sceneUnloaded -= OnSceneBothUnLoaded;
+            SceneManager.sceneLoaded += OnSceneLocationLoaded;
+            SceneManager.LoadSceneAsync(_loadedLocationScene, LoadSceneMode.Additive);
+        }
+
+    }
+
+
+    // сцена локации загрузилась
+    private void OnSceneLocationLoaded(Scene scene, LoadSceneMode mode)
+    {
+        SceneManager.sceneLoaded -= OnSceneLocationLoaded;
+        _sceneLoc = scene.name;
+
+        print("Загрузилась локация: " + scene.name );
+
+        SceneManager.sceneLoaded += OnSceneLessonLoaded;
+        SceneManager.LoadSceneAsync(DefaultLessonScene, LoadSceneMode.Additive);
+
+    }
+
+    // сцена урока загрузилась
+    private void OnSceneLessonLoaded(Scene scene, LoadSceneMode mode)
+    {
+        SceneManager.sceneLoaded -= OnSceneLessonLoaded;
+        _sceneLes = scene.name;
+
+        print("Загрузился урок: " + scene.name );
 
         // найти объекты, которые пересоздались при загрузке сцены
         FindObjects();
@@ -193,12 +285,13 @@ public class MenuController : MonoBehaviour
         UISetup();
 
         // восстановить настройки калибровки, если это не первый запуск
-        if ( !FirstLoad )
+        if (!FirstLoad)
         {
             СalibrationReset();
         }
         FirstLoad = false;
     }
+
 
     // восстановление значений контролов
     private void UISetup()

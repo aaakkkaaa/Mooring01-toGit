@@ -12,7 +12,7 @@ public class RopeTrick : MonoBehaviour
     public float PhisicLength;
 
     // начальная длинна меша
-    private float _baseL = 1.85f;
+    private float _baseL = 1.8f;
 
     private void Start()
     {

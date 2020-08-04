@@ -776,6 +776,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   LoadDefaultScene: 1
   DefaultLocationScene: LocationTivat1
+  DefaultLessonScene: Lesson01
 --- !u!1 &515085393
 GameObject:
   m_ObjectHideFlags: 0
@@ -2432,9 +2433,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   RecDir: Record
-  RecFileNames:
+  _RecFileNames:
   - Main
-  - Track
   WriteLog: 1
 --- !u!4 &1894480077
 Transform:

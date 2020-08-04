@@ -14,4 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Mooring/Scenes/LocationTivat1.unity
     guid: 16d8ae34b1df7034b96e604e76f3181c
+  - enabled: 1
+    path: Assets/Mooring/Scenes/Lesson01.unity
+    guid: 33b30908956bab742aa0ccc726be1fa0
   m_configObjects: {}

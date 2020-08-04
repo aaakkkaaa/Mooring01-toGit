@@ -96,7 +96,15 @@ public class Sailor : MonoBehaviour
                 _animator.SetTrigger("ThrowRope");
                 CurState = "THROW_ROPE";
             }
-
+            else
+            {
+                // переложим канат в руку из солвера
+                if (WorkRope.transform.parent != RHand.transform)
+                { 
+                    _solver = WorkRope.solver;
+                    WorkRope.transform.parent = RHand.transform;
+                }
+            }
         }
         if(needCorrectPose)
         {
@@ -121,7 +129,7 @@ public class Sailor : MonoBehaviour
             print("Не назначен WorkRope");
             return;
         }
-
+        _solver = WorkRope.solver;
         rContr = WorkRope.GetComponent<RopeController>();
         int[] points = { 50, 90, 130 };
         rContr.SetAttractors(RHand, points, 3);
@@ -130,6 +138,7 @@ public class Sailor : MonoBehaviour
         rContr.CurState = "ATTRACT";
     }
 
+    /*
     // Проверить дистанцию и или бросить, или ждать
     private void VerifyDistance()
     {
@@ -145,8 +154,15 @@ public class Sailor : MonoBehaviour
         {
             _animator.SetTrigger("WaitDistance");
             CurState = "WAIT_DISTANCE";
+            if (WorkRope != null)
+            {
+                // переложим канат в руку из солвера
+                _solver = WorkRope.solver;
+                WorkRope.transform.parent = RHand.transform;
+            }
         }
     }
+    */
 
     private void ThrowRope()
     {
@@ -156,6 +172,11 @@ public class Sailor : MonoBehaviour
         {
             print("Не назначен WorkRope");
             return;
+        }
+
+        if(WorkRope.transform.parent != _solver.transform )
+        {
+            WorkRope.transform.parent = _solver.transform;
         }
 
         rContr = WorkRope.GetComponent<RopeController>();
@@ -171,6 +192,7 @@ public class Sailor : MonoBehaviour
         {
             startPoint = LHand.transform.position;
         }
+        RopeTarget.GetComponent<Marinero>().WorkRope = WorkRope;
         rContr.ThrowTo(RopeTarget.transform.position - startPoint, 2.5f);
         rContr.CurState = "FREE";
 
