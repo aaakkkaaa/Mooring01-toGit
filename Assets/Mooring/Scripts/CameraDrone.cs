@@ -102,7 +102,7 @@ public class CameraDrone : MonoBehaviour
         _HomeEu = transform.eulerAngles;
 
         // Основная яхта
-        _Yacht = GameObject.Find("TrainingVessel").transform;
+        //_Yacht = GameObject.Find("TrainingVessel").transform;
 
     }
 
@@ -153,6 +153,9 @@ public class CameraDrone : MonoBehaviour
             // Команда "за штурвал"
             else if (Input.GetKeyDown("y"))
             {
+                // Основная яхта (ищем здесь, а не в Start, на случай потери ссылки при перезагрузке сцены)
+                _Yacht = GameObject.Find("TrainingVessel").transform;
+
                 if (!transform.parent) // Если находимся в корне иерархии сцены
                 {
                     // Перейти в дети яхты
