@@ -27,7 +27,7 @@ public class RopeController : MonoBehaviour
     public List<Connector> Connectors;  // описывание аттача: к какому объекту какая частица каната присоединена
 
     [NonSerialized]
-    public float ThrowDistance = 5.0f;
+    public float ThrowDistance = 3.5f;
 
     [NonSerialized]
     public List<int> FlyPoints;         // точки, притягиваемые к цели полета

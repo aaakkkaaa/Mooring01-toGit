@@ -91,19 +91,15 @@ public class Sailor : MonoBehaviour
         {
             rContr = WorkRope.GetComponent<RopeController>();
             float dist = Vector3.Magnitude(transform.position - RopeTarget.transform.position);
-            if (dist < 5)
+            if (dist < rContr.ThrowDistance)
             {
                 _animator.SetTrigger("ThrowRope");
                 CurState = "THROW_ROPE";
-            }
-            else
-            {
-                // переложим канат в руку из солвера
-                if (WorkRope.transform.parent != RHand.transform)
-                { 
-                    _solver = WorkRope.solver;
-                    WorkRope.transform.parent = RHand.transform;
+                if (WorkRope.transform.parent != _solver.transform)
+                {
+                    WorkRope.transform.parent = _solver.transform;
                 }
+
             }
         }
         if(needCorrectPose)
@@ -133,12 +129,10 @@ public class Sailor : MonoBehaviour
         rContr = WorkRope.GetComponent<RopeController>();
         int[] points = { 50, 90, 130 };
         rContr.SetAttractors(RHand, points, 3);
-      
-        CurState = "WAIT_DISTANCE";
         rContr.CurState = "ATTRACT";
     }
 
-    /*
+    
     // Проверить дистанцию и или бросить, или ждать
     private void VerifyDistance()
     {
@@ -152,7 +146,7 @@ public class Sailor : MonoBehaviour
         }
         else
         {
-            _animator.SetTrigger("WaitDistance");
+           // _animator.SetTrigger("WaitDistance");
             CurState = "WAIT_DISTANCE";
             if (WorkRope != null)
             {
@@ -162,7 +156,7 @@ public class Sailor : MonoBehaviour
             }
         }
     }
-    */
+    
 
     private void ThrowRope()
     {
