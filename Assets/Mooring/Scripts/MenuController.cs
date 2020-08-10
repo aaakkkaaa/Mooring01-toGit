@@ -127,6 +127,7 @@ public class MenuController : MonoBehaviour
                 _loadedtLessonScene = DefaultLessonScene;
                 SceneManager.sceneLoaded += OnSceneLocationLoaded;
                 SceneManager.LoadSceneAsync(DefaultLocationScene, LoadSceneMode.Additive);
+                _menuCanvas.SetActive(false);
             }
             else
             {

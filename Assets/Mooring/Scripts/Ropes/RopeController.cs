@@ -88,7 +88,7 @@ public class RopeController : MonoBehaviour
             return;
         }
 
-        if (CurState == "ATTRACT")
+        if (CurState == "ATTRACT" && gameObject.transform.parent == _solver.transform )
         {
             for (int i = 0; i < Attractors.Count; i++)
             {

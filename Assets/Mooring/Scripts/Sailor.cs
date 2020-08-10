@@ -27,6 +27,10 @@ public class Sailor : MonoBehaviour
 
     // канат с которым взаимодействует перс
     public ObiRope WorkRope;
+    // для восстановления после заморозки каната в руке
+    private Vector3 _savedPos;
+    private Quaternion _savedRot;
+
     // направление броска каната (Маринеро)
     public GameObject RopeTarget;
 
@@ -97,7 +101,15 @@ public class Sailor : MonoBehaviour
                 CurState = "THROW_ROPE";
                 if (WorkRope.transform.parent != _solver.transform)
                 {
+                    // разморозка - вынимаем из руки, возвращаем в солвер, восстанавливаем положение
+                    print("разморозка каната в Update");
+                    //print("WorkRope.transform.localPosition = " + WorkRope.transform.localPosition);
+                    //print("_savedPos = " + _savedPos);
+                    WorkRope.transform.parent = WorkCleat.transform;    // сперва в утку, чтобы восстановить положение
+                    WorkRope.transform.localPosition = _savedPos;
+                    WorkRope.transform.localRotation = _savedRot;
                     WorkRope.transform.parent = _solver.transform;
+                    //print("WorkRope.transform.localPosition = " + WorkRope.transform.localPosition);
                 }
 
             }
@@ -152,6 +164,9 @@ public class Sailor : MonoBehaviour
             {
                 // переложим канат в руку из солвера
                 _solver = WorkRope.solver;
+                WorkRope.transform.parent = WorkCleat.transform;    // сперва в утку, чтобы запомнить координаты
+                _savedPos = WorkRope.transform.localPosition;
+                _savedRot = WorkRope.transform.localRotation;
                 WorkRope.transform.parent = RHand.transform;
             }
         }
@@ -170,6 +185,11 @@ public class Sailor : MonoBehaviour
 
         if(WorkRope.transform.parent != _solver.transform )
         {
+            // разморозка - вынимаем из руки, возвращаем в солвер, восстанавливаем положение
+            print("разморозка каната в ThrowRope");
+            WorkRope.transform.parent = WorkCleat.transform;    // сперва в утку, чтобы восстановить положение
+            WorkRope.transform.localPosition = _savedPos;
+            WorkRope.transform.localRotation = _savedRot;
             WorkRope.transform.parent = _solver.transform;
         }
 
