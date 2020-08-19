@@ -288,9 +288,9 @@ public class Sailor : MonoBehaviour
     {
         print(gameObject.name + ".RopeToWater()");
         GameObject attrObj = WorkCleat.transform.Find("Target2").gameObject;
-        for (int i=0; i<1; i++)
+        for (int i = 0; i < 1; i++)
         {
-            Attractor attr = new Attractor(attrObj, _ropeIdx-10-i*5, 3, 1.0f);
+            Attractor attr = new Attractor(attrObj, _ropeIdx - 10 - i * 5, 3, 1.0f);
             rContr.Attractors.Add(attr);
         }
     }

@@ -27,7 +27,9 @@ public class RopeController : MonoBehaviour
     public List<Connector> Connectors;  // описывание аттача: к какому объекту какая частица каната присоединена
 
     [NonSerialized]
-    public float ThrowDistance = 3.5f;
+    public float ThrowDistance = 3.5f;  // максимально возможное расстояние для броска
+    [NonSerialized]
+    public float FreeDistance = 6.0f;   // если расстояние больше - прекращаем ожидание броска, отпускаем канат
 
     [NonSerialized]
     public List<int> FlyPoints;         // точки, притягиваемые к цели полета
@@ -36,6 +38,7 @@ public class RopeController : MonoBehaviour
 
     private ObiSolver _solver;
     private ObiRope _rope;
+    private YachtSolver _yacht;
 
     // для выбора поведения в FixedUpdate
     [NonSerialized]
@@ -71,6 +74,7 @@ public class RopeController : MonoBehaviour
     {
         _rope = GetComponent<ObiRope>();
         _solver = _rope.solver;
+        _yacht = GameObject.Find("TrainingVessel").GetComponent<YachtSolver>();
     }
 
 
@@ -206,7 +210,8 @@ public class RopeController : MonoBehaviour
                     Vector4 position = _solver.positions[idx];
                     Vector4 velocity = _solver.velocities[idx];
                     Vector4 force = (((Vector4)attractPos - position) * _springStiffness - velocity * _springDamping) / invMass;
-                    _solver.externalForces[idx] = force / 3;
+                    //_solver.externalForces[idx] = force / 3;
+                    _solver.externalForces[idx] = force;
                     //print(idx + " ->  " + force);
                 }
             }
@@ -281,6 +286,7 @@ public class RopeController : MonoBehaviour
         _maxIdx = maxI;
         _rope.solver.OnCollision += SolverOnCleatCollision;
     }
+
     public void EndCleat()
     {
         print("EndCleat()");
@@ -443,6 +449,28 @@ public class RopeController : MonoBehaviour
             _solver = _rope.solver;
         }
         return _rope.activeParticleCount-1;
+    }
+
+    public bool CanThrow(GameObject marinero, GameObject sailor, float controlTime = 0)
+    {
+        print("RopeController.CanThrow( " + marinero.name + ", " + sailor.name + ", " + controlTime + " )");
+
+        Vector3 distVec = sailor.transform.position - marinero.transform.position;
+        print("distVec = " + distVec + "    distVec.magnitude = " + distVec.magnitude);
+        if (distVec.magnitude > ThrowDistance)
+        {
+            return false;
+        }
+        Vector3 yachtV = _yacht.transform.TransformVector(new Vector3(_yacht.Vx, 0, _yacht.Vz));
+        print("yachtV = " + yachtV);
+
+        // проверим дистанцию с учетом скорости
+        if( (distVec + yachtV * controlTime).magnitude > ThrowDistance)
+        {
+            return false;
+        }
+
+        return true;
     }
 
 }
