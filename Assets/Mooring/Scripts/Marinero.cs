@@ -208,6 +208,8 @@ public class Marinero : MonoBehaviour
     // взять канат вдобавок к правой руке еще и левой не за самый конец
     void AddLeftHand()
     {
+        if (CurState == "IDLE") return;
+
         print(gameObject.name + " - AddLeftHand() " + rContr.Attractors.Count);
         _ropeIdx -= _ropeDragStep;
         Attractor attr = new Attractor(LHand, _ropeIdx, 2);
@@ -217,6 +219,8 @@ public class Marinero : MonoBehaviour
     // передать конец из правой в левую
     void FreeRightHand()
     {
+        if (CurState == "IDLE") return;
+
         print("FreeRightHand()");
         rContr.Attractors[0].Fixator = LHand;
         rContr.Attractors[0].Interval = 2;
@@ -314,7 +318,6 @@ public class Marinero : MonoBehaviour
         
 
         // сообщим сейлору, чтобы принял позу ловца
-        
         Sailor sailor = RopeTarget.GetComponent<Sailor>();
         sailor.CatchRope();
        
@@ -331,6 +334,9 @@ public class Marinero : MonoBehaviour
         {
             print(rContr.Attractors[i].Fixator);
         }
+        // сейлор должен начать вытаскивать из воды этот канат
+        Sailor sailor = RopeTarget.GetComponent<Sailor>();
+        sailor.BeginPullOut();
     }
 
 

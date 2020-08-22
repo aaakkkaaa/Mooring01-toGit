@@ -29,7 +29,7 @@ public class RopeController : MonoBehaviour
     [NonSerialized]
     public float ThrowDistance = 3.5f;  // максимально возможное расстояние для броска
     [NonSerialized]
-    public float FreeDistance = 6.0f;   // если расстояние больше - прекращаем ожидание броска, отпускаем канат
+    public float FreeDistance = 10.0f;   // если расстояние больше - прекращаем ожидание броска, отпускаем канат
 
     [NonSerialized]
     public List<int> FlyPoints;         // точки, притягиваемые к цели полета
@@ -39,6 +39,8 @@ public class RopeController : MonoBehaviour
     private ObiSolver _solver;
     private ObiRope _rope;
     private YachtSolver _yacht;
+
+    public int MaxRopeIdx { get { return _rope.activeParticleCount; } }
 
     // для выбора поведения в FixedUpdate
     [NonSerialized]

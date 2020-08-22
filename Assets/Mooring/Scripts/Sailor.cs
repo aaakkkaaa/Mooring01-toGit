@@ -12,7 +12,8 @@ public class Sailor : MonoBehaviour
     private RopeController rContr;
 
     [NonSerialized]
-    public string[] States = { "IDLE",
+    public string[] States = { 
+                               "IDLE",
                                "FIND_ROPE",
                                "TAKE_HANK_R",
                                "TAKE_HANK_L",
@@ -20,7 +21,9 @@ public class Sailor : MonoBehaviour
                                "DRAG_ROPE",
                                "FIX_ROPE",
                                "PUSH_ROPE",
-                               "WAIT_DISTANCE" };
+                               "WAIT_DISTANCE",
+                               "PULL_FROM_WATER"                 
+                            };
 
     [NonSerialized]
     public string CurState = "IDLE";
@@ -113,8 +116,12 @@ public class Sailor : MonoBehaviour
                 }
 
             }
+            if (dist > rContr.FreeDistance)
+            {
+                _animator.SetTrigger("PutToDesk");
+            }
         }
-        if(needCorrectPose)
+        if (needCorrectPose)
         {
             transform.localPosition = pos;
             transform.localEulerAngles = ang;
@@ -336,6 +343,7 @@ public class Sailor : MonoBehaviour
     // при вытягивании каната перехват правой рукой
     private void CatchRopeToRightHand()
     {
+        print(gameObject.name + ".CatchRopeToRightHand()");
         _ropeIdx -= _ropeDragStep;
         rContr.RemoveAttractors(LHand);
         if (_ropeIdx > _dragLimit)
@@ -352,7 +360,7 @@ public class Sailor : MonoBehaviour
     // определить частицу каната ближайшую к точке фиксации и зафиксировать ее
     private void FixRope()
     {
-        print("FixRope()");
+        print(gameObject.name + ".FixRope()");
         //rContr.AttachPointToCleat();
         rContr.Attractors.Clear();
         rContr.EndCleat();
@@ -365,6 +373,7 @@ public class Sailor : MonoBehaviour
     // показать узел и начать рассчет сил
     private void ShowKnot()
     {
+        print(gameObject.name + ".ShowKnot()");
         rContr.ShowTrickRope();
 
         //начать рассчет сил 
@@ -381,12 +390,104 @@ public class Sailor : MonoBehaviour
 
     }
 
+    /*
+     * Анимации вытаскивания каната из воды, запускается если яхта стала удаляться и маринеро отпустил канат
+     */
 
-    private void DragRope()
+    // если канат упал в воду то надо начинать вытягивать его и сматывать
+    public void BeginPullOut()
     {
+        print(gameObject.name + ".BeginPullOut()");
+
+        _animator.SetTrigger("PullFromWater");
+    }
+
+    // взять правой рукой канат за конец, близкий к утке
+    private void TakeRopeFromWater()
+    {
+        print(gameObject.name + ".TakeRopeFromWater()");
+
+        _workIdx = 7;
+        Attractor attr = new Attractor(RHand, _workIdx, 4, 1.5f);
+        rContr.Attractors.Clear();
+        rContr.Attractors.Add(attr);
+        CurState = "PULL_FROM_WATER";
+        rContr.CurState = "ATTRACT";
 
     }
 
+    // переложить один шарик каната из правой руки в левую
+    private void ToLeftHandRopeFromWater()
+    {
+        print(gameObject.name + ".ToLeftHandRopeFromWater()");
+
+        rContr.Attractors[rContr.Attractors.Count - 1].Fixator = LHand;
+
+        _workIdx += _ropeDragStep * 2;
+        if (_workIdx > rContr.MaxRopeIdx)
+        {
+            // все вытащили
+            _animator.SetTrigger("DroppedStop");
+            for(int i=0; i<rContr.Attractors.Count; i++)
+            {
+                // бухту в правую руку
+                rContr.Attractors[i].Fixator = RHand;
+            }
+        }
+    }
+
+    // взять правой рукой за шарик, ниже текущего на заданное смещение
+    private void TakeNextRightHandFromWater()
+    {
+        print(gameObject.name + ".TakeNextRightHandFromWater() _workIdx = " + _workIdx + "   MaxRopeIdx = " + rContr.MaxRopeIdx);
+        Attractor attr = new Attractor(RHand, _workIdx, 3, 1.0f);
+        rContr.Attractors.Add(attr);
+    }
+
+    // закончили вытаскивание каната, теперь надо решить что делать: класть или ждать возможности для броска
+    private void EndCoilDropped()
+    {
+        print(gameObject.name + ".EndCoilDropped()");
+        float dist = Vector3.Magnitude(transform.position - RopeTarget.transform.position);
+        if (dist > rContr.FreeDistance)
+        {
+            _animator.SetTrigger("PutToDesk");
+        }
+        else
+        {
+            _animator.SetTrigger("ContinueWait");
+            CurState = "WAIT_DISTANCE";
+        }
+    }
+
+    // чтобы положить сначала перехватываем бухту в левую руку
+    private void ToPutToDeskCatchToLeftHand()
+    {
+        print(gameObject.name + ".ToPutToDeskCatchToLeftHand()");
+        for (int i = 0; i < rContr.Attractors.Count; i++)
+        {
+            rContr.Attractors[i].Fixator = LHand;
+        }
+    }
+
+    // потом обратно перехватываем бухту в правую руку
+    private void ToPutToDeskCatchToRightHand()
+    {
+        print(gameObject.name + ".ToPutToDeskCatchToRightHand()");
+        for (int i = 0; i < rContr.Attractors.Count; i++)
+        {
+            rContr.Attractors[i].Fixator = RHand;
+        }
+    }
+
+    // пока вытаскивали канат уплыли далеко, задачу "подать швартовы" прекращаем
+    private void AfterPutToDesk()
+    {
+        print(gameObject.name + ".AfterPutToDesk()");
+        // замораживаем канат
+        rContr.transform.SetParent(GameObject.Find("BakedRope").transform);
+        CurState = "IDLE";
+    }
 
 
 }
