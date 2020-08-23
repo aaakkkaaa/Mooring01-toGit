@@ -423,7 +423,7 @@ public class Sailor : MonoBehaviour
 
         rContr.Attractors[rContr.Attractors.Count - 1].Fixator = LHand;
 
-        _workIdx += _ropeDragStep * 2;
+        _workIdx += _ropeDragStep * 3;
         if (_workIdx > rContr.MaxRopeIdx)
         {
             // все вытащили
@@ -480,14 +480,19 @@ public class Sailor : MonoBehaviour
         }
     }
 
-    // пока вытаскивали канат уплыли далеко, задачу "подать швартовы" прекращаем
+    // Отпустить канат на палубу
     private void AfterPutToDesk()
     {
         print(gameObject.name + ".AfterPutToDesk()");
-        // замораживаем канат
+        rContr.Attractors.Clear();
+        
+    }
+
+    // после отпускания замораживаем канат
+    private void FreezeRopeOnTheDesk()
+    {
         rContr.transform.SetParent(GameObject.Find("BakedRope").transform);
         CurState = "IDLE";
     }
-
 
 }
