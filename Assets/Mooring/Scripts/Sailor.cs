@@ -12,7 +12,7 @@ public class Sailor : MonoBehaviour
     private RopeController rContr;
 
     [NonSerialized]
-    public string[] States = { 
+    public string[] States = {
                                "IDLE",
                                "FIND_ROPE",
                                "TAKE_HANK_R",
@@ -22,7 +22,7 @@ public class Sailor : MonoBehaviour
                                "FIX_ROPE",
                                "PUSH_ROPE",
                                "WAIT_DISTANCE",
-                               "PULL_FROM_WATER"                 
+                               "PULL_FROM_WATER"
                             };
 
     [NonSerialized]
@@ -54,7 +54,7 @@ public class Sailor : MonoBehaviour
 
     // правильное положение и углы
     private bool needCorrectPose = false;
-    Vector3 pos = new Vector3( -1.491f, 1.045f, -5.442f );
+    Vector3 pos = new Vector3(-1.491f, 1.045f, -5.442f);
     Vector3 ang = new Vector3(0, -150, 0);
 
     private void Awake()
@@ -66,6 +66,8 @@ public class Sailor : MonoBehaviour
     private void Start()
     {
         CurState = "IDLE";
+        _solver = WorkRope.solver;
+        rContr = WorkRope.GetComponent<RopeController>();
         //_animator.Play("m_idle_neutral_01");
     }
 
@@ -100,33 +102,32 @@ public class Sailor : MonoBehaviour
             float dist = Vector3.Magnitude(transform.position - RopeTarget.transform.position);
             if (dist < rContr.ThrowDistance)
             {
-                _animator.SetTrigger("ThrowRope");
-                CurState = "THROW_ROPE";
                 if (WorkRope.transform.parent != _solver.transform)
                 {
                     // разморозка - вынимаем из руки, возвращаем в солвер, восстанавливаем положение
-                    print("разморозка каната в Update");
-                    //print("WorkRope.transform.localPosition = " + WorkRope.transform.localPosition);
-                    //print("_savedPos = " + _savedPos);
-                    WorkRope.transform.parent = WorkCleat.transform;    // сперва в утку, чтобы восстановить положение
-                    WorkRope.transform.localPosition = _savedPos;
-                    WorkRope.transform.localRotation = _savedRot;
-                    WorkRope.transform.parent = _solver.transform;
-                    //print("WorkRope.transform.localPosition = " + WorkRope.transform.localPosition);
+                    print("разморозка каната в Update для броска");
+                    UnFreezeRope();
                 }
-
+                _animator.SetTrigger("ThrowRope");
+                CurState = "THROW_ROPE";
             }
             if (dist > rContr.FreeDistance)
             {
+                if (WorkRope.transform.parent != _solver.transform)
+                {
+                    // разморозка - вынимаем из руки, возвращаем в солвер, восстанавливаем положение
+                    print("разморозка каната в Update чтобы положить на палубу");
+                    UnFreezeRope();
+                }
                 _animator.SetTrigger("PutToDesk");
+                CurState = "IDLE";
+
             }
         }
         if (needCorrectPose)
         {
             transform.localPosition = pos;
             transform.localEulerAngles = ang;
-            //transform.localPosition = Vector3.Lerp(transform.localPosition, pos, 0.1f);
-            //transform.localEulerAngles = Vector3.Lerp(transform.localEulerAngles, ang, 0.1f); 
         }
     }
 
@@ -136,22 +137,21 @@ public class Sailor : MonoBehaviour
     {
         print("TakeRopeHank");
         // Find убрать при возможности
-        GameObject.Find("Obi Rope").transform.SetParent(GameObject.Find("Obi Solver").transform);
-        //_animator.SetBool("TakeRope", true); // Сжать правую руку
+        //GameObject.Find("Obi Rope").transform.SetParent(GameObject.Find("Obi Solver").transform);
 
         if (WorkRope == null)
         {
             print("Не назначен WorkRope");
             return;
         }
-        _solver = WorkRope.solver;
-        rContr = WorkRope.GetComponent<RopeController>();
+
+        WorkRope.transform.SetParent(_solver.transform);
         int[] points = { 50, 90, 130 };
         rContr.SetAttractors(RHand, points, 3);
         rContr.CurState = "ATTRACT";
     }
 
-    
+
     // Проверить дистанцию и или бросить, или ждать
     private void VerifyDistance()
     {
@@ -165,20 +165,16 @@ public class Sailor : MonoBehaviour
         }
         else
         {
-           // _animator.SetTrigger("WaitDistance");
+            // _animator.SetTrigger("WaitDistance");
             CurState = "WAIT_DISTANCE";
             if (WorkRope != null)
             {
                 // переложим канат в руку из солвера
-                _solver = WorkRope.solver;
-                WorkRope.transform.parent = WorkCleat.transform;    // сперва в утку, чтобы запомнить координаты
-                _savedPos = WorkRope.transform.localPosition;
-                _savedRot = WorkRope.transform.localRotation;
-                WorkRope.transform.parent = RHand.transform;
+                FreezeRope(RHand);
             }
         }
     }
-    
+
 
     private void ThrowRope()
     {
@@ -190,7 +186,7 @@ public class Sailor : MonoBehaviour
             return;
         }
 
-        if(WorkRope.transform.parent != _solver.transform )
+        if (WorkRope.transform.parent != _solver.transform)
         {
             // разморозка - вынимаем из руки, возвращаем в солвер, восстанавливаем положение
             print("разморозка каната в ThrowRope");
@@ -219,7 +215,7 @@ public class Sailor : MonoBehaviour
 
         CurState = "IDLE";
 
-       // _animator.SetLayerWeight(1, 0f); // "Разжать правую руку"
+        // _animator.SetLayerWeight(1, 0f); // "Разжать правую руку"
 
         // сообщим маринеро, чтобы принял позу ловца
         Marinero marinero = RopeTarget.GetComponent<Marinero>();
@@ -238,7 +234,7 @@ public class Sailor : MonoBehaviour
             _solver.OnCollision += SolverOnCollision;
             // включить полет каната к руке
             rContr = WorkRope.GetComponent<RopeController>();
-            _ropeIdx = rContr.MaxPointIdx()-3;
+            _ropeIdx = rContr.MaxPointIdx() - 3;
             int[] points = { _ropeIdx };
             rContr.FlyPoints.Clear();
             rContr.FlyPoints.AddRange(points);
@@ -326,13 +322,13 @@ public class Sailor : MonoBehaviour
     // при вытягивании каната перехват левой рукой
     private void CatchRopeToLeftHand()
     {
-        print("CatchRopeToLeftHand() " + rContr.Attractors.Count );
+        print("CatchRopeToLeftHand() " + rContr.Attractors.Count);
         _ropeIdx -= _ropeDragStep;
-        print("_ropeIdx = " + _ropeIdx + "  _dragLimit = " + _dragLimit + " max = " + rContr.MaxPointIdx() );
+        print("_ropeIdx = " + _ropeIdx + "  _dragLimit = " + _dragLimit + " max = " + rContr.MaxPointIdx());
         rContr.RemoveAttractors(RHand);
-        if (_ropeIdx >_dragLimit)
+        if (_ropeIdx > _dragLimit)
         {
-            rContr.SetAttractors(LHand, new int[]{ _ropeIdx}, 2 );
+            rContr.SetAttractors(LHand, new int[] { _ropeIdx }, 2);
         }
         else
         {
@@ -348,7 +344,7 @@ public class Sailor : MonoBehaviour
         rContr.RemoveAttractors(LHand);
         if (_ropeIdx > _dragLimit)
         {
-            rContr.SetAttractors(RHand, new int[] { _ropeIdx }, 2 );
+            rContr.SetAttractors(RHand, new int[] { _ropeIdx }, 2);
         }
         else
         {
@@ -365,7 +361,7 @@ public class Sailor : MonoBehaviour
         rContr.Attractors.Clear();
         rContr.EndCleat();
         GameObject center = WorkCleat.transform.Find("Center").gameObject;
-        Attractor attr = new Attractor(center, _ropeIdx, 3, 1.5f );
+        Attractor attr = new Attractor(center, _ropeIdx, 3, 1.5f);
         rContr.Attractors.Add(attr);
         _animator.SetTrigger("FastNow");
     }
@@ -428,7 +424,7 @@ public class Sailor : MonoBehaviour
         {
             // все вытащили
             _animator.SetTrigger("DroppedStop");
-            for(int i=0; i<rContr.Attractors.Count; i++)
+            for (int i = 0; i < rContr.Attractors.Count; i++)
             {
                 // бухту в правую руку
                 rContr.Attractors[i].Fixator = RHand;
@@ -457,6 +453,13 @@ public class Sailor : MonoBehaviour
         {
             _animator.SetTrigger("ContinueWait");
             CurState = "WAIT_DISTANCE";
+            // заморозка каната
+            if (WorkRope != null)
+            {
+                // переложим канат в руку из солвера
+                FreezeRope(RHand);
+            }
+
         }
     }
 
@@ -485,7 +488,7 @@ public class Sailor : MonoBehaviour
     {
         print(gameObject.name + ".AfterPutToDesk()");
         rContr.Attractors.Clear();
-        
+
     }
 
     // после отпускания замораживаем канат
@@ -493,6 +496,27 @@ public class Sailor : MonoBehaviour
     {
         rContr.transform.SetParent(GameObject.Find("BakedRope").transform);
         CurState = "IDLE";
+    }
+
+    // заморозка каната путем перекладывания в руку 
+    private void FreezeRope(GameObject hand)
+    {
+        _solver = WorkRope.solver;
+        WorkRope.transform.parent = WorkCleat.transform;    // сперва в утку, чтобы запомнить координаты
+        _savedPos = WorkRope.transform.localPosition;
+        _savedRot = WorkRope.transform.localRotation;
+        WorkRope.transform.parent = hand.transform;
+
+    }
+
+    // разморозка каната
+    private void UnFreezeRope()
+    {
+        WorkRope.transform.parent = WorkCleat.transform;    // сперва в утку, чтобы восстановить положение
+        WorkRope.transform.localPosition = _savedPos;
+        WorkRope.transform.localRotation = _savedRot;
+        WorkRope.transform.parent = _solver.transform;
+
     }
 
 }
