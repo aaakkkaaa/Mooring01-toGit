@@ -63,6 +63,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Mooring\Scripts\BoatMoving.cs" />
+    <Compile Include="Assets\Mooring\Scripts\BoatPathManager.cs" />
     <Compile Include="Assets\Mooring\Scripts\CameraDrone.cs" />
     <Compile Include="Assets\Mooring\Scripts\CommandManager.cs" />
     <Compile Include="Assets\Mooring\Scripts\Kranec.cs" />
