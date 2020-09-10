@@ -131,7 +131,7 @@ public class BoatMoving : MonoBehaviour
             {
                 dAng = ang;
                 _state = "ACCELERATION";
-                print(gameObject.name + " Заканчиваем начальный поворот  dAng = " + dAng);
+                //print(gameObject.name + " Заканчиваем начальный поворот  dAng = " + dAng);
             }
             Vector3 curRot = transform.eulerAngles;
             curRot.y += dAng;
@@ -148,7 +148,7 @@ public class BoatMoving : MonoBehaviour
             {
                 _Vz = maxVz;
                 _state = "STRAIGHT";
-                print(gameObject.name + "  Заканчиваем ускорение");
+                //print(gameObject.name + "  Заканчиваем ускорение");
             }
             CorrectDirection( _nextP.transform.position );
             MovingStep();
@@ -167,7 +167,7 @@ public class BoatMoving : MonoBehaviour
                 {
                     _state = "SLOW";
                     Aslow = _Vz * _Vz / 2 / len;
-                    print(gameObject.name + "  Останавливаемся   Aslow = " + Aslow);
+                    //print(gameObject.name + "  Останавливаемся   Aslow = " + Aslow);
                 }
             }
             else
@@ -190,7 +190,7 @@ public class BoatMoving : MonoBehaviour
                     _P1.y = transform.position.y;
                     _p0q0 = 0;
                     _p0p1 = (_P1 - _P0).magnitude;
-                    print(gameObject.name + " ROTATION   _P0 = " + _P0 + "   _P1 = " + _P1 + "    _P2 = " + _P2);
+                    //print(gameObject.name + " ROTATION   _P0 = " + _P0 + "   _P1 = " + _P1 + "    _P2 = " + _P2);
 
                 }
             }
@@ -204,7 +204,7 @@ public class BoatMoving : MonoBehaviour
             {
                 _Vz = 0;
                 _state = "IDLE";
-                print(gameObject.name + " Остановились");
+                //print(gameObject.name + " Остановились");
                 // установить новую текущую точку
                 startPoint = _points.transform.Find(_path[_path.Count - 1]).gameObject;
 
