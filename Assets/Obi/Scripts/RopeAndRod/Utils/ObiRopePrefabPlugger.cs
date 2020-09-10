@@ -93,7 +93,7 @@ namespace Obi
                     instance.transform.rotation = l2wRot * (Quaternion.LookRotation(frame.tangent, frame.binormal));
                     instance.transform.localScale = instanceScale;
                 }
-                
+
             }
 
             // deactivate remaining instances:

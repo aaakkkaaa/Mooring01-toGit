@@ -15,18 +15,8 @@ namespace Obi
 
         public const float DEFAULT_PARTICLE_MASS = 0.1f;
 
-		protected override IEnumerator Initialize()
+        protected override IEnumerator Initialize()
         {
-            path.OnPathChanged.RemoveAllListeners();
-            path.OnControlPointAdded.RemoveAllListeners();
-            path.OnControlPointRemoved.RemoveAllListeners();
-            path.OnControlPointRenamed.RemoveAllListeners();
-
-            path.OnPathChanged.AddListener(GenerateImmediate);
-            path.OnControlPointAdded.AddListener(ControlPointAdded);
-            path.OnControlPointRemoved.AddListener(ControlPointRemoved);
-            path.OnControlPointRenamed.AddListener(ControlPointRenamed);
-
             if (path.ControlPointCount < 2)
             {
                 ClearParticleGroups();
@@ -47,7 +37,7 @@ namespace Obi
             {
                 particlePositions.Add(path.points.GetPositionAtMu(path.Closed,0));
                 particleThicknesses.Add(path.thicknesses.GetAtMu(path.Closed,0));
-                particleInvMasses.Add(ObiUtils.MassToInvMass(path.thicknesses.GetAtMu(path.Closed,0)));
+                particleInvMasses.Add(ObiUtils.MassToInvMass(path.masses.GetAtMu(path.Closed,0)));
                 particlePhases.Add(path.phases.GetAtMu(path.Closed,0));
                 particleColors.Add(path.colors.GetAtMu(path.Closed,0));
             }
@@ -116,7 +106,7 @@ namespace Obi
                 restPositions[i] = positions[i];
                 restPositions[i][3] = 1; // activate rest position.
                 principalRadii[i] = Vector3.one * particleThicknesses[i] * thickness;
-                phases[i] = Oni.MakePhase(particlePhases[i], 0);
+                phases[i] = ObiUtils.MakePhase(particlePhases[i], 0);
                 colors[i] = particleColors[i];
 
                 if (i % 100 == 0)

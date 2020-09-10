@@ -34,16 +34,27 @@ namespace Obi
             get;
         }
 
-        IObiConstraintsBatch Clone();
+        IConstraintsBatchImpl implementation
+        {
+            get;
+        }
 
-        void AddToSolver(IObiConstraints constraints);
-        void RemoveFromSolver(IObiConstraints constraints);
+        IObiConstraints constraints
+        {
+            get;
+        }
+
+        IObiConstraintsBatch Clone(IObiConstraints constraints);
+
+        void AddToSolver();
+        void RemoveFromSolver();
 
         bool DeactivateConstraint(int constraintIndex);
         bool ActivateConstraint(int constraintIndex);
         void DeactivateAllConstraints();
 
         void SetEnabled(bool enabled);
+        void SetDependency(IObiConstraintsBatch batch);
         void Clear();
 
         void GetParticlesInvolved(int index, List<int> particles);
@@ -52,8 +63,9 @@ namespace Obi
 
     public abstract class ObiConstraintsBatch : IObiConstraintsBatch
     {
-        protected ObiConstraintsBatch source; 
-        protected IntPtr batch; /**< pointer to constraint batch in the solver.*/
+
+        [NonSerialized] protected ObiConstraintsBatch m_Source;
+        [NonSerialized] protected IObiConstraintsBatch m_Dependency;   /**< batch this one depends on. Batches sharing particles must be processed sequentially.*/
 
         [HideInInspector] [SerializeField] protected List<int> m_IDs = new List<int>();
         [HideInInspector] [SerializeField] protected List<int> m_IDToIndex = new List<int>();         /**< maps from constraint ID to constraint index. When activating/deactivating constraints, their order changes. That makes this
@@ -63,6 +75,7 @@ namespace Obi
         [HideInInspector] [SerializeField] protected int m_ActiveConstraintCount = 0;
         [HideInInspector] [SerializeField] protected int m_InitialActiveConstraintCount = 0;
         [HideInInspector] public ObiNativeIntList particleIndices = new ObiNativeIntList();  /**< particle indices, amount of them per constraint can be variable. */
+        [HideInInspector] public ObiNativeFloatList lambdas = new ObiNativeFloatList();      /**< constraint lambdas */
 
         public int constraintCount
         {
@@ -88,31 +101,41 @@ namespace Obi
 
         public IntPtr oniBatch
         {
-            get { return batch; }
+            get { return IntPtr.Zero; } // TODO: Remove.
+        }
+
+        public virtual IConstraintsBatchImpl implementation //TODO: should be abstract
+        {
+            get { return null; }
+        }
+
+        public virtual IObiConstraints constraints // TODO: should be abstract
+        {
+            get;
         }
 
         public ObiConstraintsBatch(ObiConstraintsBatch source)
         {
-            this.source = source;
+            this.m_Source = source;
 
-            if (source != null)
+            if (m_Source != null)
             {
-                m_ConstraintCount = source.m_ConstraintCount;
-                m_ActiveConstraintCount = source.m_ActiveConstraintCount;
-                m_InitialActiveConstraintCount = source.m_InitialActiveConstraintCount;
+                m_ConstraintCount = m_Source.m_ConstraintCount;
+                m_ActiveConstraintCount = m_Source.m_ActiveConstraintCount;
+                m_InitialActiveConstraintCount = m_Source.m_InitialActiveConstraintCount;
 
-                m_IDs = new List<int>(source.m_IDs);
-                m_IDToIndex = new List<int>(source.m_IDToIndex);
+                m_IDs = new List<int>(m_Source.m_IDs);
+                m_IDToIndex = new List<int>(m_Source.m_IDToIndex);
             }
         }
 
-        public abstract IObiConstraintsBatch Clone();
+        public abstract IObiConstraintsBatch Clone(IObiConstraints constraints);
         protected abstract void SwapConstraints(int sourceIndex, int destIndex);
         public abstract void GetParticlesInvolved(int index, List<int> particles);
+        public abstract void AddToSolver();
+        public abstract void RemoveFromSolver();
 
         protected virtual void CopyConstraint(ObiConstraintsBatch batch, int constraintIndex) { }
-        protected virtual void OnAddToSolver(IObiConstraints constraints) { }
-        protected virtual void OnRemoveFromSolver(IObiConstraints constraints) { }
 
         private void InnerSwapConstraints(int sourceIndex, int destIndex)
         {
@@ -163,7 +186,9 @@ namespace Obi
 
             InnerSwapConstraints(constraintIndex, m_ActiveConstraintCount);
             m_ActiveConstraintCount++;
-            Oni.SetActiveConstraints(batch, m_ActiveConstraintCount);
+
+            if (implementation != null)
+                implementation.SetActiveConstraints(m_ActiveConstraintCount);
 
             return true;
         }
@@ -175,7 +200,9 @@ namespace Obi
 
             m_ActiveConstraintCount--;
             InnerSwapConstraints(constraintIndex, m_ActiveConstraintCount);
-            Oni.SetActiveConstraints(batch, m_ActiveConstraintCount);
+
+            if (implementation != null)
+                implementation.SetActiveConstraints(m_ActiveConstraintCount);
 
             return true;
         }
@@ -183,7 +210,7 @@ namespace Obi
         public void DeactivateAllConstraints()
         {
             m_ActiveConstraintCount = 0;
-            Oni.SetActiveConstraints(batch, m_ActiveConstraintCount);
+            implementation.SetActiveConstraints(m_ActiveConstraintCount);
         }
 
         // Moves a constraint to another batch: First, copies it to the new batch. Then, removes it from this one.
@@ -203,8 +230,11 @@ namespace Obi
             m_ConstraintCount--;
             m_ActiveConstraintCount = Mathf.Min(m_ActiveConstraintCount, m_ConstraintCount);
 
-            Oni.SetConstraintCount(batch, m_ConstraintCount);
-            Oni.SetActiveConstraints(batch, m_ActiveConstraintCount);
+            if (implementation != null)
+            {
+                implementation.SetConstraintCount(m_ConstraintCount);
+                implementation.SetActiveConstraints(m_ActiveConstraintCount);
+            }
         }
 
         public void ParticlesSwapped(int index, int newIndex)
@@ -218,30 +248,23 @@ namespace Obi
             }
         }
 
-        public void AddToSolver(IObiConstraints constraints)
+        public void SetDependency(IObiConstraintsBatch dependency)
         {
-            // create a constraint batch:
-            batch = Oni.CreateBatch((int)constraintType);
-            Oni.AddBatch(constraints.GetActor().solver.OniSolver, batch);
+            if (implementation != null)
+            {
+                m_Dependency = dependency;
 
-            OnAddToSolver(constraints);
-        }
-
-        public void RemoveFromSolver(IObiConstraints constraints)
-        {
-            OnRemoveFromSolver(constraints);
-
-            // remove the constraint batch from the solver 
-            // (no need to destroy it as its destruction is managed by the solver)
-            Oni.RemoveBatch(constraints.GetActor().solver.OniSolver, batch);
-
-            // important: set the batch pointer to null, as it could be destroyed by the solver.
-            batch = IntPtr.Zero;
+                if (m_Dependency != null)
+                    implementation.SetDependency(m_Dependency.implementation);
+                else
+                    implementation.SetDependency(null);
+            }
         }
 
         public void SetEnabled(bool enabled)
         {
-            Oni.EnableBatch(batch, enabled);
+            if (implementation != null)
+                implementation.enabled = enabled;
         }
 
     }

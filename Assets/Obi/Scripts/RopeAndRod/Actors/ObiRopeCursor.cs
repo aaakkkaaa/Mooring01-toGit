@@ -126,6 +126,9 @@ namespace Obi
 
         public void ChangeLength(float newLength)
         {
+            if (!rope.isLoaded)
+                return;
+
             // clamp new length to sane limits:
             newLength = Mathf.Clamp(newLength, 0, (rope.blueprint.particleCount - 1) * rope.ropeBlueprint.interParticleDistance);
 
@@ -239,22 +242,7 @@ namespace Obi
 
             rope.RebuildConstraintsFromElements();
             rope.RecalculateRestLength();
-        }
-
-
-        public void Update()
-        {
-
-            float length = rope.restLength;
-            if (Input.GetKey(KeyCode.E))
-            {
-                ChangeLength(length + Time.deltaTime * 0.5f);
-            }
-
-            if (Input.GetKey(KeyCode.R))
-            {
-                ChangeLength(length - Time.deltaTime * 0.25f);
-            }
+            rope.RecalculateRestPositions();
         }
     }
 }

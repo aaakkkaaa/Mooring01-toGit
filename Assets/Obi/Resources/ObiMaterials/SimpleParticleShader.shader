@@ -20,6 +20,8 @@ Properties {
 			#pragma multi_compile_fwdbase nolightmap
 
 			#include "ObiParticles.cginc"
+            #include "ObiUtils.cginc"
+            #include "ObiLightingBuiltIn.cginc"
 
 			fixed4 _Color;
 			fixed4 _LightColor0; 

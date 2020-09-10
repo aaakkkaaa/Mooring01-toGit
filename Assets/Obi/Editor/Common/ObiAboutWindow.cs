@@ -58,9 +58,9 @@ namespace Obi
             GUILayout.FlexibleSpace();
         
             if (GUILayout.Button("Manual",EditorStyles.toolbarButton))
-                Application.OpenURL("http://obi.virtualmethodstudio.com/tutorials.html");
+                Application.OpenURL("http://obi.virtualmethodstudio.com/tutorials/");
             if (GUILayout.Button("API docs",EditorStyles.toolbarButton))
-                Application.OpenURL("http://obi.virtualmethodstudio.com/docs/index.html");
+                Application.OpenURL("http://obi.virtualmethodstudio.com/docs/");
             if (GUILayout.Button("visit www.virtualmethodstudio.com",EditorStyles.toolbarButton))
                 Application.OpenURL("http://www.virtualmethodstudio.com");
             if (GUILayout.Button("Create preferences file", EditorStyles.toolbarButton))

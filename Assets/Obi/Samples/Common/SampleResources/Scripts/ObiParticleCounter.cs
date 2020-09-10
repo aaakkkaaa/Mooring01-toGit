@@ -34,13 +34,13 @@ public class ObiParticleCounter : MonoBehaviour {
             if (e.contacts.Data[i].distance < 0.001f)
             {
 
-                Component collider;
+                /*Component collider;
                 if (ObiCollider2D.idToCollider.TryGetValue(e.contacts.Data[i].other,out collider)){
 
                     if (collider == targetCollider)
                         currentParticles.Add(e.contacts.Data[i].particle);
 
-                }
+                }*/
             }
         }
 

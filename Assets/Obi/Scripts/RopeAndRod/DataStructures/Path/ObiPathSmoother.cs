@@ -30,7 +30,7 @@ namespace Obi
         public event ObiActor.ActorCallback OnCurveGenerated;
 
         protected float smoothLength = 0;
-        protected int smoothSections = 0; 
+        protected int smoothSections = 0;
 
         [HideInInspector] public ObiList<ObiList<ObiPathFrame>> rawChunks = new ObiList<ObiList<ObiPathFrame>>();
         [HideInInspector] public ObiList<ObiList<ObiPathFrame>> smoothChunks = new ObiList<ObiList<ObiPathFrame>>();
@@ -46,10 +46,10 @@ namespace Obi
             get { return smoothSections; }
         }
 
-		private void OnEnable()
-		{
+        private void OnEnable()
+        {
             GetComponent<ObiRopeBase>().OnInterpolate += Actor_OnInterpolate;
-		}
+        }
 
         private void OnDisable()
         {
@@ -58,7 +58,7 @@ namespace Obi
 
         void Actor_OnInterpolate(ObiActor actor)
         {
-            GenerateSmoothChunks(((ObiRopeBase)actor),smoothing);
+            GenerateSmoothChunks(((ObiRopeBase)actor), smoothing);
 
             if (OnCurveGenerated != null)
                 OnCurveGenerated(actor);
@@ -128,7 +128,7 @@ namespace Obi
             // Use particle orientation if possible:
             if (actor.usesOrientedParticles)
             {
-                Quaternion orientation = w2lRotation * Quaternion.SlerpUnclamped(actor.GetParticleOrientation(particleIndex), actor.GetParticleOrientation(Mathf.Max(0,particleIndex - 1)), 0.5f);
+                Quaternion orientation = w2lRotation * Quaternion.SlerpUnclamped(actor.GetParticleOrientation(particleIndex), actor.GetParticleOrientation(Mathf.Max(0, particleIndex - 1)), 0.5f);
                 frame.normal = orientation * Vector3.up;
                 frame.binormal = orientation * Vector3.right;
                 frame.tangent = orientation * Vector3.forward;
@@ -351,22 +351,23 @@ namespace Obi
             // calculate internal points:
             for (int j = 1; j <= pCount; ++j)
             {
-
                 // precalculate coefficients:
                 float F = 0.5f - twoRaisedToMinusKPlus1 - (j - 1) * (twoRaisedToMinusK - j * twoRaisedToMinus2KMinus1);
                 float G = 0.5f + twoRaisedToMinusKPlus1 + (j - 1) * (twoRaisedToMinusK - j * twoRaisedToMinus2K);
                 float H = (j - 1) * j * twoRaisedToMinus2KMinus1;
 
                 for (int i = 1; i < n0; ++i)
-                {
-                    output[(i - 1) * pCount + j] = F * input[i - 1] + G * input[i] + H * input[i + 1];
-                }
+                    ObiPathFrame.WeightedSum(F, G, H,
+                                             ref input.Data[i - 1],
+                                             ref input.Data[i],
+                                             ref input.Data[i + 1],
+                                             ref output.Data[(i - 1) * pCount + j]);
             }
 
             // make first and last curve points coincide with original points:
             output[0] = input[0];
             output[output.Count - 1] = input[input.Count - 1];
         }
-        
+
     }
 }

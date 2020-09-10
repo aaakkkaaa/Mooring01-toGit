@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Obi
 {
@@ -39,79 +40,90 @@ namespace Obi
             if (!particleMaterial.SetPass(0))
                 return;
 
-            Vector3 camup = cam.transform.up;
-            Vector3 camright = cam.transform.right;
-            Vector3 camforward = cam.transform.forward;
-
             //because each vertex needs to be drawn as a quad.
             int particlesPerDrawcall = Constants.maxVertsPerMesh / 4;
-            int drawcallCount = blueprint.positions.Length / particlesPerDrawcall + 1;
-            particlesPerDrawcall = Mathf.Min(particlesPerDrawcall, blueprint.positions.Length);
+            int drawcallCount = blueprint.particleCount / particlesPerDrawcall + 1;
+            particlesPerDrawcall = Mathf.Min(particlesPerDrawcall, blueprint.particleCount);
+
+            List<Vector3> vertices = new List<Vector3>(blueprint.activeParticleCount* 4);
+            List<Vector3> normals = new List<Vector3>(blueprint.activeParticleCount * 4);
+            List<Vector4> uvs = new List<Vector4>(blueprint.activeParticleCount * 4);
+            List<Color> colors = new List<Color>(blueprint.activeParticleCount * 4);
+            List<int> triangles = new List<int>(blueprint.activeParticleCount * 6);
 
             Color regularColor = ObiEditorSettings.GetOrCreateSettings().particleColor;
             Color selectedColor = ObiEditorSettings.GetOrCreateSettings().selectedParticleColor;
 
-            int i = 0;
+            Vector3 particleOffset0 = new Vector3(1, 1, 0);
+            Vector3 particleOffset1 = new Vector3(-1, 1, 0);
+            Vector3 particleOffset2 = new Vector3(-1, -1, 0);
+            Vector3 particleOffset3 = new Vector3(1, -1, 0);
 
-            for (int m = 0; m < drawcallCount; ++m)
+            Vector4 radius = new Vector4(1, 0, 0, 0.006f);
+
+            for (int i = 0; i < drawcallCount; ++i)
             {
-
                 //Draw all cloth vertices:      
                 particlesMesh.Clear();
-                Vector3[] vertices = new Vector3[particlesPerDrawcall * 4];
-                Vector2[] uv = new Vector2[particlesPerDrawcall * 4];
-                Color[] colors = new Color[particlesPerDrawcall * 4];
-                int[] triangles = new int[particlesPerDrawcall * 6];
+                vertices.Clear();
+                uvs.Clear();
+                normals.Clear();
+                colors.Clear();
+                triangles.Clear();
 
-                for (int particlesDrawn = 0; i < blueprint.positions.Length && particlesDrawn < particlesPerDrawcall; ++i, ++particlesDrawn)
+                int index = 0;
+
+                // Run over all particles (not only active ones), since they're reordered based on distance to camera.
+                // Then test if the sorted index is active or not, and skip inactive ones.
+                int limit = Mathf.Min((i + 1) * particlesPerDrawcall, blueprint.particleCount);
+
+                for (int j = i * particlesPerDrawcall; j < limit; ++j)
                 {
-                    int sortedIndex = sortedIndices[i];
+                    int sortedIndex = sortedIndices[j];
 
-                    // skip inactive ones:
+                    // skip inactive ones: 
                     if (!blueprint.IsParticleActive(sortedIndex))
                         continue;
-
-                    int i4 = i * 4;
-                    int i41 = i4 + 1;
-                    int i42 = i4 + 2;
-                    int i43 = i4 + 3;
-                    int i6 = i * 6;
-
-                    // get particle size in screen space:
-                    float size = HandleUtility.GetHandleSize(blueprint.positions[sortedIndex]) * 0.04f;
 
                     // get particle color:
                     Color color = selectionStatus[sortedIndex] ? selectedColor : regularColor;
                     color.a = facingCamera[sortedIndex] ? 1 : 0.15f;
 
-                    uv[i4] = Vector2.one;
-                    uv[i41] = new Vector2(0, 1);
-                    uv[i42] = Vector3.zero;
-                    uv[i43] = new Vector2(1, 0);
+                    normals.Add(particleOffset0);
+                    normals.Add(particleOffset1);
+                    normals.Add(particleOffset2);
+                    normals.Add(particleOffset3);
 
-                    vertices[i4] = blueprint.positions[sortedIndex] + camup * size + camright * size;
-                    vertices[i41] = blueprint.positions[sortedIndex] + camup * size - camright * size;
-                    vertices[i42] = blueprint.positions[sortedIndex] - camup * size - camright * size;
-                    vertices[i43] = blueprint.positions[sortedIndex] - camup * size + camright * size;
+                    uvs.Add(radius);
+                    uvs.Add(radius);
+                    uvs.Add(radius);
+                    uvs.Add(radius);
 
-                    colors[i4] = color;
-                    colors[i41] = color;
-                    colors[i42] = color;
-                    colors[i43] = color;
+                    vertices.Add(blueprint.positions[sortedIndex]);
+                    vertices.Add(blueprint.positions[sortedIndex]);
+                    vertices.Add(blueprint.positions[sortedIndex]);
+                    vertices.Add(blueprint.positions[sortedIndex]);
 
-                    triangles[i6] = i42;
-                    triangles[i6 + 1] = i41;
-                    triangles[i6 + 2] = i4;
-                    triangles[i6 + 3] = i43;
-                    triangles[i6 + 4] = i42;
-                    triangles[i6 + 5] = i4;
+                    colors.Add(color);
+                    colors.Add(color);
+                    colors.Add(color);
+                    colors.Add(color);
 
+                    triangles.Add(index + 2);
+                    triangles.Add(index + 1);
+                    triangles.Add(index);
+                    triangles.Add(index + 3);
+                    triangles.Add(index + 2);
+                    triangles.Add(index);
+
+                    index += 4;
                 }
 
-                particlesMesh.vertices = vertices;
-                particlesMesh.triangles = triangles;
-                particlesMesh.uv = uv;
-                particlesMesh.colors = colors;
+                particlesMesh.SetVertices(vertices);
+                particlesMesh.SetNormals(normals);
+                particlesMesh.SetColors(colors);
+                particlesMesh.SetUVs(0, uvs);
+                particlesMesh.SetTriangles(triangles,0, true);
 
                 Graphics.DrawMeshNow(particlesMesh, Matrix4x4.identity);
             }

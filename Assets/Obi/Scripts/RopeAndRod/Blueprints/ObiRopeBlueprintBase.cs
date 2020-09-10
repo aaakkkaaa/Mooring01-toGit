@@ -31,23 +31,20 @@ namespace Obi
             get { return m_RestLength; }
         }
 
-
-        private void Awake()
+        public void OnEnable()
         {
-            path.OnPathChanged.RemoveAllListeners();
-            path.OnControlPointAdded.RemoveAllListeners();
-            path.OnControlPointRemoved.RemoveAllListeners();
-            path.OnControlPointRenamed.RemoveAllListeners();
-
             path.OnPathChanged.AddListener(GenerateImmediate);
             path.OnControlPointAdded.AddListener(ControlPointAdded);
             path.OnControlPointRemoved.AddListener(ControlPointRemoved);
             path.OnControlPointRenamed.AddListener(ControlPointRenamed);
         }
 
-        protected void OnValidate()
+        public void OnDisable()
         {
-            GenerateImmediate();
+            path.OnPathChanged.RemoveAllListeners();
+            path.OnControlPointAdded.RemoveAllListeners();
+            path.OnControlPointRemoved.RemoveAllListeners();
+            path.OnControlPointRenamed.RemoveAllListeners();
         }
 
         protected void ControlPointAdded(int index)

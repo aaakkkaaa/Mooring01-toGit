@@ -1,6 +1,26 @@
 # Change Log
 All notable changes to “Obi - Advanced ropes for Unity” will be documented in this file.
 
+## [5.5]
+
+### Added
+- Backend system: abstracts the underlying particle-based physics engine used. To the native, built-in engine (Oni), we have added a Burst-based implementation that
+will run on all platforms supported by Burst.
+
+### Changed
+- Improved path smoother, line and extruded renderer performance.
+
+## [5.4]
+
+### Fixed
+- Bug that caused a crash when using Obi in conjunction with Mirror networking system (NetworkIdentity component).
+- Bug that could cause a crash when disabling an actor under a disabled solver.
+- Bug that prevented self-collisions to work correctly between particles created at runtime by a ObiRopeCursor.
+
+### Changed
+- Recompiled iOS libraries using XCode 11.3.1, to circumvent bitcode compatibility issues now that XCode 11.4 and up have a bug that cause linking against Obi to fail. 
+
+
 ## [5.3]
 
 ### Added

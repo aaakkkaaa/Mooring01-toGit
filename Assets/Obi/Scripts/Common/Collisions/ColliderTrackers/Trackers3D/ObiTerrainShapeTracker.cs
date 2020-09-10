@@ -6,81 +6,71 @@ namespace Obi{
 
 	public class ObiTerrainShapeTracker : ObiShapeTracker
 	{
-        public bool triangleBasedContacts = false;
-
-		private Vector3 size;
-		private int resolutionU;
-		private int resolutionV;
 		private bool heightmapDataHasChanged = false;
-        private GCHandle dataHandle;
+        ObiHeightFieldHandle handle;
 
-        public ObiTerrainShapeTracker(TerrainCollider collider, bool triangleBasedContacts){
+        public ObiTerrainShapeTracker(ObiCollider source, TerrainCollider collider){
 
+            this.source = source;
 			this.collider = collider;
-            this.triangleBasedContacts = triangleBasedContacts;
-			adaptor.is2D = false;
-			oniShape = Oni.CreateShape(Oni.ShapeType.Heightmap);
-
-			UpdateHeightData();
 		}		
 
-		public void UpdateHeightData(){
-
-			TerrainCollider terrain = collider as TerrainCollider;
-
-			if (terrain != null){
-
-				TerrainData data = terrain.terrainData;
-
-				int width = data.heightmapResolution;
-				int height = data.heightmapResolution;
+		public void UpdateHeightData()
+        {
+            ObiColliderWorld.GetInstance().DestroyHeightField(handle);
+        }
 	
-				float[,] heights = data.GetHeights(0,0,width,height);
-				
-				float[] buffer = new float[width * height];
-				for (int y = 0; y < height; ++y)
-					for (int x = 0; x < width; ++x)
-						buffer[y*width+x] = heights[y,x];
-				
-				Oni.UnpinMemory(dataHandle);
-	
-				dataHandle = Oni.PinMemory(buffer);
+		public override bool UpdateIfNeeded ()
+        {
 
-				heightmapDataHasChanged = true;
-			}
-		}
-	
-		public override bool UpdateIfNeeded (){
+            TerrainCollider terrain = collider as TerrainCollider;
 
-			TerrainCollider terrain = collider as TerrainCollider;
-	
-			if (terrain != null){
+            // retrieve collision world and index:
+            var world = ObiColliderWorld.GetInstance();
+            int index = source.Handle.index;
 
-				TerrainData data = terrain.terrainData;
+            int resolution = terrain.terrainData.heightmapResolution;
 
-				if (data != null && (data.size != size || 
-									 data.heightmapResolution != resolutionU ||
-									 data.heightmapResolution != resolutionV || 
-									 heightmapDataHasChanged)){
+            // get or create the heightfield:
+            if (handle == null || !handle.isValid)
+            {
+                handle = world.GetOrCreateHeightField(terrain.terrainData);
+                handle.Reference();
+            }
 
-					size = data.size;
-					resolutionU = data.heightmapResolution;
-					resolutionV = data.heightmapResolution;
-					heightmapDataHasChanged = false;
-					adaptor.Set(size,resolutionU,resolutionV,dataHandle.AddrOfPinnedObject());
-                    adaptor.accurateContacts = triangleBasedContacts;
-					Oni.UpdateShape(oniShape,ref adaptor);
-					return true;
-				}			
-			}
-			return false;
-		}
+            // update collider:
+            var shape = world.colliderShapes[index];
+            shape.type = ColliderShape.ShapeType.Heightmap;
+            shape.phase = source.Phase;
+            shape.flags = terrain.isTrigger ? 1 : 0;
+            shape.rigidbodyIndex = source.Rigidbody != null ? source.Rigidbody.handle.index : -1;
+            shape.materialIndex = source.CollisionMaterial != null ? source.CollisionMaterial.handle.index : -1;
+            shape.contactOffset = terrain.contactOffset + source.Thickness;
+            shape.dataIndex = handle.index;
+            shape.size = terrain.terrainData.size;
+            shape.center = new Vector4(resolution, resolution, resolution, resolution);
+            world.colliderShapes[index] = shape;
 
-		public override void Destroy(){
+            // update bounds:
+            var aabb = world.colliderAabbs[index];
+            aabb.FromBounds(terrain.bounds, shape.contactOffset);
+            world.colliderAabbs[index] = aabb;
+
+            // update transform:
+            var trfm = world.colliderTransforms[index];
+            trfm.FromTransform(terrain.transform);
+            world.colliderTransforms[index] = trfm;
+
+            return true;
+        }
+
+		public override void Destroy()
+        {
 			base.Destroy();
 
-			Oni.UnpinMemory(dataHandle);
-		}
+            if (handle != null && handle.Dereference())
+                ObiColliderWorld.GetInstance().DestroyHeightField(handle);
+        }
 	}
 }
 

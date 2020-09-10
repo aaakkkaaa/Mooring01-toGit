@@ -25,14 +25,14 @@ public class DebugParticleFrames : MonoBehaviour {
         {
 
             Vector3 position = actor.GetParticlePosition(actor.solverIndices[i]);
-            actor.GetParticleAnisotropy(i,ref b1, ref b2, ref b3);
+            Quaternion quat = actor.GetParticleOrientation(actor.solverIndices[i]);
  
             Gizmos.color = Color.red;
-            Gizmos.DrawRay(position, b1 * b1.w * size);
+            Gizmos.DrawRay(position, quat * b1 * size);
             Gizmos.color = Color.green;
-            Gizmos.DrawRay(position, b2 * b2.w * size);
+            Gizmos.DrawRay(position, quat * b2 * size);
             Gizmos.color = Color.blue;
-            Gizmos.DrawRay(position, b3 * b3.w * size);
+            Gizmos.DrawRay(position, quat * b3 * size);
 		}
 	
 	}

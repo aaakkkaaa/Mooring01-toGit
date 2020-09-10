@@ -4,6 +4,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
+using Unity.Jobs;
+using Unity.Collections;
+
 namespace Obi
 {
     /// <summary>
@@ -34,23 +37,19 @@ namespace Obi
             using (m_BeginStepPerfMarker.Auto())
             {
                 // Update colliders right before collision detection:
-                ObiColliderBase.UpdateColliders();
+                ObiColliderWorld.GetInstance().UpdateWorld();
 
-                IntPtr beginStep = Oni.CreateEmpty();
+                List<IObiJobHandle> handles = new List<IObiJobHandle>();
 
-                // Generate a task for each solver's collision detection, and combine them all together:
+                // Kick off all solver jobs:
                 foreach (ObiSolver solver in solvers)
                     if (solver != null)
-                        Oni.AddChild(beginStep, solver.BeginStep(stepDeltaTime));
+                        handles.Add(solver.BeginStep(stepDeltaTime));
 
-                // Schedule the task for execution:
-                Oni.Schedule(beginStep);
-
-                // Wait the task to complete:
-                Oni.Complete(beginStep);
-
-                // Reset transform change flags:
-                ObiColliderBase.ResetColliderTransforms();
+                // wait for all solver jobs to complete:
+                foreach (IObiJobHandle handle in handles)
+                    if (handle != null)
+                        handle.Complete();
             }
         }
 
@@ -65,29 +64,26 @@ namespace Obi
             using (m_SubstepPerfMarker.Auto())
             {
                 // Necessary when using multiple substeps:
-                ObiColliderBase.UpdateColliders();
+                ObiColliderWorld.GetInstance().UpdateWorld();
 
                 // Grab rigidbody info:
-                ObiRigidbodyBase.UpdateAllRigidbodies();
+                ObiColliderWorld.GetInstance().UpdateRigidbodies(solvers);
 
-                IntPtr stepSimulation = Oni.CreateEmpty();
+                List< IObiJobHandle > handles = new List<IObiJobHandle>();
 
-                // Generate a task for each solver's step, and combine them all together:
+                // Kick off all solver jobs:
                 foreach (ObiSolver solver in solvers)
                     if (solver != null)
-                        Oni.AddChild(stepSimulation, solver.Substep(substepDeltaTime));
+                        handles.Add(solver.Substep(substepDeltaTime));
 
-                // Schedule the task for execution:
-                Oni.Schedule(stepSimulation);
+                // wait for all solver jobs to complete:
+                foreach (IObiJobHandle handle in handles)
+                    if (handle != null)
+                        handle.Complete();
 
-                // Wait the task to complete:
-                Oni.Complete(stepSimulation);
 
                 // Update rigidbody velocities:
-                ObiRigidbodyBase.UpdateAllVelocities();
-
-                // Reset transform change flags:
-                ObiColliderBase.ResetColliderTransforms();
+                ObiColliderWorld.GetInstance().UpdateRigidbodyVelocities(solvers);
             }
         }
 
@@ -119,5 +115,5 @@ namespace Obi
                         solver.Interpolate(stepDeltaTime, accumulatedTime);
             }
         }
-	}
+    }
 }

@@ -81,12 +81,12 @@ void CrestNodeSampleOceanData_float
 		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, wt_smallerLod, o_oceanDepth);
 //#endif
 
-//#if _SHADOWS_ON
+// #if CREST_SHADOWS_ON
 		if (wt_smallerLod > 0.001)
 		{
 			SampleShadow(_LD_TexArray_Shadow, uv_slice_smallerLodDisp, wt_smallerLod, o_shadow);
 		}
-//#endif
+// #endif // CREST_SHADOWS_ON
 	}
 	if (wt_biggerLod > 0.0001)
 	{
@@ -97,12 +97,12 @@ void CrestNodeSampleOceanData_float
 		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, o_oceanDepth);
 //#endif
 
-//#if _SHADOWS_ON
+// #if CREST_SHADOWS_ON
 		if (wt_biggerLod > 0.001)
 		{
 			SampleShadow(_LD_TexArray_Shadow, uv_slice_biggerLodDisp, wt_biggerLod, o_shadow);
 		}
-//#endif
+// #endif // CREST_SHADOWS_ON
 	}
 
 	// Foam can saturate
@@ -157,9 +157,9 @@ void CrestNodeSampleOceanDataSingle_float
 		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice, 1.0, o_oceanDepth);
 		//#endif
 
-#if _SHADOWS_ON
+// #if CREST_SHADOWS_ON
 		SampleShadow(_LD_TexArray_Shadow, uv_slice, 1.0, o_shadow);
-#endif
+// #endif // CREST_SHADOWS_ON
 	}
 
 	// Foam can saturate

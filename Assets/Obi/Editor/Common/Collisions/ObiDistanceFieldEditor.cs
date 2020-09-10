@@ -74,10 +74,10 @@ namespace Obi{
 			}
 			GUI.enabled = true;		
 
-			int nodeCount = (distanceField.nodes != null ? distanceField.nodes.Length : 0);
+			int nodeCount = (distanceField.nodes != null ? distanceField.nodes.Count : 0);
 			float resolution = distanceField.FieldBounds.size.x / distanceField.EffectiveSampleSize;
 			EditorGUILayout.HelpBox("Nodes: "+ nodeCount+"\n"+
-									"Size in memory: "+ (nodeCount * 0.052f).ToString("0.#") +" kB\n"+
+									"Size in memory: "+ (nodeCount * 0.062f).ToString("0.#") +" kB\n"+
 									"Compressed to: " + (nodeCount / Mathf.Pow(resolution,3) * 100).ToString("0.##") + "%",MessageType.Info);
 
 			if (GUI.changed)

@@ -26,7 +26,7 @@ namespace Obi
             {
 
 				int k = actor.solverIndices[i];
-				int phase = Oni.GetGroupFromPhase(actor.solver.phases[k]);
+				int phase = ObiUtils.GetGroupFromPhase(actor.solver.phases[k]);
 
                 actor.solver.colors[k] = ObiUtils.colorAlphabet[phase % ObiUtils.colorAlphabet.Length];
 

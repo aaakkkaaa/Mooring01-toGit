@@ -4,8 +4,6 @@
 
 #if UNITY_EDITOR
 using UnityEditor;
-using UnityEditor.PackageManager;
-using UnityEditor.PackageManager.Requests;
 using UnityEditor.Experimental.SceneManagement;
 #endif
 using UnityEngine;
@@ -13,8 +11,8 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using System.Collections.Generic;
 
-#if UNITY_2019_2 || UNITY_2019_1
-#error This version of Crest requires Unity 2019.3 or later. To obtain a different version, Crest must be removed from the project and reimported from the Asset Store, which will serve the appropriate version.
+#if !UNITY_2019_4_OR_NEWER
+#error This version of Crest requires Unity 2019.4 or later.
 #endif
 
 namespace Crest
@@ -144,6 +142,10 @@ namespace Crest
         int _lodCount = 7;
 
 
+        // The rendering layer mask is not yet used outside of HDRP.
+        public uint RenderingLayerMask => 255;
+
+
         [Header("Simulation Params")]
 
         public SimSettingsAnimatedWaves _simSettingsAnimatedWaves;
@@ -185,6 +187,7 @@ namespace Crest
             EverythingClipped,
         }
         [Tooltip("Whether to clip nothing by default (and clip inputs remove patches of surface), or to clip everything by default (and clip inputs add patches of surface).")]
+        [PredicatedField("_createClipSurfaceData")]
         public DefaultClippingState _defaultClippingState = DefaultClippingState.NothingClipped;
 
         [Header("Edit Mode Params")]
@@ -220,11 +223,6 @@ namespace Crest
         public bool _uniformTiles = false;
         [HideInInspector, Tooltip("Disable generating a wide strip of triangles at the outer edge to extend ocean to edge of view frustum.")]
         public bool _disableSkirt = false;
-
-        [SerializeField]
-#pragma warning disable 414
-        bool _verifySRPVersionInEditor = true;
-#pragma warning restore 414
 
         [SerializeField]
         bool _verifyOpaqueAndDepthTexturesEnabled = true;
@@ -271,10 +269,6 @@ namespace Crest
 
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
-#if UNITY_EDITOR
-        ListRequest _request = null;
-#endif
-
         public static OceanRenderer Instance { get; private set; }
 
         // We are computing these values to be optimal based on the base mesh vertex density.
@@ -282,6 +276,9 @@ namespace Crest
         float _lodAlphaBlackPointWhitePointFade;
 
         bool _canSkipCulling = false;
+
+        // Becomes false after the first RunUpdate call. Used for some state initialisation.
+        bool _isFirstUpdate = true;
 
         readonly int sp_crestTime = Shader.PropertyToID("_CrestTime");
         readonly int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
@@ -291,6 +288,9 @@ namespace Crest
         readonly int sp_clipByDefault = Shader.PropertyToID("_CrestClipByDefault");
         readonly int sp_lodAlphaBlackPointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointFade");
         readonly int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
+
+        // @Hack: Work around to unity_CameraToWorld._13_23_33 not being set correctly in URP 7.4+
+        static readonly int sp_CameraForward = Shader.PropertyToID("_CameraForward");
 
 #if UNITY_EDITOR
         static float _lastUpdateEditorTime = -1f;
@@ -323,18 +323,14 @@ namespace Crest
             }
 
 #if UNITY_EDITOR
-            if (_verifySRPVersionInEditor)
-            {
-                // Fire off a request to get the URP version, as early versions are not compatible
-                _request = Client.List(true, false);
-            }
-
             if (EditorApplication.isPlaying && !Validate(this, ValidatedHelper.DebugLog))
             {
                 enabled = false;
                 return;
             }
 #endif
+
+            _isFirstUpdate = true;
 
             Instance = this;
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
@@ -580,6 +576,25 @@ namespace Crest
             }
 #endif
 
+            if (Application.platform == RuntimePlatform.WebGLPlayer)
+            {
+                Debug.LogError("Crest does not support WebGL backends.", this);
+                return false;
+            }
+#if UNITY_EDITOR
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore)
+            {
+                Debug.LogError("Crest does not support OpenGL backends.", this);
+                return false;
+            }
+#endif
+            if (SystemInfo.graphicsShaderLevel < 45)
+            {
+                Debug.LogError("Crest requires graphics devices that support shader level 4.5 or above.", this);
+                return false;
+            }
             if (!SystemInfo.supportsComputeShaders)
             {
                 Debug.LogError("Crest requires graphics devices that support compute shaders.", this);
@@ -629,38 +644,6 @@ namespace Crest
             }
         }
 
-
-#if UNITY_EDITOR
-        void Update()
-        {
-            UpdateVerifySRPVersion();
-        }
-
-        void UpdateVerifySRPVersion()
-        {
-            if (_request != null && _request.IsCompleted)
-            {
-                if (_request.Result != null)
-                {
-                    foreach (var pi in _request.Result)
-                    {
-                        if (pi.name == "com.unity.render-pipelines.universal")
-                        {
-                            var requiredVersion = new System.Version(7, 1, 1);
-                            if (System.Version.Parse(pi.version) < requiredVersion)
-                            {
-                                Debug.LogWarning("Crest requires URP " + requiredVersion + " or later, please update.", this);
-                            }
-
-                            break;
-                        }
-                    }
-
-                    _request = null;
-                }
-            }
-        }
-#endif
 #if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 #endif
@@ -697,6 +680,9 @@ namespace Crest
             Shader.SetGlobalFloat(sp_lodAlphaBlackPointFade, _lodAlphaBlackPointFade);
             Shader.SetGlobalFloat(sp_lodAlphaBlackPointWhitePointFade, _lodAlphaBlackPointWhitePointFade);
 
+            // @Hack: Work around to unity_CameraToWorld._13_23_33 not being set correctly in URP 7.4+
+            OceanMaterial.SetVector(sp_CameraForward, Viewpoint.forward);
+
             // LOD 0 is blended in/out when scale changes, to eliminate pops. Here we set it as a global, whereas in OceanChunkRenderer it
             // is applied to LOD0 tiles only through _InstanceData. This global can be used in compute, where we only apply this factor for slice 0.
             var needToBlendOutShape = ScaleCouldIncrease;
@@ -730,6 +716,8 @@ namespace Crest
                 LateUpdateTiles();
             }
 
+            LateUpdateResetMaxDisplacementFromShape();
+
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying || !_showOceanProxyPlane)
 #endif
@@ -750,6 +738,8 @@ namespace Crest
                 }
             }
 #endif
+
+            _isFirstUpdate = false;
         }
 
         void LateUpdatePosition()
@@ -794,8 +784,7 @@ namespace Crest
         {
             _sampleHeightHelper.Init(Viewpoint.position, 0f, true);
 
-            float waterHeight = 0f;
-            _sampleHeightHelper.Sample(ref waterHeight);
+            _sampleHeightHelper.Sample(out var waterHeight);
 
             ViewerHeightAboveWater = Viewpoint.position.y - waterHeight;
         }
@@ -855,6 +844,22 @@ namespace Crest
             _canSkipCulling = WaterBody.WaterBodies.Count == 0;
         }
 
+        void LateUpdateResetMaxDisplacementFromShape()
+        {
+            // If time stops, then reporting will become inconsistent.
+            if (!_isFirstUpdate && Time.timeScale == 0)
+            {
+                return;
+            }
+
+            if (FrameCount != _maxDisplacementCachedTime)
+            {
+                _maxHorizDispFromShape = _maxVertDispFromShape = _maxVertDispFromWaves = 0f;
+            }
+
+            _maxDisplacementCachedTime = FrameCount;
+        }
+
         /// <summary>
         /// Could the ocean horizontal scale increase (for e.g. if the viewpoint gains altitude). Will be false if ocean already at maximum scale.
         /// </summary>
@@ -870,16 +875,15 @@ namespace Crest
         /// </summary>
         public void ReportMaxDisplacementFromShape(float maxHorizDisp, float maxVertDisp, float maxVertDispFromWaves)
         {
-            if (FrameCount != _maxDisplacementCachedTime)
+            // If time stops, then reporting will become inconsistent.
+            if (!_isFirstUpdate && Time.timeScale == 0)
             {
-                _maxHorizDispFromShape = _maxVertDispFromShape = _maxVertDispFromWaves = 0f;
+                return;
             }
 
             _maxHorizDispFromShape += maxHorizDisp;
             _maxVertDispFromShape += maxVertDisp;
             _maxVertDispFromWaves += maxVertDispFromWaves;
-
-            _maxDisplacementCachedTime = FrameCount;
         }
         float _maxHorizDispFromShape = 0f;
         float _maxVertDispFromShape = 0f;
@@ -1042,12 +1046,29 @@ namespace Crest
                 input.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
+            // WaterBody
+            var waterBodies = FindObjectsOfType<WaterBody>();
+            foreach (var waterBody in waterBodies)
+            {
+                waterBody.Validate(ocean, ValidatedHelper.DebugLog);
+            }
+
             Debug.Log("Validation complete!", ocean);
         }
 
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;
+
+            if (EditorSettings.enterPlayModeOptionsEnabled &&
+                EditorSettings.enterPlayModeOptions.HasFlag(EnterPlayModeOptions.DisableSceneReload))
+            {
+                showMessage
+                (
+                    "Crest will not work correctly with <i>Disable Scene Reload</i> enabled.",
+                    ValidatedHelper.MessageType.Error, ocean
+                );
+            }
 
             if (_material == null)
             {
@@ -1162,6 +1183,15 @@ namespace Crest
             if (_simSettingsAnimatedWaves)
             {
                 _simSettingsAnimatedWaves.Validate(ocean, showMessage);
+            }
+
+            if (transform.eulerAngles.magnitude > 0.0001f)
+            {
+                showMessage
+                (
+                    $"There must be no rotation on the ocean GameObject, and no rotation on any parent. Currently the rotation Euler angles are {transform.eulerAngles}.",
+                    ValidatedHelper.MessageType.Error, ocean
+                );
             }
 
             return isValid;

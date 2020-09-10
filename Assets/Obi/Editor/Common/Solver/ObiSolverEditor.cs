@@ -38,6 +38,7 @@ namespace Obi{
 
 		ObiSolver solver;
 
+        SerializedProperty backend;
         SerializedProperty simulateWhenInvisible;
         SerializedProperty parameters;
         SerializedProperty worldLinearInertiaScale;
@@ -66,6 +67,7 @@ namespace Obi{
         {
 			solver = (ObiSolver)target;
 
+            backend = serializedObject.FindProperty("m_Backend");
             simulateWhenInvisible = serializedObject.FindProperty("simulateWhenInvisible");
             parameters = serializedObject.FindProperty("parameters");
             worldLinearInertiaScale = serializedObject.FindProperty("worldLinearInertiaScale");
@@ -93,12 +95,31 @@ namespace Obi{
         {
 			
 			serializedObject.UpdateIfRequiredOrScript(); 
-			EditorGUILayout.HelpBox("Used particles:"+ solver.AllocParticleCount,MessageType.Info);
+			EditorGUILayout.HelpBox("Used particles:"+ solver.AllocParticleCount,MessageType.None);
 
-            EditorGUILayout.PropertyField(simulateWhenInvisible);
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(backend);
+
+#if !(OBI_BURST && OBI_MATHEMATICS && OBI_COLLECTIONS)
+            if (backend.enumValueIndex == (int)ObiSolver.BackendType.Burst)
+               EditorGUILayout.HelpBox("The Burst backend depends on the following packages: Mathematics, Collections and Burst. The default backend (Oni) will be used instead, if possible.",MessageType.Warning);
+#endif
+#if !(OBI_ONI_SUPPORTED)
+            if (backend.enumValueIndex == (int)ObiSolver.BackendType.Oni)
+               EditorGUILayout.HelpBox("The Oni backend is not compatible with the target platform. Please switch to a compatible platform, or use the Burst backend instead.",MessageType.Warning);
+#endif
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                serializedObject.ApplyModifiedProperties();
+                foreach (var t in targets)
+                    (t as ObiSolver).UpdateBackend();
+            }
+            
             EditorGUILayout.PropertyField(parameters);
             EditorGUILayout.PropertyField(worldLinearInertiaScale);
             EditorGUILayout.PropertyField(worldAngularInertiaScale);
+            EditorGUILayout.PropertyField(simulateWhenInvisible);
 
             constraintsFoldout = EditorGUILayout.Foldout(constraintsFoldout, "Constraints");
             if (constraintsFoldout)

@@ -301,7 +301,7 @@ public class sDevices : MonoBehaviour
 
         // Ручка газ-реверс
         Vector3 myVect = _ThrottleLever.localEulerAngles;
-        myVect.x = Mathf.Lerp(-50, 50, (_YachtSolver.engineValue + 1) / 2.0f);
+        myVect.x = Mathf.Lerp(-50, 50, (_YachtSolver.ThrottleSignal + 1) / 2.0f);
         _ThrottleLever.localEulerAngles = myVect;
 
         // Штурвал

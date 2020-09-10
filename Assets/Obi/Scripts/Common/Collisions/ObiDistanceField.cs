@@ -14,7 +14,7 @@ namespace Obi{
 
 		[HideInInspector][SerializeField] private float minNodeSize = 0;
 		[HideInInspector][SerializeField] private Bounds bounds = new Bounds(); 
-		[HideInInspector] public Oni.DFNode[] nodes;		/**< list of distance field nodes*/
+		[HideInInspector] public List<DFNode> nodes;		/**< list of distance field nodes*/
 
 		[Range(0.00001f,0.1f)]
 		public float maxError = 0.01f;
@@ -22,14 +22,8 @@ namespace Obi{
 		[Range(1, 8)]
 		public int maxDepth = 5;
 
-		IntPtr oniDistanceField;
-
 		public bool Initialized{
 			get{return nodes != null;}
-		}
-
-		public IntPtr OniDistanceField {
-			get{return oniDistanceField;}
 		}
 
 		public Bounds FieldBounds {
@@ -50,20 +44,6 @@ namespace Obi{
 			get{return input;}
 		}
 
-		public void OnEnable(){
-
-			oniDistanceField = Oni.CreateDistanceField();
-
-	        // Check integrity after serialization, (re?) initialize if there's data missing.
-			if (nodes != null){
-				Oni.SetDistanceFieldNodes(oniDistanceField,nodes,nodes.Length);
-			}
-		}
-
-		public void OnDisable(){	
-			Oni.DestroyDistanceField(oniDistanceField);
-		}
-
 		public void Reset(){
 			nodes = null;
 			if (input != null)
@@ -77,36 +57,26 @@ namespace Obi{
 			if (input == null)
 				yield break;
 
-			// build distance field:
-			int[] tris = input.triangles;
-			Vector3[] verts = input.vertices;
-			Oni.StartBuildingDistanceField(oniDistanceField,maxError,maxDepth,verts,tris,verts.Length,tris.Length/3);
+            int[] tris = input.triangles;
+            Vector3[] verts = input.vertices;
 
-			int i = 0;
-			bool done = false;
-			while (!done){
+            nodes = new List<DFNode>();
+            var buildingCoroutine = ASDF.Build(maxError, maxDepth, verts, tris, nodes);
 
-				for (int j = 0; j < 16; ++j)
-					done |= Oni.ContinueBuildingDistanceField(oniDistanceField);
+            int i = 0;
+            while (buildingCoroutine.MoveNext())
+                yield return new CoroutineJob.ProgressInfo("Processed nodes: " + (++i), 1);
 
-				i += 16;
-				yield return new CoroutineJob.ProgressInfo("Processed nodes: "+i,1);
-			}
+            // calculate min node size;
+            minNodeSize = float.PositiveInfinity;
+            for (int j = 0; j < nodes.Count; ++j)
+                minNodeSize = Mathf.Min(minNodeSize, nodes[j].center[3] * 2);
 
-			// retrieve nodes:
-			int count = Oni.GetDistanceFieldNodeCount(oniDistanceField);
-			nodes = new Oni.DFNode[count];
-			Oni.GetDistanceFieldNodes(oniDistanceField,nodes);
+            // get bounds:
+            float max = Mathf.Max(bounds.size[0], Mathf.Max(bounds.size[1], bounds.size[2])) + 0.2f;
+            bounds.size = new Vector3(max, max, max);
 
-			// calculate min node size;
-			minNodeSize = float.PositiveInfinity;
-			for (int j = 0; j < nodes.Length; ++j)
-				minNodeSize = Mathf.Min(minNodeSize, nodes[j].center[3] * 2);
-
-			// get bounds:
-			float max = Mathf.Max(bounds.size[0],Mathf.Max(bounds.size[1],bounds.size[2]))+0.2f;
-			bounds.size = new Vector3(max,max,max);
-		}
+        }
 
 		/**
 		 * Return a volume texture containing a representation of this distance field.
@@ -138,8 +108,8 @@ namespace Obi{
 						Vector3 samplePoint = bounds.min + new Vector3(spacingX * x + spacingX*0.5f,
 						                                 			   spacingY * y + spacingY*0.5f,
 						                                  			   spacingZ * z + spacingZ*0.5f);
-	
-						float distance = Oni.SampleDistanceField(oniDistanceField,samplePoint.x,samplePoint.y,samplePoint.z);
+
+                        float distance = ASDF.Sample(nodes,samplePoint);
 	
 						if (distance >= 0)
 							c.a = distance.Remap(0,maxDist*0.1f,0.5f,1);
@@ -155,20 +125,6 @@ namespace Obi{
 			return tex;
 	
 		}
-
-
-		/*public void Visualize(){
-	
-			for (int i = 0; i < nodes.Length; ++i )
-			{
-				Gizmos.color = new Color(1,1,1,0.2f);
-				Gizmos.DrawWireCube(nodes[i].center,Vector3.one * nodes[i].center[3] * 2);
-			}
-
-			if (nodes == null || nodes.Length == 0) 
-				return;
-		}*/
-
 	}
 }
 

@@ -52,7 +52,7 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 			{
 				real4 positionCS : SV_POSITION;
 				real4 _MainCameraCoords : TEXCOORD0;
-				real3 _WorldPos : TEXCOORD1;
+				float3 _WorldPos : TEXCOORD1;
 			};
 
 			Varyings Vert(Attributes input)

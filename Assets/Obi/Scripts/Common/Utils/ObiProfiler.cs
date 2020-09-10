@@ -41,56 +41,70 @@ namespace Obi
 	    }
 
 		public void OnDestroy(){
+#if (OBI_ONI_SUPPORTED)
             _instance = null;
             Oni.EnableProfiler(false);
-		}
+#endif
+        }
 
         private void OnEnable()
         {
+#if (OBI_ONI_SUPPORTED)
             if (_instance != null && _instance.profiling)
                 Oni.EnableProfiler(true);
+#endif
         }
 
         private void OnDisable()
         {
+#if (OBI_ONI_SUPPORTED)
             if (_instance != null)
                 Oni.EnableProfiler(false);
+#endif
         }
 
         public static void EnableProfiler()
         {
+#if (OBI_ONI_SUPPORTED)
             if (_instance != null)
             {
                 _instance.profiling = true;
                 if (_instance.isActiveAndEnabled)
                     Oni.EnableProfiler(true);
             }
-		}
+#endif
+        }
 
         public static void DisableProfiler()
         {
+#if (OBI_ONI_SUPPORTED)
             if (_instance != null)
             {
                 _instance.profiling = false;
                 Oni.EnableProfiler(false);
             }
+#endif
         }
 
         public static void BeginSample(string name, byte type)
         {
+#if (OBI_ONI_SUPPORTED)
             if (_instance != null)
                 Oni.BeginSample(name, type);
+#endif
         }
 
         public static void EndSample()
         {
+#if (OBI_ONI_SUPPORTED)
             if (_instance != null)
                 Oni.EndSample();
+#endif
         }
 
 		private void UpdateProfilerInfo(){
-
-			frameCounter--;
+#if (OBI_ONI_SUPPORTED)
+            frameCounter--;
 			if (frameCounter <= 0)
 			{
 				int count = Oni.GetProfilingInfoCount();
@@ -109,12 +123,13 @@ namespace Obi
 			}
 
             Oni.ClearProfiler();
-		}
+#endif
+        }
 
 		public void OnGUI()
 		{
-
-			if (Event.current.type == EventType.Layout)
+#if (OBI_ONI_SUPPORTED)
+            if (Event.current.type == EventType.Layout)
 				UpdateProfilerInfo();
 
 			if (info == null)
@@ -193,7 +208,8 @@ namespace Obi
 				GUI.Box(new Rect(taskStart, yPos, taskDuration-1, threadHeight),name,"Task");
 			}
 			GUI.EndScrollView();
-		}
-	}
+#endif
+        }
+    }
 }
 

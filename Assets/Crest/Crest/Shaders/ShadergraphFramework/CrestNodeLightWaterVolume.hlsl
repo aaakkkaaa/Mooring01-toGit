@@ -61,18 +61,20 @@ void CrestNodeLightWaterVolume_half
 	// base colour
 	o_volumeLight = i_scatterColourBase;
 	
-	//#if _SHADOWS_ON
+// #if CREST_SHADOWS_ON
 	o_volumeLight = lerp(i_scatterColourShadow, o_volumeLight, shadow);
-	//#endif
+// #endif // CREST_SHADOWS_ON
 
 	//#if _SUBSURFACESCATTERING_ON
 	//	{
 	//#if _SUBSURFACESHALLOWCOLOUR_ON
 	float shallowness = pow(1.0 - saturate(depth / i_scatterColourShallowDepthMax), i_scatterColourShallowDepthFalloff);
 	half3 shallowCol = i_scatterColourShallow;
-	//#if _SHADOWS_ON
-	//		shallowCol = lerp(_SubSurfaceShallowColShadow, shallowCol, shadow);
-	//#endif
+
+// #if CREST_SHADOWS_ON
+	shallowCol = lerp(i_scatterColourShadow, shallowCol, shadow);
+// #endif // CREST_SHADOWS_ON
+
 	o_volumeLight = lerp(o_volumeLight, shallowCol, shallowness);
 	//#endif
 	//

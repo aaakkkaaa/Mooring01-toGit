@@ -27,6 +27,7 @@ namespace Obi
                 else
                 {
                     sourceCollider = value;
+
                     RemoveCollider();
                     AddCollider();
                 }
@@ -42,24 +43,20 @@ namespace Obi
 
             if (tracker != null)
             {
-                Oni.SetColliderShape(oniCollider, IntPtr.Zero);
                 tracker.Destroy();
                 tracker = null;
             }
 
             if (sourceCollider is CircleCollider2D)
-                tracker = new ObiCircleShapeTracker2D((CircleCollider2D)sourceCollider);
+                tracker = new ObiCircleShapeTracker2D(this,(CircleCollider2D)sourceCollider);
             else if (sourceCollider is BoxCollider2D)
-                tracker = new ObiBoxShapeTracker2D((BoxCollider2D)sourceCollider);
+                tracker = new ObiBoxShapeTracker2D(this,(BoxCollider2D)sourceCollider);
             else if (sourceCollider is CapsuleCollider2D)
-                tracker = new ObiCapsuleShapeTracker2D((CapsuleCollider2D)sourceCollider);
+                tracker = new ObiCapsuleShapeTracker2D(this,(CapsuleCollider2D)sourceCollider);
             else if (sourceCollider is EdgeCollider2D)
-                tracker = new ObiEdgeShapeTracker2D((EdgeCollider2D)sourceCollider);
+                tracker = new ObiEdgeShapeTracker2D(this,(EdgeCollider2D)sourceCollider);
             else
                 Debug.LogWarning("Collider2D type not supported by Obi.");
-
-            if (tracker != null)
-                Oni.SetColliderShape(oniCollider, tracker.OniShape);
 
         }
 
@@ -70,12 +67,6 @@ namespace Obi
                 enabled = sourceCollider.enabled;
 
             return sourceCollider;
-        }
-
-        protected override void UpdateAdaptor()
-        {
-            adaptor.Set(sourceCollider, Phase, Thickness);
-            Oni.UpdateCollider(oniCollider, ref adaptor);
         }
 
         protected override void FindSourceCollider()

@@ -4,119 +4,137 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Obi{
+namespace Obi
+{
 
-    public class ObiParticlePicker : MonoBehaviour {
+    public class ObiParticlePicker : MonoBehaviour
+    {
 
-		public class ParticlePickEventArgs : EventArgs{
+        public class ParticlePickEventArgs : EventArgs
+        {
 
-			public int particleIndex;
-			public Vector3 worldPosition;
-	
-			public ParticlePickEventArgs(int particleIndex, Vector3 worldPosition){
-				this.particleIndex = particleIndex;
-				this.worldPosition = worldPosition;
-			}
-		}
+            public int particleIndex;
+            public Vector3 worldPosition;
 
-		[Serializable]
-		public class ParticlePickUnityEvent: UnityEvent<ParticlePickEventArgs>{}
+            public ParticlePickEventArgs(int particleIndex, Vector3 worldPosition)
+            {
+                this.particleIndex = particleIndex;
+                this.worldPosition = worldPosition;
+            }
+        }
 
-		public ObiSolver solver;
-		public float radiusScale = 1;
+        [Serializable]
+        public class ParticlePickUnityEvent : UnityEvent<ParticlePickEventArgs> { }
 
-		public ParticlePickUnityEvent OnParticlePicked;
-		public ParticlePickUnityEvent OnParticleHeld;
-		public ParticlePickUnityEvent OnParticleDragged;
-		public ParticlePickUnityEvent OnParticleReleased;
+        public ObiSolver solver;
+        public float radiusScale = 1;
 
-		private Vector3 lastMousePos = Vector3.zero;
-		private int pickedParticleIndex = -1;
-		private float pickedParticleDepth = 0;
+        public ParticlePickUnityEvent OnParticlePicked;
+        public ParticlePickUnityEvent OnParticleHeld;
+        public ParticlePickUnityEvent OnParticleDragged;
+        public ParticlePickUnityEvent OnParticleReleased;
 
-		void Awake(){
-			lastMousePos = Input.mousePosition;
-		} 
+        private Vector3 lastMousePos = Vector3.zero;
+        private int pickedParticleIndex = -1;
+        private float pickedParticleDepth = 0;
 
-		void LateUpdate ()
-		{
+        void Awake()
+        {
+            lastMousePos = Input.mousePosition;
+        }
 
-			if (solver != null){
+        void LateUpdate()
+        {
 
-				// Click:
-	            if (Input.GetMouseButtonDown(0)){
-	
-					pickedParticleIndex = -1;
+            if (solver != null)
+            {
 
-					Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-	
-					float closestMu		  = float.MaxValue;
-					float closestDistance = float.MaxValue;
+                // Click:
+                if (Input.GetMouseButtonDown(0))
+                {
+
+                    pickedParticleIndex = -1;
+
+                    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+                    float closestMu = float.MaxValue;
+                    float closestDistance = float.MaxValue;
 
                     Matrix4x4 solver2World = solver.transform.localToWorldMatrix;
 
-					// Find the closest particle hit by the ray:
-                    for (int i = 0; i < solver.renderablePositions.count; ++i){
+                    // Find the closest particle hit by the ray:
+                    for (int i = 0; i < solver.renderablePositions.count; ++i)
+                    {
 
                         Vector3 worldPos = solver2World.MultiplyPoint3x4(solver.renderablePositions[i]);
 
                         float mu;
-						Vector3 projected = ObiUtils.ProjectPointLine(worldPos, ray.origin,ray.origin+ray.direction,out mu,false);
-						float distanceToRay = Vector3.SqrMagnitude(worldPos - projected);
+                        Vector3 projected = ObiUtils.ProjectPointLine(worldPos, ray.origin, ray.origin + ray.direction, out mu, false);
+                        float distanceToRay = Vector3.SqrMagnitude(worldPos - projected);
 
-						// Disregard particles behind the camera:
-						mu = Mathf.Max(0,mu);
+                        // Disregard particles behind the camera:
+                        mu = Mathf.Max(0, mu);
 
-						float radius = solver.principalRadii[i][0] * radiusScale;
-	
-						if (distanceToRay <= radius * radius && distanceToRay < closestDistance && mu < closestMu){
-							closestMu = mu;
-							closestDistance = distanceToRay;
-							pickedParticleIndex = i;
-						}
-					}
-			
-					if (pickedParticleIndex >= 0){
+                        float radius = solver.principalRadii[i][0] * radiusScale;
 
-						pickedParticleDepth = Camera.main.transform.InverseTransformVector(solver2World.MultiplyPoint3x4(solver.renderablePositions[pickedParticleIndex]) - Camera.main.transform.position).z;
-		
-						if (OnParticlePicked != null){
-							Vector3 worldPosition = Camera.main.ScreenToWorldPoint (new Vector3 (Input.mousePosition.x, Input.mousePosition.y, pickedParticleDepth));
-							OnParticlePicked.Invoke(new ParticlePickEventArgs(pickedParticleIndex, worldPosition));
-						}
-					}
-	
-				}else if (pickedParticleIndex >= 0){
-	
-					// Drag:
-					Vector3 mouseDelta = Input.mousePosition - lastMousePos;
-					if (mouseDelta.magnitude > 0.01f && OnParticleDragged != null){
-	
-						Vector3 worldPosition = Camera.main.ScreenToWorldPoint (new Vector3 (Input.mousePosition.x, Input.mousePosition.y, pickedParticleDepth));
-						OnParticleDragged.Invoke(new ParticlePickEventArgs(pickedParticleIndex,worldPosition));
-	
-					}else if (OnParticleHeld != null){
-	
-						Vector3 worldPosition = Camera.main.ScreenToWorldPoint (new Vector3 (Input.mousePosition.x, Input.mousePosition.y, pickedParticleDepth));
-						OnParticleHeld.Invoke(new ParticlePickEventArgs(pickedParticleIndex,worldPosition));
-	
-					}
-	
-					// Release:				
-					if (Input.GetMouseButtonUp(0)){
-						
-						if (OnParticleReleased != null){
-							Vector3 worldPosition = Camera.main.ScreenToWorldPoint (new Vector3 (Input.mousePosition.x, Input.mousePosition.y, pickedParticleDepth));
-							OnParticleReleased.Invoke(new ParticlePickEventArgs(pickedParticleIndex,worldPosition));
-						}
-	
-						pickedParticleIndex = -1;
-		
-					}
-				}
-			}			
-			
-			lastMousePos = Input.mousePosition;
-		}
+                        if (distanceToRay <= radius * radius && distanceToRay < closestDistance && mu < closestMu)
+                        {
+                            closestMu = mu;
+                            closestDistance = distanceToRay;
+                            pickedParticleIndex = i;
+                        }
+                    }
+
+                    if (pickedParticleIndex >= 0)
+                    {
+
+                        pickedParticleDepth = Camera.main.transform.InverseTransformVector(solver2World.MultiplyPoint3x4(solver.renderablePositions[pickedParticleIndex]) - Camera.main.transform.position).z;
+
+                        if (OnParticlePicked != null)
+                        {
+                            Vector3 worldPosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, pickedParticleDepth));
+                            OnParticlePicked.Invoke(new ParticlePickEventArgs(pickedParticleIndex, worldPosition));
+                        }
+                    }
+
+                }
+                else if (pickedParticleIndex >= 0)
+                {
+
+                    // Drag:
+                    Vector3 mouseDelta = Input.mousePosition - lastMousePos;
+                    if (mouseDelta.magnitude > 0.01f && OnParticleDragged != null)
+                    {
+
+                        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, pickedParticleDepth));
+                        OnParticleDragged.Invoke(new ParticlePickEventArgs(pickedParticleIndex, worldPosition));
+
+                    }
+                    else if (OnParticleHeld != null)
+                    {
+
+                        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, pickedParticleDepth));
+                        OnParticleHeld.Invoke(new ParticlePickEventArgs(pickedParticleIndex, worldPosition));
+
+                    }
+
+                    // Release:				
+                    if (Input.GetMouseButtonUp(0))
+                    {
+
+                        if (OnParticleReleased != null)
+                        {
+                            Vector3 worldPosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, pickedParticleDepth));
+                            OnParticleReleased.Invoke(new ParticlePickEventArgs(pickedParticleIndex, worldPosition));
+                        }
+
+                        pickedParticleIndex = -1;
+
+                    }
+                }
+            }
+
+            lastMousePos = Input.mousePosition;
+        }
     }
 }

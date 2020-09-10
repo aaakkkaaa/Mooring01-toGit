@@ -45,19 +45,14 @@ namespace Crest
         OceanDepthCacheRefreshMode _refreshMode = OceanDepthCacheRefreshMode.OnFirstRender;
         public OceanDepthCacheRefreshMode RefreshMode => _refreshMode;
 
-        [Tooltip("In edit mode update every frame so that scene changes take effect immediately. Increases power usage in edit mode."), SerializeField]
-#pragma warning disable 414
-        bool _refreshEveryFrameInEditMode = true;
-#pragma warning restore 414
-
         [Tooltip("Hides the depth cache camera, for cleanliness. Disable to make it visible in the Hierarchy."), SerializeField]
         bool _hideDepthCacheCam = true;
 
-        [Tooltip("The layers to render into the depth cache."), SerializeField]
-        string[] _layerNames = new string[0];
+        [Tooltip("The layers to render into the depth cache.")]
+        public string[] _layerNames = new string[0];
 
-        [Tooltip("The resolution of the cached depth - lower will be more efficient."), SerializeField]
-        int _resolution = 512;
+        [Tooltip("The resolution of the cached depth - lower will be more efficient.")]
+        public int _resolution = 512;
 
         // A big hill will still want to write its height into the depth texture
         [Tooltip("The 'near plane' for the depth cache camera (top down)."), SerializeField]
@@ -84,6 +79,7 @@ namespace Crest
 
         GameObject _drawCacheQuad;
         Camera _camDepthCache;
+        Material _copyDepthMaterial;
 
         void Start()
         {
@@ -168,7 +164,8 @@ namespace Crest
                     if (layerIdx == -1)
                     {
                         Debug.LogError("OceanDepthCache: Invalid layer specified: \"" + layer +
-                        "\". Does this layer need to be added to the project (Edit/Project Settings/Tags and Layers)? Click this message to highlight the cache in question.", this);
+                            "\". Please add this layer to the project by putting the name in an empty layer slot in Edit/Project Settings/Tags and Layers. Click this message to highlight the cache in question.", this);
+
                         errorShown = true;
                     }
                     else
@@ -288,30 +285,30 @@ namespace Crest
             // Render scene, saving depths in depth buffer
             UnityEngine.Rendering.Universal.UniversalRenderPipeline.RenderSingleCamera(context, _camDepthCache);
 
-            Material copyDepthMaterial = new Material(Shader.Find("Crest/Copy Depth Buffer Into Cache"));
+            if (_copyDepthMaterial == null)
+            {
+                _copyDepthMaterial = new Material(Shader.Find("Crest/Copy Depth Buffer Into Cache"));
+            }
 
-            copyDepthMaterial.SetVector("_OceanCenterPosWorld", OceanRenderer.Instance.Root.position);
+            _copyDepthMaterial.SetVector("_OceanCenterPosWorld", OceanRenderer.Instance.Root.position);
 
-            copyDepthMaterial.SetTexture("_CamDepthBuffer", _camDepthCache.targetTexture);
+            _copyDepthMaterial.SetTexture("_CamDepthBuffer", _camDepthCache.targetTexture);
 
             // Zbuffer params
             //float4 _ZBufferParams;            // x: 1-far/near,     y: far/near, z: x/far,     w: y/far
             float near = _camDepthCache.nearClipPlane, far = _camDepthCache.farClipPlane;
-            copyDepthMaterial.SetVector("_CustomZBufferParams", new Vector4(1f - far / near, far / near, (1f - far / near) / far, (far / near) / far));
+            _copyDepthMaterial.SetVector("_CustomZBufferParams", new Vector4(1f - far / near, far / near, (1f - far / near) / far, (far / near) / far));
 
             // Altitudes for near and far planes
             float ymax = _camDepthCache.transform.position.y - near;
             float ymin = ymax - far;
-            copyDepthMaterial.SetVector("_HeightNearHeightFar", new Vector2(ymax, ymin));
+            _copyDepthMaterial.SetVector("_HeightNearHeightFar", new Vector2(ymax, ymin));
 
             // Copy from depth buffer into the cache
-            Graphics.Blit(null, _cacheTexture, copyDepthMaterial);
+            Graphics.Blit(null, _cacheTexture, _copyDepthMaterial);
 
-            var leaveEnabled = _forceAlwaysUpdateDebug
-#if UNITY_EDITOR
-                || (_refreshEveryFrameInEditMode && !EditorApplication.isPlaying)
-#endif
-                ;
+            var leaveEnabled = _forceAlwaysUpdateDebug;
+
             if (!leaveEnabled)
             {
                 _camDepthCache.targetTexture = null;
@@ -401,12 +398,12 @@ namespace Crest
             var isBakeable = cacheType == OceanDepthCache.OceanDepthCacheType.Realtime &&
                 (!isOnDemand || dc.CacheTexture != null);
 
-            if (playing && isOnDemand && GUILayout.Button("Populate cache"))
+            if ((!playing || isOnDemand) && dc.Type != OceanDepthCache.OceanDepthCacheType.Baked && GUILayout.Button("Populate cache"))
             {
                 dc.PopulateCache();
             }
 
-            if (playing && isBakeable && GUILayout.Button("Save cache to file"))
+            if (isBakeable && GUILayout.Button("Save cache to file"))
             {
                 var rt = dc.CacheTexture;
                 RenderTexture.active = rt;
@@ -498,7 +495,7 @@ namespace Crest
                     {
                         showMessage
                         (
-                            $"Invalid layer specified for objects/geometry providing the ocean depth: <i>{layerName}</i>. Does this layer need to be added to the project <i>Edit/Project Settings/Tags and Layers</i>?",
+                            $"Invalid layer specified for objects/geometry providing the ocean depth: <i>{layerName}</i>. Please add this layer to the project by putting the name in an empty layer slot in <i>Edit/Project Settings/Tags and Layers</i>?",
                             ValidatedHelper.MessageType.Error, this
                         );
 

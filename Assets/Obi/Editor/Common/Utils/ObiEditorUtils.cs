@@ -11,6 +11,7 @@ namespace Obi{
 	{
         static GUIStyle separatorLine;
         static GUIStyle toggleablePropertyGroup;
+        static GUIStyle boldToggle;
 
         public static GUIStyle GetSeparatorLineStyle()
         {
@@ -40,7 +41,17 @@ namespace Obi{
             return toggleablePropertyGroup;
         }
 
-		public static void SaveMesh (Mesh mesh, string title, string name, bool makeNewInstance = true, bool optimizeMesh = true) {
+        public static GUIStyle GetBoldToggleStyle()
+        {
+            if (boldToggle == null)
+            {
+                boldToggle = new GUIStyle(EditorStyles.toggle);
+                boldToggle.fontStyle = FontStyle.Bold;
+            }
+            return boldToggle;
+        }
+
+        public static void SaveMesh (Mesh mesh, string title, string name, bool makeNewInstance = true, bool optimizeMesh = true) {
 
 			string path = EditorUtility.SaveFilePanel(title, "Assets/", name, "asset");
 			if (string.IsNullOrEmpty(path)) return;
@@ -149,11 +160,30 @@ namespace Obi{
             return true;
         }
 
+        public static void DoPropertyGroup(GUIContent content, System.Action action)
+        {
+            EditorGUILayout.BeginVertical(GetToggleablePropertyGroupStyle());
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField(content, EditorStyles.boldLabel); 
+                EditorGUILayout.EndHorizontal();
+
+                if (action != null)
+                {
+                    EditorGUI.indentLevel++;
+                    action();
+                    EditorGUI.indentLevel--;
+                }
+            }
+            EditorGUILayout.EndVertical();
+        }
+
         public static void DoToggleablePropertyGroup(SerializedProperty enabledProperty, GUIContent content, System.Action action)
         {
-            GUI.enabled = enabledProperty.boolValue;
+            bool enabled = GUI.enabled;
+            GUI.enabled &= enabledProperty.boolValue;
             EditorGUILayout.BeginVertical(GetToggleablePropertyGroupStyle());
-            GUI.enabled = true;
+            GUI.enabled = enabled;
             {
                 EditorGUILayout.BeginHorizontal();
                     enabledProperty.boolValue = EditorGUILayout.ToggleLeft(content,enabledProperty.boolValue,EditorStyles.boldLabel);

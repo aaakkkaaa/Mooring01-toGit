@@ -94,11 +94,8 @@ namespace Obi
                 int sectionIndex = 0;
 
                 Vector3 localSpaceCamera = rope.transform.InverseTransformPoint(camera.transform.position);
-
-                // for closed curves, last frame of the last curve must be equal to first frame of first curve.
-                Vector3 firstTangent = Vector3.forward;
-
-                Vector4 texTangent = Vector4.zero;
+                Vector3 vertex = Vector3.zero, normal = Vector3.zero;
+                Vector4 bitangent = Vector4.zero;
                 Vector2 uv = Vector2.zero;
 
                 for (int c = 0; c < smoother.smoothChunks.Count; ++c)
@@ -112,43 +109,48 @@ namespace Obi
                         // Calculate previous and next curve indices:
                         int prevIndex = Mathf.Max(i - 1, 0);
 
-                        // update start/end prefabs:
-                        if (c == 0 && i == 0)
-                        {
-                            // store first tangent of the first curve (for closed ropes):
-                            firstTangent = curve[i].tangent;
-                        }
-
                         // advance v texcoord:
-                        vCoord += uvScale.y * (Vector3.Distance(curve[i].position, curve[prevIndex].position) /
+                        vCoord += uvScale.y * (Vector3.Distance(curve.Data[i].position, curve.Data[prevIndex].position) /
                                                (normalizeV ? smoother.SmoothLength : actualToRestLengthRatio));
 
                         // calculate section thickness (either constant, or particle radius based):
-                        float sectionThickness = curve[i].thickness * thicknessScale;
+                        float sectionThickness = curve.Data[i].thickness * thicknessScale;
 
-                        Vector3 normal = curve[i].position - localSpaceCamera;
+
+                        normal.x = curve.Data[i].position.x - localSpaceCamera.x;
+                        normal.y = curve.Data[i].position.y - localSpaceCamera.y;
+                        normal.z = curve.Data[i].position.z - localSpaceCamera.z;
                         normal.Normalize();
 
-                        Vector3 bitangent = Vector3.Cross(normal, curve[i].tangent);
+                        bitangent.x = -(normal.y * curve.Data[i].tangent.z - normal.z * curve.Data[i].tangent.y);
+                        bitangent.y = -(normal.z * curve.Data[i].tangent.x - normal.x * curve.Data[i].tangent.z);
+                        bitangent.z = -(normal.x * curve.Data[i].tangent.y - normal.y * curve.Data[i].tangent.x);
+                        bitangent.w = 0;
                         bitangent.Normalize();
 
-                        vertices.Add(curve[i].position + bitangent * sectionThickness);
-                        vertices.Add(curve[i].position - bitangent * sectionThickness);
+                        vertex.x = curve.Data[i].position.x - bitangent.x * sectionThickness;
+                        vertex.y = curve.Data[i].position.y - bitangent.y * sectionThickness;
+                        vertex.z = curve.Data[i].position.z - bitangent.z * sectionThickness;
+                        vertices.Add(vertex);
+
+                        vertex.x = curve.Data[i].position.x + bitangent.x * sectionThickness;
+                        vertex.y = curve.Data[i].position.y + bitangent.y * sectionThickness;
+                        vertex.z = curve.Data[i].position.z + bitangent.z * sectionThickness;
+                        vertices.Add(vertex);
 
                         normals.Add(-normal);
                         normals.Add(-normal);
 
-                        texTangent = -bitangent;
-                        texTangent.w = 1;
-                        tangents.Add(texTangent);
-                        tangents.Add(texTangent);
+                        bitangent.w = 1;
+                        tangents.Add(bitangent);
+                        tangents.Add(bitangent);
 
-                        vertColors.Add(curve[i].color);
-                        vertColors.Add(curve[i].color);
+                        vertColors.Add(curve.Data[i].color);
+                        vertColors.Add(curve.Data[i].color);
 
-                        uv.Set(0, vCoord);
+                        uv.x = 0; uv.y = vCoord;
                         uvs.Add(uv);
-                        uv.Set(1, vCoord);
+                        uv.x = 1;
                         uvs.Add(uv);
 
                         if (i < curve.Count - 1)

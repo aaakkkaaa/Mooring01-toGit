@@ -43,10 +43,8 @@ namespace Obi
             {
                 if (value != m_Target)
                 {
-                    Disable(m_AttachmentType);
                     m_Target = value;
                     Bind();
-                    UpdateEnabledState();
                 }
             }
         }
@@ -62,10 +60,8 @@ namespace Obi
             {
                 if (value != m_ParticleGroup)
                 {
-                    Disable(m_AttachmentType);
                     m_ParticleGroup = value;
                     Bind();
-                    UpdateEnabledState();
                 }
             }
         }
@@ -84,7 +80,7 @@ namespace Obi
                 {
                     Disable(m_AttachmentType);
                     m_AttachmentType = value;
-                    UpdateEnabledState();
+                    Enable(m_AttachmentType);
                 }
             }
         }
@@ -97,7 +93,7 @@ namespace Obi
                 {
                     Disable(m_AttachmentType);
                     m_ConstrainOrientation = value;
-                    UpdateEnabledState();
+                    Enable(m_AttachmentType);
                 }
             }
         }
@@ -164,46 +160,41 @@ namespace Obi
 		private void OnValidate()
 		{
             m_Actor = GetComponent<ObiActor>();
+
+            // do not re-bind: simply disable and re-enable the attachment.
             Disable(AttachmentType.Static);
             Disable(AttachmentType.Dynamic);
-            UpdateEnabledState();
-            UpdateAttachment();
-		}
-
-		private bool ActorUsesOrientedParticles()
-        {
-            return GetComponent<ObiActor>().usesOrientedParticles;
+            Enable(m_AttachmentType);
         }
 
         void Actor_OnBlueprintLoaded(ObiActor act, ObiActorBlueprint blueprint)
         {
             Bind(); 
-            UpdateEnabledState();
-            UpdateAttachment();
         }
 
         void Actor_OnSolverStep(ObiActor act, float stepTime)
         {
-            UpdateAttachment();
+            UpdateAttachment(stepTime);
         }
 
         private void Bind()
         {
-            var group = particleGroup;
+            // Disable both attachment types.
+            Disable(m_AttachmentType);
 
-            if (group != null && m_Actor.solver != null)
+            if (m_ParticleGroup != null && m_Actor.solver != null)
             {
                 Matrix4x4 bindMatrix = m_Target != null ? m_Target.worldToLocalMatrix * m_Actor.solver.transform.localToWorldMatrix : Matrix4x4.identity;
 
-                m_SolverIndices = new int[group.Count];
-                m_PositionOffsets = new Vector3[group.Count];
-                m_OrientationOffsets = new Quaternion[group.Count];
+                m_SolverIndices = new int[m_ParticleGroup.Count];
+                m_PositionOffsets = new Vector3[m_ParticleGroup.Count];
+                m_OrientationOffsets = new Quaternion[m_ParticleGroup.Count];
 
                 var blueprint = m_Actor.blueprint;
 
-                for (int i = 0; i < group.Count; ++i)
+                for (int i = 0; i < m_ParticleGroup.Count; ++i)
                 {
-                    int particleIndex = group.particleIndices[i];
+                    int particleIndex = m_ParticleGroup.particleIndices[i];
                     if (particleIndex < m_Actor.solverIndices.Length)
                     {
                         m_SolverIndices[i] = m_Actor.solverIndices[particleIndex];
@@ -211,7 +202,7 @@ namespace Obi
                     }
                     else
                     {
-                        Debug.LogError("The particle group \'"+ group.name + "\' references a particle that does not exist in the actor \'"+ m_Actor.name +"\'.");
+                        Debug.LogError("The particle group \'"+ m_ParticleGroup.name + "\' references a particle that does not exist in the actor \'"+ m_Actor.name +"\'.");
                         m_SolverIndices = null;
                         m_PositionOffsets = null;
                         m_OrientationOffsets = null;
@@ -223,7 +214,7 @@ namespace Obi
                 {
                     Quaternion bindOrientation = bindMatrix.rotation;
 
-                    for (int i = 0; i < group.Count; ++i)
+                    for (int i = 0; i < m_ParticleGroup.Count; ++i)
                     {
                         m_OrientationOffsets[i] = bindOrientation * m_Actor.solver.orientations[m_SolverIndices[i]];
                     }
@@ -235,36 +226,32 @@ namespace Obi
                 m_PositionOffsets = null;
                 m_OrientationOffsets = null;
             }
-                
+
+            Enable(m_AttachmentType);
         }
 
-        private void UpdateEnabledState()
-        {
-            if (enabled)
-                Enable(m_AttachmentType);
-            else
-                Disable(m_AttachmentType);
-        }
 
         private void Enable(AttachmentType type)
         {
+            if (!enabled)
+                return;
 
             var solver = m_Actor.solver;
             var blueprint = m_Actor.blueprint;
 
-            if (isBound && blueprint != null && m_Actor.solver != null)
+            if (isBound && blueprint != null && solver != null)
             {
                 switch (type)
                 {
                     case AttachmentType.Dynamic:
 
-                        var pins = m_Actor.GetConstraintsByType(Oni.ConstraintType.Pin) as ObiConstraints<ObiPinConstraintsBatch>;
+                        var pins = m_Actor.GetConstraintsByType(Oni.ConstraintType.Pin) as ObiPinConstraintsData;
                         ObiColliderBase attachedCollider = m_Target.GetComponent<ObiColliderBase>();
 
-                        if (pins != null && attachedCollider != null)
+                        if (pins != null && attachedCollider != null && pinBatch == null)
                         {
                             // create a new data batch with all our pin constraints:
-                            pinBatch = new ObiPinConstraintsBatch();
+                            pinBatch = new ObiPinConstraintsBatch(pins);
                             for (int i = 0; i < m_PositionOffsets.Length; ++i)
                             {
                                 pinBatch.AddConstraint(0, attachedCollider, m_PositionOffsets[i], m_OrientationOffsets[i]);
@@ -273,7 +260,7 @@ namespace Obi
 
                             // add the batch to the solver:
                             pins.AddBatch(pinBatch);
-                            pinBatch.AddToSolver(pins);
+                            pinBatch.AddToSolver();
 
                             // override the pin indices with the ones we got at bind time:
                             for (int i = 0; i < m_SolverIndices.Length; ++i)
@@ -293,12 +280,14 @@ namespace Obi
                     case AttachmentType.Static:
 
                         for (int i = 0; i < m_SolverIndices.Length; ++i)
-                            solver.invMasses[m_SolverIndices[i]] = 0;
+                            if (m_SolverIndices[i] >= 0 && m_SolverIndices[i] < solver.invMasses.count)
+                                solver.invMasses[m_SolverIndices[i]] = 0;
 
                         if (m_Actor.usesOrientedParticles && m_ConstrainOrientation)
                         {
                             for (int i = 0; i < m_SolverIndices.Length; ++i)
-                                solver.invRotationalMasses[m_SolverIndices[i]] = 0;
+                                if (m_SolverIndices[i] >= 0 && m_SolverIndices[i] < solver.invRotationalMasses.count)
+                                    solver.invRotationalMasses[m_SolverIndices[i]] = 0;
                         }
 
                         m_Actor.UpdateParticleProperties();
@@ -315,9 +304,9 @@ namespace Obi
             var solver = m_Actor.solver;
             var blueprint = m_Actor.blueprint;
 
-            if (isBound && blueprint != null && m_Actor.solver != null)
+            if (isBound && blueprint != null && solver != null)
             {
-                switch (m_AttachmentType)
+                switch (type)
                 {
                     case AttachmentType.Dynamic:
 
@@ -325,8 +314,9 @@ namespace Obi
                         if (pins != null && pinBatch != null)
                         {
                             pinBatch.SetEnabled(false);
-                            pinBatch.RemoveFromSolver(pins);
+                            pinBatch.RemoveFromSolver();
                             pins.RemoveBatch(pinBatch);
+                            pinBatch = null;
                         }
 
                         break;
@@ -334,12 +324,14 @@ namespace Obi
                     case AttachmentType.Static:
 
                         for (int i = 0; i < m_SolverIndices.Length; ++i)
-                            solver.invMasses[m_SolverIndices[i]] = blueprint.invMasses[i];
+                            if (m_SolverIndices[i] >= 0 && m_SolverIndices[i] < solver.invMasses.count)
+                                solver.invMasses[m_SolverIndices[i]] = blueprint.invMasses[i];
 
                         if (m_Actor.usesOrientedParticles)
                         {
                             for (int i = 0; i < m_SolverIndices.Length; ++i)
-                                solver.invRotationalMasses[m_SolverIndices[i]] = blueprint.invRotationalMasses[i];
+                                if (m_SolverIndices[i] >= 0 && m_SolverIndices[i] < solver.invRotationalMasses.count)
+                                    solver.invRotationalMasses[m_SolverIndices[i]] = blueprint.invRotationalMasses[i];
                         }
 
                         m_Actor.UpdateParticleProperties();
@@ -350,7 +342,7 @@ namespace Obi
             }
         }
 
-        private void UpdateAttachment()
+        private void UpdateAttachment(float stepTime)
         {
 
             if (!enabled)
@@ -359,7 +351,7 @@ namespace Obi
             var solver = m_Actor.solver;
             var blueprint = m_Actor.blueprint;
 
-            if (isBound && blueprint != null && m_Actor.solver != null)
+            if (isBound && blueprint != null && solver != null)
             {
                 switch (m_AttachmentType)
                 {
@@ -368,7 +360,8 @@ namespace Obi
                         var pins = m_Actor.GetConstraintsByType(Oni.ConstraintType.Pin) as ObiConstraints<ObiPinConstraintsBatch>;
                         if (pins != null && pinBatch != null)
                         {
-                            pinBatch.BreakConstraints();
+                            pinBatch.BreakConstraints(stepTime);
+                            pinBatch.UpdateColliderIndices();
                         }
 
                         break;
@@ -382,11 +375,15 @@ namespace Obi
                         for (int i = 0; i <m_SolverIndices.Length; ++i)
                         {
                             int solverIndex = m_SolverIndices[i];
-                            solver.invMasses[solverIndex] = 0;
-                            solver.velocities[solverIndex] = Vector3.zero;
 
-                            // Note: skip assignment to startPositions if you want attached particles to be interpolated too.
-                            solver.startPositions[solverIndex] = solver.positions[solverIndex] = attachmentMatrix.MultiplyPoint3x4(m_PositionOffsets[i]);
+                            if (solverIndex >= 0 && solverIndex < solver.invMasses.count)
+                            {
+                                solver.invMasses[solverIndex] = 0;
+                                solver.velocities[solverIndex] = Vector3.zero;
+
+                                // Note: skip assignment to startPositions if you want attached particles to be interpolated too.
+                                solver.startPositions[solverIndex] = solver.positions[solverIndex] = attachmentMatrix.MultiplyPoint3x4(m_PositionOffsets[i]);
+                            }
                         }
 
                         if (m_Actor.usesOrientedParticles && m_ConstrainOrientation)
@@ -396,11 +393,15 @@ namespace Obi
                             for (int i = 0; i < m_SolverIndices.Length; ++i)
                             {
                                 int solverIndex = m_SolverIndices[i];
-                                solver.invRotationalMasses[solverIndex] = 0;
-                                solver.angularVelocities[solverIndex] = Vector3.zero;
 
-                                // Note: skip assignment to startPositions if you want attached particles to be interpolated too.
-                                solver.startOrientations[solverIndex] = solver.orientations[solverIndex] = attachmentRotation * m_OrientationOffsets[i];
+                                if (solverIndex >= 0 && solverIndex < solver.invRotationalMasses.count)
+                                {
+                                    solver.invRotationalMasses[solverIndex] = 0;
+                                    solver.angularVelocities[solverIndex] = Vector3.zero;
+
+                                    // Note: skip assignment to startPositions if you want attached particles to be interpolated too.
+                                    solver.startOrientations[solverIndex] = solver.orientations[solverIndex] = attachmentRotation * m_OrientationOffsets[i];
+                                }
                             }
                         }
 

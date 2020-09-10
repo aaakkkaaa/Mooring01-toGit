@@ -1,27 +1,44 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
 namespace Obi
 {
-    [System.Serializable]
+    [Serializable]
     public class ObiStretchShearConstraintsBatch : ObiConstraintsBatch, IStructuralConstraintBatch
     {
-        [HideInInspector] public ObiNativeIntList orientationIndices = new ObiNativeIntList();                 /**< Distance constraint indices.*/
-        [HideInInspector] public ObiNativeFloatList restLengths = new ObiNativeFloatList();             /**< Rest distances.*/
-        [HideInInspector] public ObiNativeQuaternionList restOrientations = new ObiNativeQuaternionList();          /**< Stiffnesses of distance constraits.*/
-        [HideInInspector] public ObiNativeVector3List stiffnesses = new ObiNativeVector3List();      /**< Stiffnesses of distance constraits.*/
+        [NonSerialized] protected ObiStretchShearConstraintsData m_Constraints;
+        protected IStretchShearConstraintsBatchImpl m_BatchImpl;   /**< pointer to constraint batch implementation.*/
+
+        [HideInInspector] public ObiNativeIntList orientationIndices = new ObiNativeIntList();                      /**< index of particle orientation for each constraint.*/
+        [HideInInspector] public ObiNativeFloatList restLengths = new ObiNativeFloatList();                         /**< rest distance for each constraint.*/
+        [HideInInspector] public ObiNativeQuaternionList restOrientations = new ObiNativeQuaternionList();          /**< rest orientation for each constraint.*/
+        [HideInInspector] public ObiNativeVector3List stiffnesses = new ObiNativeVector3List();                     /**< 3 compliance values per constraint, one for each local axis (x,y,z).*/
 
         public override Oni.ConstraintType constraintType
         {
             get { return Oni.ConstraintType.StretchShear; }
         }
 
-        public ObiStretchShearConstraintsBatch(ObiStretchShearConstraintsBatch source = null) : base(source) { }
-
-        public override IObiConstraintsBatch Clone()
+        public override IObiConstraints constraints
         {
-            var clone = new ObiStretchShearConstraintsBatch(this);
+            get { return m_Constraints; }
+        }
+
+        public override IConstraintsBatchImpl implementation
+        {
+            get { return m_BatchImpl; }
+        }
+
+        public ObiStretchShearConstraintsBatch(ObiStretchShearConstraintsData constraints = null, ObiStretchShearConstraintsBatch source = null) : base(source)
+        {
+            m_Constraints = constraints;
+        }
+
+        public override IObiConstraintsBatch Clone(IObiConstraints constraints)
+        {
+            var clone = new ObiStretchShearConstraintsBatch(constraints as ObiStretchShearConstraintsData, this);
 
             clone.particleIndices.ResizeUninitialized(particleIndices.count);
             clone.orientationIndices.ResizeUninitialized(orientationIndices.count);
@@ -91,18 +108,39 @@ namespace Obi
             stiffnesses.Swap(sourceIndex, destIndex);
         }
 
-        protected override void OnAddToSolver(IObiConstraints constraints)
+        public override void AddToSolver()
         {
-            for (int i = 0; i < restLengths.count; i++)
+            // create and add the implementation:
+            if (m_Constraints != null && m_Constraints.implementation != null)
             {
-                particleIndices[i * 2] = constraints.GetActor().solverIndices[source.particleIndices[i * 2]];
-                particleIndices[i * 2 + 1] = constraints.GetActor().solverIndices[source.particleIndices[i * 2 + 1]];
-                orientationIndices[i] = constraints.GetActor().solverIndices[((ObiStretchShearConstraintsBatch)source).orientationIndices[i]];
+                m_BatchImpl = m_Constraints.implementation.CreateConstraintsBatch();
             }
 
-            // pass constraint data arrays to the solver:
-            Oni.SetStretchShearConstraints(batch, particleIndices.GetIntPtr(), orientationIndices.GetIntPtr(), restLengths.GetIntPtr(), restOrientations.GetIntPtr(), stiffnesses.GetIntPtr(), m_ConstraintCount);
-            Oni.SetActiveConstraints(batch, m_ActiveConstraintCount);
+            if (m_BatchImpl != null)
+            {
+                lambdas.Clear();
+                for (int i = 0; i < restLengths.count; i++)
+                {
+                    particleIndices[i * 2] = constraints.GetActor().solverIndices[m_Source.particleIndices[i * 2]];
+                    particleIndices[i * 2 + 1] = constraints.GetActor().solverIndices[m_Source.particleIndices[i * 2 + 1]];
+                    orientationIndices[i] = constraints.GetActor().solverIndices[((ObiStretchShearConstraintsBatch)m_Source).orientationIndices[i]];
+                    lambdas.Add(0);
+                    lambdas.Add(0);
+                    lambdas.Add(0);
+                }
+
+                m_BatchImpl.SetStretchShearConstraints(particleIndices, orientationIndices, restLengths, restOrientations, stiffnesses, lambdas, m_ConstraintCount);
+                m_BatchImpl.SetActiveConstraints(m_ActiveConstraintCount);
+            }
+        }
+
+        public override void RemoveFromSolver()
+        {
+            if (m_Constraints != null && m_Constraints.implementation != null)
+                m_Constraints.implementation.RemoveBatch(m_BatchImpl);
+
+            if (m_BatchImpl != null)
+                m_BatchImpl.Destroy();
         }
 
         public void SetParameters(float stretchCompliance, float shear1Compliance, float shear2Compliance)

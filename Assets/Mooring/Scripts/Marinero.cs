@@ -112,7 +112,7 @@ public class Marinero : MonoBehaviour
                     Component collider;
                     if (ObiCollider.idToCollider.TryGetValue(contact.other, out collider))
                     {
-                        if(collider == _coll)
+                        if (collider == _coll)
                         {
                             isRopeContact = true;
                         }

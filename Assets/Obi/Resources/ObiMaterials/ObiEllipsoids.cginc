@@ -1,8 +1,6 @@
 #ifndef OBIELLIPSOIDS_INCLUDED
 #define OBIELLIPSOIDS_INCLUDED
 
-#include "ObiUtils.cginc"
-
 float _RadiusScale;
 
 // Eye ray origin in world space.

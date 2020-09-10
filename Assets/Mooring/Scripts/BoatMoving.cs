@@ -8,15 +8,15 @@ public class BoatMoving : MonoBehaviour
     // начало движения
     public GameObject startPoint;
     // угловая скорость (для вращения на месте в начале)
-    [NonSerialized] public float rotV = 15.0f;
+    public float rotV = 15.0f;
     // максимальная линейная скорость
-    [NonSerialized] public float maxVz = 3.0f;
+    public float maxVz = 3.0f;
     // Ускорение 
-    [NonSerialized] public float Az = 1.5f;
+    public float Az = 1.5f;
     // расстояние до точки, на котором начинается поворот
-    [NonSerialized] public float LenRot = 10.0f;
+    public float LenRot = 10.0f;
     // расстояние до последней точки, на котором начинается тормоз
-    [NonSerialized] public float LenSlow = 15.0f;
+    public float LenSlow = 15.0f;
 
     // текущая линейная скорость
     private float _Vz=0;
@@ -48,6 +48,12 @@ public class BoatMoving : MonoBehaviour
     private BoatPathManager _pathMngr;
     // имена всех точек пути
     private List<string> _path;
+    // Использовать для данного судная специальный путь
+    [SerializeField]
+    private bool _useSpecificPath;
+    // Специальный путь для данного судна
+    [SerializeField]
+    private List<string> _specificPath;
     // индекс текущей точки
     private int _curIdx;
 
@@ -70,24 +76,39 @@ public class BoatMoving : MonoBehaviour
         transform.position = startPoint.transform.position;
 
         _assist = FindObjectsOfType<sAssist>()[0];
+
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.P))
+        //if (Input.GetKeyDown(KeyCode.P))
+        //{
+        // Начинаем плыть
+        if (startPoint != null && _state == "IDLE")
         {
-            if (startPoint != null && _state == "IDLE")
+            print(gameObject.name + " -> Начинаем плыть");
+
+            // Построить путь судна
+            if (_useSpecificPath)
             {
-                print(gameObject.name + " -> Начинаем плыть");
-                _path = _pathMngr.CreatePath(startPoint.name);
-                _state = "START";
-                _curIdx = 0;
-                _curP = startPoint;
-                _nextP = _points.transform.Find(_path[_curIdx + 1]).gameObject;
-                print(gameObject.name + "  START  _nextP = " + _nextP.name);
-                _Vz = 0;
+                // Особый путь
+                _path = _specificPath;
             }
+            else
+            {
+                // Путь по общим отрезкам маршрутов (_branches в BoatPathManager) с элементами случайности
+                _path = _pathMngr.CreatePath(startPoint.name);
+            }
+            
+            _state = "START";
+            _curIdx = 0;
+            _curP = startPoint;
+            _nextP = _points.transform.Find(_path[_curIdx + 1]).gameObject;
+            print(gameObject.name + "  START  _nextP = " + _nextP.name);
+            _Vz = 0;
         }
+        //}
+
         if (_state == "START")
         {
             // перед началом движения поворачиваем нос к следующей точке
@@ -157,6 +178,7 @@ public class BoatMoving : MonoBehaviour
                     _state = "ROTATION";
                     _P0 = transform.position;
                     // точка окончания поворота лежит на прямой, соединяющей следующие две маршрутные точки
+                    //print("ИЩУ: " + _path[_curIdx + 2]);
                     GameObject next2P = _points.transform.Find(_path[_curIdx + 2]).gameObject;
                     Vector3 nextDir = next2P.transform.position - _nextP.transform.position;
                     nextDir.y = transform.position.y;

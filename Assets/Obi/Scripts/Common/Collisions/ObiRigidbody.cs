@@ -21,28 +21,29 @@ namespace Obi{
 
 		public override void UpdateIfNeeded(){
 
-			velocity = unityRigidbody.velocity;
-			angularVelocity = unityRigidbody.angularVelocity;
+            var rb = ObiColliderWorld.GetInstance().rigidbodies[handle.index];
 
-			adaptor.Set(unityRigidbody,kinematicForParticles);
-			Oni.UpdateRigidbody(OniRigidbody,ref adaptor);
+            velocity = rb.velocity = unityRigidbody.velocity;
+            angularVelocity = rb.angularVelocity = unityRigidbody.angularVelocity;
 
-		}
+            rb.FromRigidbody(unityRigidbody, false);
+
+            ObiColliderWorld.GetInstance().rigidbodies[handle.index] = rb;
+
+        }
 
 		/**
 		 * Reads velocities back from the solver.
 		 */
-		public override void UpdateVelocities()
+		public override void UpdateVelocities(Vector3 linearDelta, Vector3 angularDelta)
         {
 
 			// kinematic rigidbodies are passed to Obi with zero velocity, so we must ignore the new velocities calculated by the solver:
 			if (Application.isPlaying && (unityRigidbody.isKinematic || !kinematicForParticles))
             {
-
-                Oni.GetRigidbodyVelocity(OniRigidbody,ref oniVelocities);
-                unityRigidbody.velocity += oniVelocities.linearVelocity - velocity;
-                unityRigidbody.angularVelocity += oniVelocities.angularVelocity - angularVelocity;
-			}
+                unityRigidbody.velocity += linearDelta;
+                unityRigidbody.angularVelocity += angularDelta;
+            }
 		}
 	}
 }

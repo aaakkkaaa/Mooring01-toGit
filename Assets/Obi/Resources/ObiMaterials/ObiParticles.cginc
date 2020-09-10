@@ -1,8 +1,6 @@
 #ifndef OBIPARTICLES_INCLUDED
 #define OBIPARTICLES_INCLUDED
 
-#include "ObiUtils.cginc"
-
 float _RadiusScale;
 
 float3 BillboardSphereNormals(float2 texcoords)

@@ -37,19 +37,20 @@ public class YachtSolver : MonoBehaviour
 //    private float M0 = 8680f;                // водоизмещение = вес яхты в кг
     private float M0 = 12000f;                // водоизмещение = вес яхты в кг
     private float Jy = 35000f;               // момент инерции относительно вертикальной оси
-    private float K11 = 0.3f;                // коеф. для расчета массы с учетом присоединенной Mzz = (1+K11)*M0
-    private float K66 = 0.5f;                // коеф. для расчета массы и момента с учетом прис.  Jyy = (1+K66)*Jy; Mxx = (1+K66)*M0
-    private float KFrudX = 1.1f;             // Подгонка, для реализма эффективности руля
+    private float K11 = 0.3f;                // коэф. для расчета массы с учетом присоединенной Mzz = (1+K11)*M0
+    private float K66 = 0.53f;              // коэф. для расчета массы с учетом присоединенной Mxx = (1+K66)*M0; Jyy = (1+K66)*Jy (только на переднем ходу)
+    private float KFrudX = 0.6f;             // Подгонка, для реализма эффективности руля
     private float KBetaForv = 0.7f;          // Чтобы уменьшить влияние Beta, так как руль обдувается водой винта (3 стр 55)
     private float KBetaBack = 1.0f;          // Чтобы уменьшить влияние Beta, так как руль обдувается водой винта (3 стр 55)
     private float KrudVzxContraEnx = 0.7f;   // Соотношение влияния руля в потоке воды и руля в потоке винта
-    private float KwindF2 = 1.0f;             // Для подстройки влияния ветра на силу - множитель при V*V
-    private float KwindF1 = 10.0f;            // Для подстройки влияния ветра на силу - множитель при V
+    private float KwindF2 = 1.0f;            // Для подстройки влияния ветра на силу - множитель при V*V
+    private float KwindF1 = 10.0f;           // Для подстройки влияния ветра на силу - множитель при V
     private float KwindM = 1.0f;             // Для подстройки влияния ветра на момент
+    private float Krotvz = 0.5f;             // Подстройка вляния скорости вращения Omega и боковой скорости Vx на продольную скорость Vz
 
     // занос кормы
     public int DirectV = 1;                 // направление вращения, +1 - правый винт, -1 - левый;
-    public float Kzanos = 4;                // подбором, влияет на силу заноса кормы
+    public float Kzanos = 3;                // подбором, влияет на силу заноса кормы
     public float Tzanos = 1.3f;             // подбором, влияет на время (обратно) действия силы заноса после увеличения мощности 
 
     // рассчитывается один раз
@@ -58,16 +59,16 @@ public class YachtSolver : MonoBehaviour
     private float _KresX2;                  // коэффициент перед V*V при рассчете силы сопротивления по X
     private float _KresX1;                  // коэффициент перед V при рассчете силы сопротивления по X
     private float _KresOmega1;              // коэффициент перед силой сопротивления воды вращению линейный по омега
-    private float _KresOmega2;              // коэффициент перед силой сопротивления воды вращению квадратичный по омега
     private float _Mzz;                     // Масса с учетом присоединенной
     private float _Mxx;                     // Масса с учетом присоединенной
     private float _Jyy;                     // Момент с учетом присоединенной массы
 
     // рассчитывается на каждом шаге
-    private float _Kprop1 = -0.0603f;                  // коэффициент перед V при рассчете КПД винта. Линейная зависимость от engineValue
-    private float _Kprop2 = 0.0438f;                  // коэффициент перед V*V при рассчете КПД винта. Квадратичная зависимость от engineValue
+    private float _KresOmega2;                          // коэффициент перед силой сопротивления воды вращению квадратичный по омега
+    private float _KOmegaFeng;                          // коэф. потери тяги на заднем ходу во время поворота (при Vz<0: Feng = Feng / (1+ABS(OmegaY)*_KOmegaFeng)
+    private float _Kprop1 = -0.0603f;                   // коэффициент перед V при рассчете КПД винта. Линейная зависимость от engineValue
+    private float _Kprop2 = 0.0438f;                    // коэффициент перед V*V при рассчете КПД винта. Квадратичная зависимость от engineValue
     private float _Kprop3 = -0.01f;
-    //private float _Kprop4 = -0.0007f; // 2200
     private float _Kprop4 = -0.001f; // 2200
 
     [Header("Вывод для контроля:")]
@@ -112,13 +113,13 @@ public class YachtSolver : MonoBehaviour
     [HideInInspector]
     public float ThrottleSignal;
     private float _middleThrottle = 0.46f;
-    private float _ZeroThrottle = 0.05f;
+    private float _ZeroThrottle = 0.02f;
     private float _PositiveMultiplier;
     private float _NegativeMultiplier;
-    private float _ForwardGear = 0.67f; // Сигнал на ручке при включении переднего хода
-    private float _BackwardGear = -0.67f; // Сигнал на ручке при включении заднего хода
-    private float _ForwardGearEV = 0.2f; // Мощность двигателя при включении переднего хода
-    private float _BackwardGearEV = -0.2f; // Мощность двигателя при включении переднего хода
+    private float _ForwardGear = 0.56f; // Сигнал на ручке при включении переднего хода
+    private float _BackwardGear = -0.64f; // Сигнал на ручке при включении заднего хода
+    private float _ForwardGearEV = 0.16f; // Мощность двигателя при включении переднего хода
+    private float _BackwardGearEV = -0.16f; // Мощность двигателя при включении заднего хода
     private bool _ThrottleCalibrationMode = false;
     private int _ThrottleCalibrationStep = 0;
 
@@ -146,12 +147,16 @@ public class YachtSolver : MonoBehaviour
 
         _KresX2 = _KresZ2 * 20;               // подбором
         _KresX1 = _KresX2 * 3.0f;             // подбором 
-        _KresOmega2 = _KresZ2 * 30 * 10;      // подбором
+        //_KresOmega2 = _KresZ2 * 30 * 16;      // подбором
         _KresOmega1 = _KresZ2 * 16;           // подбором
+
+        // Коэф. для расчета массы и момента с учетом прис.  Jyy = (1+K66)*Jy; Mxx = (1+K66)*M0. Обратная линейная зависимости от скорости Vz - подбором
+        //K66 = 1.81647f -0.30856f * Vz;
+
         // массы и момент инерции с учетом присоединенных масс
         _Mzz = (1 + K11) * M0;
         _Mxx = (1 + K66) * M0;
-        _Jyy = (1 + K66) * Jy;
+        //_Jyy = (1 + K66) * Jy;
 
 
         // Группа величин для обработки сигнала от ручки газа
@@ -174,10 +179,10 @@ public class YachtSolver : MonoBehaviour
             "\tK11:\t" + K11 + "\tK66:\t" + K66 + "\tKFrudX:\t" + KFrudX + "\tKBetaForv:\t" + KBetaForv + "\tKBetaBack:\t" + KBetaBack + "\tKrudVzxContraEnx:\t" + KrudVzxContraEnx);
         _Record.MyLog("DirectV:\t" + DirectV + "\tKzanos:\t" + Kzanos + "\tTzanos:\t" + Tzanos);
         _Record.MyLog("_KresZ1:\t" + _KresZ1 + "\t_KresZ2:\t" + _KresZ2 + "\t_KresX1:\t" + _KresX1 + "\t_KresX2:\t" + _KresX2 + "\t_KresOmega1:\t" + _KresOmega1 + 
-            "\t_KresOmega2:\t" + _KresOmega2 + "\t_Mzz:\t" + _Mzz + "\t_Mxx:\t" + _Mxx + "\t_Jyy:\t" + _Jyy);
+            "\t_Mzz:\t" + _Mzz + "\t_Mxx:\t" + _Mxx + "\t_Jyy:\t" + _Jyy);
         _Record.MyLog("\t_Kprop1:\t" + _Kprop1 + "\t_Kprop2:\t" + _Kprop2 + "\t_Kprop3:\t" + _Kprop3 + "\t_Kprop4:\t" + _Kprop4 + "\n");
 
-        _Record.MyLog("EngineV:\tKprop4:\tFeng\tRuderValue\tFresZ\tFresX\tFrudVzZ\tFrudVzX\tMrudVzX\tFrudEnZ\tFrudEnX\tMrudEnX\tMrudResZ\tMresBody\tFengX\tMengX\tFwindZ\tFwindX\tMwind\tdVz\tVz\tdVx\tVx\tdOmegaY\tOmegaY\tBeta\tdt");
+        _Record.MyLog("EngineV:\tKprop4:\tFeng\tRuderValue\tFresZ\tFresX\tFrudVzZ\tFrudVzX\tMrudVzX\tFrudEnZ\tFrudEnX\tMrudEnX\tMrudResZ\tMresBody\tFengX\tMengX\tFwindZ\tFwindX\tMwind\tdVz\tVz\tdVx\tVx\tdOmegaY\tOmegaY\tBeta\tdt\tKresOmega2");
         
     }
 
@@ -277,6 +282,7 @@ public class YachtSolver : MonoBehaviour
 
         engineValue = Mathf.Clamp(engineValue, -1.0f, 1.0f);
         steeringWheel = Mathf.Clamp(steeringWheel, -540.0f, 540.0f);
+        //print("ThrottleSignal = " + ThrottleSignal + " engineValue = " + engineValue + " _ForwardGear = " + _ForwardGear + " _BackwardGear - " + _BackwardGear);
 
     }
 
@@ -311,6 +317,8 @@ public class YachtSolver : MonoBehaviour
         float dt = Time.fixedDeltaTime;
         // поворот пера руля
         RuderValue = -steeringWheel * 35 / 540;
+        // Ограничение составляющих момента вращения при RuderValue => 0. Применяется для величин MrudVzX и vToRot
+        float KruderMom = Mathf.Abs(Mathf.Atan(RuderValue)) * 2 / Mathf.PI;
         // сила тяги
         float FengOld = Feng; // для анализа, нужен ли занос кормы от работы винта
         //Feng = enginePower * engineValue / maxV; 
@@ -327,9 +335,10 @@ public class YachtSolver : MonoBehaviour
 
         // Сила тяги винта
         Feng = engineValue * K_EnvalToFeng * (1 + _Kprop1*Mathf.Abs(Vz) + _Kprop2 * Vz * Vz + _Kprop3 * Vz * Vz * Mathf.Abs(Vz) + _Kprop4 * Vz * Vz * Vz * Vz);
-        if (Feng<0)
+        if (Feng < 0)
         {
-            Feng *= engBack;
+            _KOmegaFeng = 78.879f * engineValue * engineValue + 141.7f * engineValue + 82.266f;
+            Feng = Feng * engBack / (1 + Mathf.Abs(OmegaY) * _KOmegaFeng);
         }
         //_Record.MyLog("engineValue\t" + engineValue + "\tK_EnvalToFeng\t" + K_EnvalToFeng + "\tVz\t" + Vz + "\t_Kprop1\t" + _Kprop1 + "\t_Kprop2\t" + _Kprop2 + "\t_Kprop3\t" + _Kprop3 + "\t_Kprop4\t" + _Kprop4 + "\tFeng\t" + Feng);
 
@@ -340,6 +349,16 @@ public class YachtSolver : MonoBehaviour
 
         //_Record.MyLog(_Time.CurrentTimeSec() + "\t" + engineValue + "\t" + Vz + "\t" + Feng + "\t" + FresZ, false);
 
+        // Подгонка, для реализма эффективности руля
+        if(Vz >= 0.0f)
+        {
+            KFrudX = 0.6f;
+        }
+        else
+        {
+            KFrudX = 1.5f;
+        }
+        
         // силы и момент на руле от движения яхты
         FrudVzZ = -Mathf.Sign(Vz) * FruderZ(RuderValue - Beta, Vz);
         FrudVzX = Mathf.Sign(RuderValue - Beta) * Mathf.Sign(Vz) * FruderX(RuderValue - Beta, Vz);
@@ -347,7 +366,7 @@ public class YachtSolver : MonoBehaviour
         {
             FrudVzX *= KrudVzxContraEnx;    // доля влияния руля в потоке воды
         }
-        MrudVzX = -FrudVzX * Lbody / 2;
+        MrudVzX = -FrudVzX * Lbody / 2 * KruderMom;
         // print("RuderValue = " + RuderValue + "   Beta = " + Beta + "   Итого = " + (RuderValue - Beta));
 
         // силы и момент на руле от работы винта - возникают НЕ только при кручении винта вперед
@@ -387,7 +406,16 @@ public class YachtSolver : MonoBehaviour
         }
 
         // Момент - сопротивление вращательному движению. Не по (1), а из физических соображений
-        //MresBody = -Mathf.Sign(OmegaY) * _KresOmega2 * (OmegaY * Lbody) * (OmegaY * Lbody) / 8;
+
+        if (engineValue >= 0)
+        {
+            _KresOmega2 = (29.04f * engineValue * engineValue + 6.6f * engineValue) * _KresOmega1;
+        }
+        else
+        {
+            _KresOmega2 = 96.8f * engineValue * engineValue * _KresOmega1;
+        }
+
         MresBody = -Mathf.Sign(OmegaY) * _KresOmega2 * (OmegaY * Lbody) * (OmegaY * Lbody) / 8 - _KresOmega1 * (OmegaY * Lbody) / 2;
         // сила и момент от увеличения мощности двигателя
         float impactX = detectEngineImpact(FengOld, Feng);
@@ -414,7 +442,7 @@ public class YachtSolver : MonoBehaviour
         wAngle = NormalizeAngle(wAngle);
         //print("Локально: " + wLocal + "   wAngle = " + wAngle);
         float wValue = wLocal.magnitude;
-        //_Record.MyLog("wLocal.x\t" + wLocal.x + "\twLocal.z\t" + wLocal.z + "\twAngle\t" + wAngle + "\twValue\t" + wValue);
+        //_Record.MyLog("\twGlobal.x\t" + wGlobal.x + "\twGlobal.z\t" + wGlobal.z + "\twLocal.x\t" + wLocal.x + "\twLocal.z\t" + wLocal.z + "\twAngle\t" + wAngle + "\twValue\t" + wValue);
         // получаем величину силы и момент от ветра
         float fWind = WindForce(wAngle, wValue);           // возвращается абс. величина силы!
 
@@ -422,6 +450,7 @@ public class YachtSolver : MonoBehaviour
         Vector3 FwindVec = Vector3.Normalize(wLocal) * fWind;
         FwindX = FwindVec.x;
         FwindZ = FwindVec.z;
+        //_Record.MyLog("\tfWind\t" + fWind + "\tFwindX\t" + FwindX + "\tFwindZ\t" + FwindZ);
         Mwind = WindMoment(wAngle, wValue);
 
         // Натяжение канатов
@@ -437,10 +466,26 @@ public class YachtSolver : MonoBehaviour
             Mrope += -localF.z * (_cleats[i].transform.localPosition.x);
         }
 
+        // Массы и момент инерции с учетом присоединенных масс
+
+        // Коэф. для расчета массы с учетом прис.  Mxx = (1+K66)*M0.
+        if (Vz >= 0f)
+        // Передний ход: при engineValue=0,681818182 (1500/2200) K66=0.8; при engineValue=0,909090909 (2000 /2200) K66=0.53
+        {
+            //K66 = -1.188f * engineValue + 1.61f;
+            _Jyy = (1 + K66) * Jy; // момент инерции с учетом присоединенных масс
+        }
+        else
+            // Задний ход: при engineValue=-0,454545455 (-1000 /2200) K66=1.4; при engineValue=-0,159090909 (-350 /2200) K66=2
+        {
+            //K66 = 2.030769231f * engineValue + 2.323076923f;
+            _Jyy = Jy; // момент инерции с учетом присоединенных масс
+        }
+
         // Численное интегрирование:
         // Интегрируем dVz/dt - продольная скорость по Z
         //float rotToVz = _Mxx * OmegaY * Vx;
-        float rotToVz = _Mxx * OmegaY * Vx * 0.2f;
+        float rotToVz = _Mxx * OmegaY * Vx * Krotvz;
         float dVz = dt * (Feng + FresZ + FrudVzZ + FrudEnZ + FwindZ + FropeZ + rotToVz) / _Mzz;
         //_Record.MyLog("\t_Mxx\t" + _Mxx + "\tOmegaY\t" + OmegaY + "\tVx\t" + Vx + "\trotToVz\t" + rotToVz + "\tFeng\t" + Feng + "\tFresZ\t" + FresZ + "\tFrudVzZ\t" + FrudVzZ + "\tFrudEnZ\t" + FrudEnZ + "\trotToVz\t" + rotToVz);
 /*
@@ -460,8 +505,8 @@ public class YachtSolver : MonoBehaviour
         //print("FrudX = " + FrudX + "   FresX = " + FresX + "   rotToVy = " + rotToVx + "   dVx = "+ dVx + "   Vx = "+Vx);
 
         // Интегрируем dOmegaY/dt - момент вокруг вертикальной оси Y
-        float vToRot = (_Mzz - _Mxx) * Vx * Vz;
-
+        float vToRot = (_Mzz - _Mxx) * Vx * Vz * KruderMom;
+        
         float dOmegaY = dt * (MrudVzX + MrudEnX + MresBody + MengX + MrudResZ + Mwind + Mrope + vToRot) / _Jyy;
 /*
         if (_Time.CurrentTimeMilliSec() > _nextLogTime - 20)
@@ -471,7 +516,7 @@ public class YachtSolver : MonoBehaviour
             _nextLogTime += 1000;
          }
 */
-        _Record.MyLog(engineValue + "\t" + _Kprop4 + "\t" + Feng + "\t" + RuderValue + "\t" + FresZ + "\t" + FresX + "\t" + FrudVzZ + "\t" + FrudVzX + "\t" + MrudVzX + "\t" + FrudEnZ + "\t" + FrudEnX + "\t" + MrudEnX + "\t" + MrudResZ + "\t" + MresBody + "\t" + FengX + "\t" + MengX + "\t" + FwindZ + "\t" + FwindX + "\t" + Mwind + "\t" + dVz + "\t" + Vz + "\t" + dVx + "\t" + Vx + "\t" + dOmegaY + "\t" + OmegaY + "\t" + Beta + "\t" + dt);
+        _Record.MyLog(engineValue + "\t" + _Kprop4 + "\t" + Feng + "\t" + RuderValue + "\t" + FresZ + "\t" + FresX + "\t" + FrudVzZ + "\t" + FrudVzX + "\t" + MrudVzX + "\t" + FrudEnZ + "\t" + FrudEnX + "\t" + MrudEnX + "\t" + MrudResZ + "\t" + MresBody + "\t" + FengX + "\t" + MengX + "\t" + FwindZ + "\t" + FwindX + "\t" + Mwind + "\t" + dVz + "\t" + Vz + "\t" + dVx + "\t" + Vx + "\t" + dOmegaY + "\t" + OmegaY + "\t" + Beta + "\t" + dt + "\t" + _KresOmega2);
 
         // Новые скорости
         Vz += dVz;
@@ -543,25 +588,31 @@ public class YachtSolver : MonoBehaviour
     private float detectEngineImpact(float FengOld, float Feng)
     {
         float impact = 0;
-        if (FengOld >= 0 && FengOld < Feng)     // мощность увеличили
+        //if (FengOld >= 0 && FengOld < Feng)     // мощность увеличили
+        //{
+        //    if (Vz >= 0)                        // стоим или плывем вперед
+        //    {
+        //        impact = Kzanos * (Feng - FengOld);
+        //    }
+        //}
+        //if (FengOld <= 0 && FengOld > Feng)     // увеличили мощность назад
+        //{
+        //    if (Vz <= 0)                        // стоим или движемся назад
+        //    {
+        //        impact = Kzanos * (Feng - FengOld);
+        //    }
+        //}
+
+        if ((FengOld >= 0 && FengOld < Feng) || (FengOld <= 0 && FengOld > Feng))     // мощность увеличили вперед или назад
         {
-            if (Vz >= 0)                        // стоим или плывем вперед
-            {
                 impact = Kzanos * (Feng - FengOld);
-            }
         }
-        if (FengOld <= 0 && FengOld > Feng)     // увеличили мощность назад
-        {
-            if (Vz <= 0)                        // стоим или движемся назад
-            {
-                impact = Kzanos * (Feng - FengOld);
-            }
-        }
+
         // учтем направление вращения винта
         return impact * DirectV;
     }
 
-    // Приведем любой угол от к (-180/+180)
+    // Приведем любой угол в диапазон +/- 180 градусов
     float NormalizeAngle(float myAngle)
     {
         while (myAngle > 180.0f)

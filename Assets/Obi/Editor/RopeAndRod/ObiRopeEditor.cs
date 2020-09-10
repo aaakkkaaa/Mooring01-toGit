@@ -29,6 +29,7 @@ namespace Obi
         SerializedProperty selfCollisions;
 
         SerializedProperty distanceConstraintsEnabled;
+        SerializedProperty stretchingScale;
         SerializedProperty stretchCompliance;
         SerializedProperty maxCompression;
 
@@ -54,6 +55,7 @@ namespace Obi
             selfCollisions = serializedObject.FindProperty("m_SelfCollisions");
 
             distanceConstraintsEnabled = serializedObject.FindProperty("_distanceConstraintsEnabled");
+            stretchingScale = serializedObject.FindProperty("_stretchingScale");
             stretchCompliance = serializedObject.FindProperty("_stretchCompliance");
             maxCompression = serializedObject.FindProperty("_maxCompression");
 
@@ -147,6 +149,7 @@ namespace Obi
             });
             ObiEditorUtils.DoToggleablePropertyGroup(distanceConstraintsEnabled, new GUIContent("Distance Constraints", Resources.Load<Texture2D>("Icons/ObiDistanceConstraints Icon")),
             () => {
+                EditorGUILayout.PropertyField(stretchingScale, new GUIContent("Stretching scale"));
                 EditorGUILayout.PropertyField(stretchCompliance, new GUIContent("Stretch compliance"));
                 EditorGUILayout.PropertyField(maxCompression, new GUIContent("Max compression"));
             });

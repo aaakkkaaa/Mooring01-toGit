@@ -34,13 +34,10 @@ namespace Crest
 
         readonly int sp_CenterPos = Shader.PropertyToID("_CenterPos");
         readonly int sp_Scale = Shader.PropertyToID("_Scale");
-        readonly int sp_CamPos = Shader.PropertyToID("_CamPos");
-        readonly int sp_CamForward = Shader.PropertyToID("_CamForward");
         readonly int sp_JitterDiameters_CurrentFrameWeights = Shader.PropertyToID("_JitterDiameters_CurrentFrameWeights");
         readonly int sp_MainCameraProjectionMatrix = Shader.PropertyToID("_MainCameraProjectionMatrix");
         readonly int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
         readonly int sp_LD_SliceIndex_Source = Shader.PropertyToID("_LD_SliceIndex_Source");
-        readonly int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
 
         SettingsType _defaultSettings;
         public SettingsType Settings
@@ -67,9 +64,6 @@ namespace Crest
         {
             base.Start();
 
-#if UNITY_2018
-            Debug.LogError("Shadowing not enabled on preview versions of URP. Upgrade to 2019 is required.", this);
-#endif
             {
                 _renderMaterial = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
                 var shader = Shader.Find("Hidden/Crest/Simulation/Update Shadow");
@@ -90,19 +84,8 @@ namespace Crest
                 Debug.LogError("To support shadowing, a Custom renderer must be configured on the pipeline asset, and this custom renderer data must have the Sample Shadows feature added.", GraphicsSettings.renderPipelineAsset);
             }
 
-            _cameraMain = Camera.main;
-            if (_cameraMain == null)
-            {
-                var viewpoint = OceanRenderer.Instance.Viewpoint;
-                _cameraMain = viewpoint != null ? viewpoint.GetComponent<Camera>() : null;
-
-                if (_cameraMain == null)
-                {
-                    Debug.LogError("Could not find main camera, disabling shadow data", _ocean);
-                    enabled = false;
-                    return;
-                }
-            }
+            // Setup the camera.
+            UpdateCameraMain();
 
 #if UNITY_EDITOR
             if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_SHADOWS_ON"))
@@ -213,6 +196,12 @@ namespace Crest
                 return;
             }
 
+            // Update the camera if it has changed.
+            if (_cameraMain.transform != OceanRenderer.Instance.Viewpoint)
+            {
+                UpdateCameraMain();
+            }
+
             Swap(ref _sources, ref _targets);
 
             BufCopyShadowMap.Clear();
@@ -253,6 +242,19 @@ namespace Crest
                     BindSourceData(_renderMaterial[lodIdx], false);
                     BufCopyShadowMap.Blit(Texture2D.blackTexture, _targets, _renderMaterial[lodIdx].material, -1, lodIdx);
                 }
+            }
+        }
+
+        void UpdateCameraMain()
+        {
+            var viewpoint = OceanRenderer.Instance.Viewpoint;
+            _cameraMain = viewpoint != null ? viewpoint.GetComponent<Camera>() : null;
+
+            if (_cameraMain == null)
+            {
+                Debug.LogError("Could not find main camera, disabling shadow data", _ocean);
+                enabled = false;
+                return;
             }
         }
 

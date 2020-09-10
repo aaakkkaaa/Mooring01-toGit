@@ -7,130 +7,68 @@ namespace Obi{
 
 	public class ObiMeshShapeTracker : ObiShapeTracker
 	{
-		private class MeshDataHandles{
+        ObiTriangleMeshHandle handle;
 
-			private int refCount = 1;
-			private GCHandle verticesHandle;
-			private GCHandle indicesHandle;
+		public ObiMeshShapeTracker(ObiCollider source, MeshCollider collider){
 
-			public int RefCount{
-				get{return refCount;}
-			}
-
-			public IntPtr VerticesAddress{
-				get{return verticesHandle.AddrOfPinnedObject();}
-			}
-
-			public IntPtr IndicesAddress{
-				get{return indicesHandle.AddrOfPinnedObject();}
-			}
-
-			public void FromMesh(Mesh mesh){
-				Oni.UnpinMemory(verticesHandle);
-				Oni.UnpinMemory(indicesHandle);
-				verticesHandle = Oni.PinMemory(mesh.vertices);
-				indicesHandle = Oni.PinMemory(mesh.triangles);
-			}			
-
-			public void Ref(){			
-				refCount++;
-			}
-
-			public void Unref(){
-				refCount--;
-				if (refCount <= 0){
-					refCount = 0;
-					Oni.UnpinMemory(verticesHandle);
-					Oni.UnpinMemory(indicesHandle);
-				}
-			}			
-		}
-
-		private static Dictionary<Mesh,MeshDataHandles> meshDataCache = new Dictionary<Mesh,MeshDataHandles>();
-		private bool meshDataHasChanged = false;
-		private MeshDataHandles handles;
-
-		public ObiMeshShapeTracker(MeshCollider collider){
-
+            this.source = source;
 			this.collider = collider;
-			adaptor.is2D = false;
-			oniShape = Oni.CreateShape(Oni.ShapeType.TriangleMesh);
+		}
 
-			UpdateMeshData();	
-
-		}		
-
-		/**
-		 * Updates mesh data, in case the collider mesh had its vertices modified, or is an entirely different mesh.
+        /**
+		 * Forces the tracker to update mesh data during the next call to UpdateIfNeeded().
 		 */
-		public void UpdateMeshData(){
-
-			MeshCollider meshCollider = collider as MeshCollider;
-
-			if (meshCollider != null){
-
-				Mesh mesh = meshCollider.sharedMesh;
-				
-				// Decrease reference count of current handles:
-				if (handles != null)
-					handles.Unref();
-
-                if (mesh != null)
-                {
-                    MeshDataHandles newHandles;
-
-                    // if handles do not exist for this mesh, create them:
-                    if (!meshDataCache.TryGetValue(mesh, out newHandles))
-                    {
-                        handles = new MeshDataHandles();
-                        meshDataCache[mesh] = handles;
-                    }
-                    // if the handles already exist, increase their reference count and set them as the current handles.
-                    else
-                    {
-                        newHandles.Ref();
-                        handles = newHandles;
-                    }
-
-                    // Update handles from mesh:
-                    handles.FromMesh(mesh);
-                }
-
-				meshDataHasChanged = true;
-			}
-		}
+        public void UpdateMeshData()
+        {
+            ObiColliderWorld.GetInstance().DestroyTriangleMesh(handle);
+        }
 	
-		public override bool UpdateIfNeeded (){
+		public override bool UpdateIfNeeded ()
+        {
 
-			MeshCollider meshCollider = collider as MeshCollider;
-	
-			if (meshCollider != null){
+            MeshCollider meshCollider = collider as MeshCollider;
 
-				Mesh mesh = meshCollider.sharedMesh;
+            // retrieve collision world and index:
+            var world = ObiColliderWorld.GetInstance();
+            int index = source.Handle.index;
 
-				if (mesh != null && meshDataHasChanged){
-					meshDataHasChanged = false;
-					adaptor.Set(handles.VerticesAddress,handles.IndicesAddress,mesh.vertexCount,mesh.triangles.Length);
-					Oni.UpdateShape(oniShape,ref adaptor);
-					return true;
-				}			
-			}
-			return false;
-		}
+            // get or create the mesh:
+            if (handle == null || !handle.isValid)
+            {
+                handle = world.GetOrCreateTriangleMesh(meshCollider.sharedMesh);
+                handle.Reference();
+            }
 
-		public override void Destroy(){
+            // update collider:
+            var shape = world.colliderShapes[index];
+            shape.type = ColliderShape.ShapeType.TriangleMesh;
+            shape.phase = source.Phase;
+            shape.flags = meshCollider.isTrigger ? 1 : 0;
+            shape.rigidbodyIndex = source.Rigidbody != null ? source.Rigidbody.handle.index : -1;
+            shape.materialIndex = source.CollisionMaterial != null ? source.CollisionMaterial.handle.index : -1;
+            shape.contactOffset = meshCollider.contactOffset + source.Thickness;
+            shape.dataIndex = handle.index;
+            world.colliderShapes[index] = shape;
+
+            // update bounds:
+            var aabb = world.colliderAabbs[index];
+            aabb.FromBounds(meshCollider.bounds, shape.contactOffset);
+            world.colliderAabbs[index] = aabb;
+
+            // update transform:
+            var trfm = world.colliderTransforms[index];
+            trfm.FromTransform(meshCollider.transform);
+            world.colliderTransforms[index] = trfm;
+
+            return true;
+        }
+
+		public override void Destroy()
+        {
 			base.Destroy();
 
-			MeshCollider meshCollider = collider as MeshCollider;
-
-			if (meshCollider != null && handles != null){
-
-				handles.Unref(); // Decrease handles refcount.
-
-				if (handles.RefCount <= 0)
-					meshDataCache.Remove(meshCollider.sharedMesh);
-				
-			}
+            if (handle != null && handle.Dereference())
+                ObiColliderWorld.GetInstance().DestroyTriangleMesh(handle);
 		}
 	}
 }

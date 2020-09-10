@@ -23,10 +23,7 @@ Features:
 using UnityEngine;
 using Unity.Profiling;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
-using System.Runtime.InteropServices;
 using System.Linq;
 
 namespace Obi
@@ -48,11 +45,10 @@ namespace Obi
 
         private static int initialCapacity = 256;
 
-        public enum UpdateMode
+        public enum BackendType
         {
-            FixedUpdate,
-            AfterFixedUpdate,
-            LateUpdate
+            Oni,
+            Burst
         }
 
         public class ObiCollisionEventArgs : System.EventArgs
@@ -95,6 +91,19 @@ namespace Obi
         [Tooltip("If enabled, will force the solver to keep simulating even when not visible from any camera.")]
         public bool simulateWhenInvisible = true;           /**< Whether to keep simulating the cloth when its not visible by any camera.*/
 
+        private ISolverImpl m_SolverImpl;
+
+        private IObiBackend m_SimulationBackend =
+#if (OBI_BURST && OBI_MATHEMATICS && OBI_COLLECTIONS)
+        new BurstBackend();
+#elif (OBI_ONI_SUPPORTED)
+        new OniBackend();
+#else
+        new NullBackend();
+#endif
+
+        [SerializeField] private BackendType m_Backend = BackendType.Burst;
+
         [ChildrenOnly]
         public Oni.SolverParameters parameters = new Oni.SolverParameters(Oni.SolverParameters.Interpolation.None,
                                                                           new Vector4(0, -9.81f, 0, 0));
@@ -111,7 +120,6 @@ namespace Obi
         private int activeParticleCount = 0;
         [HideInInspector] [NonSerialized] public bool activeParticleCountChanged = true;
 
-        private IntPtr oniSolver;
         private ObiCollisionEventArgs collisionArgs = new ObiCollisionEventArgs();
         private ObiCollisionEventArgs particleCollisionArgs = new ObiCollisionEventArgs();
 
@@ -139,8 +147,15 @@ namespace Obi
         public Oni.ConstraintParameters bendTwistConstraintParameters = new Oni.ConstraintParameters(true, Oni.ConstraintParameters.EvaluationOrder.Sequential, 3);
         public Oni.ConstraintParameters chainConstraintParameters = new Oni.ConstraintParameters(false, Oni.ConstraintParameters.EvaluationOrder.Sequential, 3);
 
+        // rigidbodies
+        ObiNativeVector4List m_RigidbodyLinearVelocities;
+        ObiNativeVector4List m_RigidbodyAngularVelocities;
+
         // colors
-        public Color[] m_Colors;
+        [NonSerialized] private Color[] m_Colors;
+
+        // cell indices
+        [NonSerialized] private ObiNativeInt4List m_CellCoords;
 
         // positions
         [NonSerialized] private ObiNativeVector4List m_Positions;
@@ -176,7 +191,8 @@ namespace Obi
         [NonSerialized] private ObiNativeIntList m_PositionConstraintCounts;
         [NonSerialized] private ObiNativeIntList m_OrientationConstraintCounts;
 
-        // particle phase / shape
+        // particle collisions / shape
+        [NonSerialized] private ObiNativeIntList m_CollisionMaterials;
         [NonSerialized] private ObiNativeIntList m_Phases;
         [NonSerialized] private ObiNativeVector4List m_Anisotropies;
         [NonSerialized] private ObiNativeVector4List m_PrincipalRadii;
@@ -196,9 +212,32 @@ namespace Obi
         [NonSerialized] private ObiNativeFloatList m_AtmosphericPressure;
         [NonSerialized] private ObiNativeFloatList m_Diffusion;
 
-        public IntPtr OniSolver
+        public ISolverImpl implementation
         {
-            get { return oniSolver; }
+            get { return m_SolverImpl; }
+        }
+
+        public bool initialized
+        {
+            get { return m_SolverImpl != null; }
+        }
+
+        public IObiBackend simulationBackend
+        {
+            get { return m_SimulationBackend; }
+        }
+
+        public BackendType backendType
+        {
+            set
+            {
+                if (m_Backend != value)
+                {
+                    m_Backend = value;
+                    UpdateBackend();
+                }
+            }
+            get { return m_Backend; }
         }
 
         public UnityEngine.Bounds Bounds
@@ -235,6 +274,30 @@ namespace Obi
             }
         }
 
+        public ObiNativeVector4List rigidbodyLinearDeltas
+        {
+            get
+            {
+                if (m_RigidbodyLinearVelocities == null)
+                {
+                    m_RigidbodyLinearVelocities = new ObiNativeVector4List();
+                }
+                return m_RigidbodyLinearVelocities;
+            }
+        }
+
+        public ObiNativeVector4List rigidbodyAngularDeltas
+        {
+            get
+            {
+                if (m_RigidbodyAngularVelocities == null)
+                {
+                    m_RigidbodyAngularVelocities = new ObiNativeVector4List();
+                }
+                return m_RigidbodyAngularVelocities;
+            }
+        }
+
         public Color[] colors
         {
             get
@@ -249,7 +312,20 @@ namespace Obi
             }
         }
 
-        #region Position arrays
+        public ObiNativeInt4List cellCoords
+        {
+            get
+            {
+                if (m_CellCoords == null)
+                {
+                    m_CellCoords = new ObiNativeInt4List(initialCapacity, 16, new VInt4(int.MaxValue));
+                    m_CellCoords.count = initialCapacity;
+                }
+                return m_CellCoords;
+            }
+        }
+
+#region Position arrays
 
         public ObiNativeVector4List positions
         {
@@ -316,9 +392,9 @@ namespace Obi
             }
         }
 
-        #endregion
+#endregion
 
-        #region Orientation arrays
+#region Orientation arrays
 
         public ObiNativeQuaternionList orientations
         {
@@ -379,15 +455,15 @@ namespace Obi
                 if (m_RenderableOrientations == null)
                 {
                     m_RenderableOrientations = new ObiNativeQuaternionList(initialCapacity);
-                    m_RenderableOrientations.count = initialCapacity; 
+                    m_RenderableOrientations.count = initialCapacity;
                 }
                 return m_RenderableOrientations;
             }
         }
 
-        #endregion
+#endregion
 
-        #region Velocity arrays
+#region Velocity arrays
 
         public ObiNativeVector4List velocities
         {
@@ -415,9 +491,9 @@ namespace Obi
             }
         }
 
-        #endregion
+#endregion
 
-        #region Mass arrays
+#region Mass arrays
 
         public ObiNativeFloatList invMasses
         {
@@ -458,9 +534,9 @@ namespace Obi
             }
         }
 
-        #endregion
+#endregion
 
-        #region External forces
+#region External forces
 
         public ObiNativeVector4List externalForces
         {
@@ -501,9 +577,9 @@ namespace Obi
             }
         }
 
-        #endregion
+#endregion
 
-        #region Deltas
+#region Deltas
 
         public ObiNativeVector4List positionDeltas
         {
@@ -557,9 +633,22 @@ namespace Obi
             }
         }
 
-        #endregion
+#endregion
 
-        #region Shape and phase
+#region Shape and phase
+
+        public ObiNativeIntList collisionMaterials
+        {
+            get
+            {
+                if (m_CollisionMaterials == null)
+                {
+                    m_CollisionMaterials = new ObiNativeIntList(initialCapacity);
+                    m_CollisionMaterials.count = initialCapacity;
+                }
+                return m_CollisionMaterials;
+            }
+        }
 
         public ObiNativeIntList phases
         {
@@ -613,9 +702,9 @@ namespace Obi
             }
         }
 
-        #endregion
+#endregion
 
-        #region Fluid properties
+#region Fluid properties
 
         public ObiNativeVector4List vorticities
         {
@@ -773,12 +862,8 @@ namespace Obi
             }
         }
 
-        #endregion
+#endregion
 
-		private void OnEnable() 
-        {
-            Initialize();
-        }
 
         void Update()
         {
@@ -790,24 +875,50 @@ namespace Obi
             // Remove all actors from the solver:
             while (actors.Count > 0)
                 RemoveActor(actors[actors.Count - 1]);
-            
+
             Teardown();
         }
 
-		public void Initialize()
-		{
-            if (oniSolver == IntPtr.Zero)
+        private void CreateBackend()
+        {
+            switch (m_Backend)
             {
+
+#if (OBI_BURST && OBI_MATHEMATICS && OBI_COLLECTIONS)
+                case BackendType.Burst: m_SimulationBackend = new BurstBackend(); break;
+#endif
+#if (OBI_ONI_SUPPORTED)
+                case BackendType.Oni: m_SimulationBackend = new OniBackend(); break;
+#endif
+
+                default:
+#if (OBI_ONI_SUPPORTED)
+                    m_SimulationBackend = new OniBackend();
+#else
+                    m_SimulationBackend = new NullBackend();
+#endif
+                    break;
+            }
+        }
+
+        public void Initialize()
+        {
+            if (!initialized)
+            {
+                CreateBackend();
+
+                // Set up local actor and particle buffers:
                 actors = new List<ObiActor>();
                 activeParticles = new int[initialCapacity];
                 m_ParticleToActor = new ParticleInActor[initialCapacity];
                 m_Colors = new Color[initialCapacity];
 
-                // Create the Oni solver:
-                oniSolver = Oni.CreateSolver(initialCapacity);
+                // Create the solver:
+                m_SolverImpl = m_SimulationBackend.CreateSolver(this, initialCapacity);
 
-                // Send particle arrays to Oni:
-                PushParticleArrays();
+                // Set data arrays:
+                m_SolverImpl.ParticleCountChanged(this);
+                m_SolverImpl.SetRigidbodyArrays(this);
 
                 // Initialize moving transform:
                 InitializeTransformFrame();
@@ -815,59 +926,61 @@ namespace Obi
                 // Set initial parameter values:
                 UpdateParameters();
             }
-		}
+        }
 
         public void Teardown()
         {
-            // Free particle memory:
-            FreeParticleArrays(); 
+            if (initialized)
+            {
+                // Destroy the Oni solver:
+                m_SimulationBackend.DestroySolver(m_SolverImpl);
+                m_SolverImpl = null;
 
-            // Destroy the Oni solver:
-            Oni.DestroySolver(oniSolver);
-            oniSolver = IntPtr.Zero;
+                // Free particle / rigidbody memory:
+                FreeParticleArrays();
+                FreeRigidbodyArrays();
+            }
         }
 
-		private void PushParticleArrays()
+        public void UpdateBackend()
         {
-            Oni.SetParticlePositions(oniSolver, positions.GetIntPtr());
-            Oni.SetParticlePreviousPositions(oniSolver, prevPositions.GetIntPtr());
-            Oni.SetRestPositions(oniSolver, restPositions.GetIntPtr());
-            Oni.SetParticleOrientations(oniSolver, orientations.GetIntPtr());
-            Oni.SetParticlePreviousOrientations(oniSolver, prevOrientations.GetIntPtr());
-            Oni.SetRestOrientations(oniSolver, restOrientations.GetIntPtr());
-            Oni.SetParticleVelocities(oniSolver, velocities.GetIntPtr());
-            Oni.SetParticleAngularVelocities(oniSolver, angularVelocities.GetIntPtr());
-            Oni.SetParticleInverseMasses(oniSolver, invMasses.GetIntPtr());
-            Oni.SetParticleInverseRotationalMasses(oniSolver, invRotationalMasses.GetIntPtr());
-            Oni.SetParticlePrincipalRadii(oniSolver, principalRadii.GetIntPtr());
-            Oni.SetParticlePhases(oniSolver, phases.GetIntPtr());
-            Oni.SetRenderableParticlePositions(oniSolver, renderablePositions.GetIntPtr());
-            Oni.SetRenderableParticleOrientations(oniSolver, renderableOrientations.GetIntPtr());
-            Oni.SetParticleAnisotropies(oniSolver, anisotropies.GetIntPtr());
-            Oni.SetParticleSmoothingRadii(oniSolver, smoothingRadii.GetIntPtr());
-            Oni.SetParticleBuoyancy(oniSolver, buoyancies.GetIntPtr());
-            Oni.SetParticleRestDensities(oniSolver, restDensities.GetIntPtr());
-            Oni.SetParticleViscosities(oniSolver, viscosities.GetIntPtr());
-            Oni.SetParticleSurfaceTension(oniSolver, surfaceTension.GetIntPtr());
-            Oni.SetParticleVorticityConfinement(oniSolver, vortConfinement.GetIntPtr());
-            Oni.SetParticleAtmosphericDragPressure(oniSolver, atmosphericDrag.GetIntPtr(), atmosphericPressure.GetIntPtr());
-            Oni.SetParticleDiffusion(oniSolver, diffusion.GetIntPtr());
-            Oni.SetParticleVorticities(oniSolver, vorticities.GetIntPtr());
-            Oni.SetParticleFluidData(oniSolver, fluidData.GetIntPtr());
-            Oni.SetParticleUserData(oniSolver, userData.GetIntPtr());
-            Oni.SetParticleExternalForces(oniSolver, externalForces.GetIntPtr());
-            Oni.SetParticleExternalTorques(oniSolver, externalTorques.GetIntPtr());
-            Oni.SetParticleWinds(oniSolver, wind.GetIntPtr());
-            Oni.SetParticlePositionDeltas(oniSolver, positionDeltas.GetIntPtr());
-            Oni.SetParticleOrientationDeltas(oniSolver, orientationDeltas.GetIntPtr());
-            Oni.SetParticlePositionConstraintCounts(oniSolver, positionConstraintCounts.GetIntPtr());
-            Oni.SetParticleOrientationConstraintCounts(oniSolver, orientationConstraintCounts.GetIntPtr());
-            Oni.SetParticleNormals(oniSolver, normals.GetIntPtr());
-            Oni.SetParticleInverseInertiaTensors(oniSolver, invInertiaTensors.GetIntPtr());
+            // remove all actors an tear the solver down:
+            List<ObiActor> temp = new List<ObiActor>(actors);
+            foreach (ObiActor actor in temp)
+                actor.RemoveFromSolver();
+
+            Teardown();
+
+            // re-initialize the solver and re-add all actors.
+            Initialize();
+
+            foreach (ObiActor actor in temp)
+                actor.AddToSolver();
+        }
+
+        private void FreeRigidbodyArrays()
+        {
+            rigidbodyLinearDeltas.Dispose();
+            rigidbodyAngularDeltas.Dispose();
+
+            m_RigidbodyLinearVelocities = null;
+            m_RigidbodyAngularVelocities = null;
+        }
+
+        public void EnsureRigidbodyArraysCapacity(int count)
+        {
+            if (initialized && count >= rigidbodyLinearDeltas.count)
+            {
+                rigidbodyLinearDeltas.ResizeInitialized(count);
+                rigidbodyAngularDeltas.ResizeInitialized(count);
+
+                m_SolverImpl.SetRigidbodyArrays(this);
+            }
         }
 
         private void FreeParticleArrays()
         {
+            cellCoords.Dispose();
             startPositions.Dispose();
             startOrientations.Dispose();
             positions.Dispose();
@@ -881,6 +994,7 @@ namespace Obi
             invMasses.Dispose();
             invRotationalMasses.Dispose();
             principalRadii.Dispose();
+            collisionMaterials.Dispose();
             phases.Dispose();
             renderablePositions.Dispose();
             renderableOrientations.Dispose();
@@ -908,6 +1022,7 @@ namespace Obi
             invInertiaTensors.Dispose();
 
             m_Colors = null;
+            m_CellCoords = null;
             m_Positions = null;
             m_RestPositions = null;
             m_PrevPositions = null;
@@ -930,6 +1045,7 @@ namespace Obi
             m_OrientationDeltas = null;
             m_PositionConstraintCounts = null;
             m_OrientationConstraintCounts = null;
+            m_CollisionMaterials = null;
             m_Phases = null;
             m_Anisotropies = null;
             m_PrincipalRadii = null;
@@ -950,46 +1066,59 @@ namespace Obi
 
         private void EnsureParticleArraysCapacity(int count)
         {
+            // only resize if the count is larger than the current amount of particles:
             if (count >= positions.count)
             {
-                startPositions.ResizeInitialized(count);
-                positions.ResizeInitialized(count);
-                prevPositions.ResizeInitialized(count);
-                restPositions.ResizeInitialized(count);
-                startOrientations.ResizeInitialized(count);
-                orientations.ResizeInitialized(count);
-                prevOrientations.ResizeInitialized(count);
-                restOrientations.ResizeInitialized(count);
-                renderablePositions.ResizeInitialized(count);
-                renderableOrientations.ResizeInitialized(count);
-                velocities.ResizeInitialized(count);
-                angularVelocities.ResizeInitialized(count);
-                invMasses.ResizeInitialized(count);
-                invRotationalMasses.ResizeInitialized(count);
-                principalRadii.ResizeInitialized(count);
-                phases.ResizeInitialized(count);
-                anisotropies.ResizeInitialized(count * 3);
-                smoothingRadii.ResizeInitialized(count);
-                buoyancies.ResizeInitialized(count);
-                restDensities.ResizeInitialized(count);
-                viscosities.ResizeInitialized(count);
-                surfaceTension.ResizeInitialized(count);
-                vortConfinement.ResizeInitialized(count);
-                atmosphericDrag.ResizeInitialized(count);
-                atmosphericPressure.ResizeInitialized(count);
-                diffusion.ResizeInitialized(count);
-                vorticities.ResizeInitialized(count);
-                fluidData.ResizeInitialized(count);
-                userData.ResizeInitialized(count);
-                externalForces.ResizeInitialized(count);
-                externalTorques.ResizeInitialized(count);
-                wind.ResizeInitialized(count);
-                positionDeltas.ResizeInitialized(count);
-                orientationDeltas.ResizeInitialized(count, new Quaternion(0, 0, 0, 0));
-                positionConstraintCounts.ResizeInitialized(count);
-                orientationConstraintCounts.ResizeInitialized(count);
-                normals.ResizeInitialized(count);
-                invInertiaTensors.ResizeInitialized(count);
+                bool realloc = false;
+                realloc |= cellCoords.ResizeInitialized(count);
+                realloc |= startPositions.ResizeInitialized(count);
+                realloc |= positions.ResizeInitialized(count);
+                realloc |= prevPositions.ResizeInitialized(count);
+                realloc |= restPositions.ResizeInitialized(count);
+                realloc |= startOrientations.ResizeInitialized(count, Quaternion.identity);
+                realloc |= orientations.ResizeInitialized(count, Quaternion.identity);
+                realloc |= prevOrientations.ResizeInitialized(count, Quaternion.identity);
+                realloc |= restOrientations.ResizeInitialized(count, Quaternion.identity);
+                realloc |= renderablePositions.ResizeInitialized(count);
+                realloc |= renderableOrientations.ResizeInitialized(count,Quaternion.identity);
+                realloc |= velocities.ResizeInitialized(count);
+                realloc |= angularVelocities.ResizeInitialized(count);
+                realloc |= invMasses.ResizeInitialized(count);
+                realloc |= invRotationalMasses.ResizeInitialized(count);
+                realloc |= principalRadii.ResizeInitialized(count);
+                realloc |= collisionMaterials.ResizeInitialized(count);
+                realloc |= phases.ResizeInitialized(count);
+                realloc |= anisotropies.ResizeInitialized(count * 3);
+                realloc |= smoothingRadii.ResizeInitialized(count);
+                realloc |= buoyancies.ResizeInitialized(count);
+                realloc |= restDensities.ResizeInitialized(count);
+                realloc |= viscosities.ResizeInitialized(count);
+                realloc |= surfaceTension.ResizeInitialized(count);
+                realloc |= vortConfinement.ResizeInitialized(count);
+                realloc |= atmosphericDrag.ResizeInitialized(count);
+                realloc |= atmosphericPressure.ResizeInitialized(count);
+                realloc |= diffusion.ResizeInitialized(count);
+                realloc |= vorticities.ResizeInitialized(count);
+                realloc |= fluidData.ResizeInitialized(count);
+                realloc |= userData.ResizeInitialized(count);
+                realloc |= externalForces.ResizeInitialized(count);
+                realloc |= externalTorques.ResizeInitialized(count);
+                realloc |= wind.ResizeInitialized(count);
+                realloc |= positionDeltas.ResizeInitialized(count);
+                realloc |= orientationDeltas.ResizeInitialized(count, new Quaternion(0, 0, 0, 0));
+                realloc |= positionConstraintCounts.ResizeInitialized(count);
+                realloc |= orientationConstraintCounts.ResizeInitialized(count);
+                realloc |= normals.ResizeInitialized(count);
+                realloc |= invInertiaTensors.ResizeInitialized(count);
+
+                // TODO: not needed, call only once after loading/unloading a blueprint.
+                // called only when the particle arrays have been reallocated (to increase capacity):
+                if (realloc)
+                    m_SolverImpl.ParticleCapacityChanged(this);
+
+                // TODO: not needed, call only once after loading/unloading a blueprint.
+                // called every time particle count has changed.
+                m_SolverImpl.ParticleCountChanged(this);
             }
 
             if (count >= activeParticles.Length)
@@ -997,9 +1126,6 @@ namespace Obi
                 Array.Resize(ref activeParticles, count * 2);
                 Array.Resize(ref m_ParticleToActor, count * 2);
                 Array.Resize(ref m_Colors, count * 2);
-
-                PushParticleArrays();
-                Oni.SetCapacity(oniSolver, positions.capacity);
             }
         }
 
@@ -1008,10 +1134,12 @@ namespace Obi
             int allocatedCount = 0;
             int current = 0;
 
+            // while we haven't allocated enough particles:
             while (allocatedCount < particleIndices.Length)
             {
                 EnsureParticleArraysCapacity(current + 1);
 
+                // if the current slot is free, use it to allocate a new particle.
                 if (particleToActor[current] == null || particleToActor[current].actor == null)
                 {
                     particleToActor[current] = new ObiSolver.ParticleInActor(actor, allocatedCount);
@@ -1032,6 +1160,9 @@ namespace Obi
 
             if (actor == null)
                 return false;
+
+            // If the actor is not initialized yet, do it:
+            Initialize();
 
             // Find actor index in our actors array:
             int index = actors.IndexOf(actor);
@@ -1081,6 +1212,10 @@ namespace Obi
 
                 actor.solverIndices = null;
 
+                // If this was the last actor in the solver, tear it down:
+                if (actors.Count == 0)
+                    Teardown();
+
                 return true;
             }
 
@@ -1092,44 +1227,71 @@ namespace Obi
     	 */
         public void UpdateParameters()
         {
+            if (!initialized)
+                return;
 
-            Oni.SetSolverParameters(oniSolver, ref parameters);
+            m_SolverImpl.SetParameters(parameters);
 
-            Oni.SetConstraintGroupParameters(oniSolver, (int)Oni.ConstraintType.Distance, ref distanceConstraintParameters);
+            m_SolverImpl.SetConstraintGroupParameters(Oni.ConstraintType.Distance, ref distanceConstraintParameters);
 
-            Oni.SetConstraintGroupParameters(oniSolver, (int)Oni.ConstraintType.Bending, ref bendingConstraintParameters);
+            m_SolverImpl.SetConstraintGroupParameters(Oni.ConstraintType.Bending, ref bendingConstraintParameters);
 
-            Oni.SetConstraintGroupParameters(oniSolver, (int)Oni.ConstraintType.ParticleCollision, ref particleCollisionConstraintParameters);
+            m_SolverImpl.SetConstraintGroupParameters(Oni.ConstraintType.ParticleCollision, ref particleCollisionConstraintParameters);
 
-            Oni.SetConstraintGroupParameters(oniSolver, (int)Oni.ConstraintType.ParticleFriction, ref particleFrictionConstraintParameters);
+            m_SolverImpl.SetConstraintGroupParameters(Oni.ConstraintType.ParticleFriction, ref particleFrictionConstraintParameters);
 
-            Oni.SetConstraintGroupParameters(oniSolver, (int)Oni.ConstraintType.Collision, ref collisionConstraintParameters);
+            m_SolverImpl.SetConstraintGroupParameters(Oni.ConstraintType.Collision, ref collisionConstraintParameters);
 
-            Oni.SetConstraintGroupParameters(oniSolver, (int)Oni.ConstraintType.Friction, ref frictionConstraintParameters);
+            m_SolverImpl.SetConstraintGroupParameters(Oni.ConstraintType.Friction, ref frictionConstraintParameters);
 
-            Oni.SetConstraintGroupParameters(oniSolver, (int)Oni.ConstraintType.Density, ref densityConstraintParameters);
+            m_SolverImpl.SetConstraintGroupParameters(Oni.ConstraintType.Density, ref densityConstraintParameters);
 
-            Oni.SetConstraintGroupParameters(oniSolver, (int)Oni.ConstraintType.Skin, ref skinConstraintParameters);
+            m_SolverImpl.SetConstraintGroupParameters(Oni.ConstraintType.Skin, ref skinConstraintParameters);
 
-            Oni.SetConstraintGroupParameters(oniSolver, (int)Oni.ConstraintType.Volume, ref volumeConstraintParameters);
+            m_SolverImpl.SetConstraintGroupParameters(Oni.ConstraintType.Volume, ref volumeConstraintParameters);
 
-            Oni.SetConstraintGroupParameters(oniSolver, (int)Oni.ConstraintType.ShapeMatching, ref shapeMatchingConstraintParameters);
+            m_SolverImpl.SetConstraintGroupParameters(Oni.ConstraintType.ShapeMatching, ref shapeMatchingConstraintParameters);
 
-            Oni.SetConstraintGroupParameters(oniSolver, (int)Oni.ConstraintType.Tether, ref tetherConstraintParameters);
+            m_SolverImpl.SetConstraintGroupParameters(Oni.ConstraintType.Tether, ref tetherConstraintParameters);
 
-            Oni.SetConstraintGroupParameters(oniSolver, (int)Oni.ConstraintType.Pin, ref pinConstraintParameters);
+            m_SolverImpl.SetConstraintGroupParameters(Oni.ConstraintType.Pin, ref pinConstraintParameters);
 
-            Oni.SetConstraintGroupParameters(oniSolver, (int)Oni.ConstraintType.Stitch, ref stitchConstraintParameters);
+            m_SolverImpl.SetConstraintGroupParameters(Oni.ConstraintType.Stitch, ref stitchConstraintParameters);
 
-            Oni.SetConstraintGroupParameters(oniSolver, (int)Oni.ConstraintType.StretchShear, ref stretchShearConstraintParameters);
+            m_SolverImpl.SetConstraintGroupParameters(Oni.ConstraintType.StretchShear, ref stretchShearConstraintParameters);
 
-            Oni.SetConstraintGroupParameters(oniSolver, (int)Oni.ConstraintType.BendTwist, ref bendTwistConstraintParameters);
+            m_SolverImpl.SetConstraintGroupParameters(Oni.ConstraintType.BendTwist, ref bendTwistConstraintParameters);
 
-            Oni.SetConstraintGroupParameters(oniSolver, (int)Oni.ConstraintType.Chain, ref chainConstraintParameters);
+            m_SolverImpl.SetConstraintGroupParameters(Oni.ConstraintType.Chain, ref chainConstraintParameters);
 
             if (OnUpdateParameters != null)
                 OnUpdateParameters(this);
 
+        }
+
+        public Oni.ConstraintParameters GetConstraintParameters(Oni.ConstraintType constraintType)
+        {
+            switch (constraintType)
+            {
+                case Oni.ConstraintType.Distance: return distanceConstraintParameters;
+                case Oni.ConstraintType.Bending: return bendingConstraintParameters;
+                case Oni.ConstraintType.ParticleCollision: return particleCollisionConstraintParameters;
+                case Oni.ConstraintType.ParticleFriction: return particleFrictionConstraintParameters;
+                case Oni.ConstraintType.Collision: return collisionConstraintParameters;
+                case Oni.ConstraintType.Friction: return frictionConstraintParameters;
+                case Oni.ConstraintType.Skin: return skinConstraintParameters;
+                case Oni.ConstraintType.Volume: return volumeConstraintParameters;
+                case Oni.ConstraintType.ShapeMatching: return shapeMatchingConstraintParameters;
+                case Oni.ConstraintType.Tether: return tetherConstraintParameters;
+                case Oni.ConstraintType.Pin: return pinConstraintParameters;
+                case Oni.ConstraintType.Stitch: return stitchConstraintParameters;
+                case Oni.ConstraintType.Density: return densityConstraintParameters;
+                case Oni.ConstraintType.StretchShear: return stretchShearConstraintParameters;
+                case Oni.ConstraintType.BendTwist: return bendTwistConstraintParameters;
+                case Oni.ConstraintType.Chain: return chainConstraintParameters;
+
+                default: return new Oni.ConstraintParameters(true, Oni.ConstraintParameters.EvaluationOrder.Sequential, 1);
+            }
         }
 
         /**
@@ -1156,8 +1318,8 @@ namespace Obi
                     }
                 }
 
-                Oni.SetActiveParticles(oniSolver, activeParticles, activeParticleCount);
-                activeParticleCountChanged = false;  
+                m_SolverImpl.SetActiveParticles(activeParticles, activeParticleCount);
+                activeParticleCountChanged = false;
             }
 
         }
@@ -1175,7 +1337,7 @@ namespace Obi
                 {
                     // get bounds in solver space:
                     Vector3 min = Vector3.zero, max = Vector3.zero;
-                    Oni.GetBounds(oniSolver, ref min, ref max);
+                    m_SolverImpl.GetBounds(ref min, ref max);
                     bounds.SetMinMax(min, max);
                 }
 
@@ -1223,7 +1385,8 @@ namespace Obi
             Vector4 translation = transform.position;
             Vector4 scale = transform.lossyScale;
             Quaternion rotation = transform.rotation;
-            Oni.InitializeFrame(this.oniSolver, ref translation, ref scale, ref rotation);
+
+            m_SolverImpl.InitializeFrame(translation, scale, rotation);
         }
 
         public void UpdateTransformFrame(float dt)
@@ -1231,14 +1394,15 @@ namespace Obi
             Vector4 translation = transform.position;
             Vector4 scale = transform.lossyScale;
             Quaternion rotation = transform.rotation;
-            Oni.UpdateFrame(this.oniSolver, ref translation, ref scale, ref rotation, dt);
-            Oni.ApplyFrame(this.oniSolver, 0, 0, worldLinearInertiaScale, worldAngularInertiaScale, dt);
+
+            m_SolverImpl.UpdateFrame(translation, scale, rotation, dt);
+            m_SolverImpl.ApplyFrame(worldLinearInertiaScale, worldAngularInertiaScale, dt);
         }
 
-        public IntPtr BeginStep(float stepTime)
+        public IObiJobHandle BeginStep(float stepTime)
         {
-            if (!isActiveAndEnabled || oniSolver == IntPtr.Zero)
-                return IntPtr.Zero;
+            if (!isActiveAndEnabled || !initialized)
+                return null;
 
             // Update inertial frame:
             UpdateTransformFrame(stepTime);
@@ -1250,54 +1414,51 @@ namespace Obi
             // Update the active particles array:
             PushActiveParticles();
 
-            // Recalculate inertia tensors:
-            Oni.RecalculateInertiaTensors(OniSolver);
-
             if (OnBeginStep != null)
-                OnBeginStep(this,stepTime);
+                OnBeginStep(this, stepTime);
 
             foreach (ObiActor actor in actors)
                 actor.BeginStep(stepTime);
 
             // Perform collision detection:
             if (simulateWhenInvisible || isVisible)
-                return Oni.CollisionDetection(oniSolver, stepTime);
+                return m_SolverImpl.CollisionDetection(stepTime);
 
-            return IntPtr.Zero;
+            return null;
         }
 
-        public IntPtr Substep(float substepTime)
+        public IObiJobHandle Substep(float substepTime)
         {
 
             // Only update the solver if it is visible, or if we must simulate even when invisible.
-            if (isActiveAndEnabled && (simulateWhenInvisible || isVisible) && oniSolver != IntPtr.Zero)
+            if (isActiveAndEnabled && (simulateWhenInvisible || isVisible) && initialized)
             {
                 if (OnSubstep != null)
-                    OnSubstep(this,substepTime);
+                    OnSubstep(this, substepTime);
 
                 foreach (ObiActor actor in actors)
                     actor.Substep(substepTime);
 
                 // Update the solver (this is internally split in tasks so multiple solvers can be updated in parallel)
-                return Oni.Step(oniSolver, substepTime);
+                return m_SolverImpl.Substep(substepTime);
             }
 
-            return IntPtr.Zero;
+            return null;
         }
 
         public void EndStep()
         {
-            if (oniSolver == IntPtr.Zero)
+            if (!initialized)
                 return;
 
             if (OnCollision != null)
             {
 
-                int numCollisions = Oni.GetConstraintCount(oniSolver, (int)Oni.ConstraintType.Collision);
+                int numCollisions = implementation.GetConstraintCount(Oni.ConstraintType.Collision);
                 collisionArgs.contacts.SetCount(numCollisions);
 
                 if (numCollisions > 0)
-                    Oni.GetCollisionContacts(oniSolver, collisionArgs.contacts.Data, numCollisions);
+                    implementation.GetCollisionContacts(collisionArgs.contacts.Data, numCollisions);
 
                 OnCollision(this, collisionArgs);
 
@@ -1306,17 +1467,17 @@ namespace Obi
             if (OnParticleCollision != null)
             {
 
-                int numCollisions = Oni.GetConstraintCount(oniSolver, (int)Oni.ConstraintType.ParticleCollision);
+                int numCollisions = implementation.GetConstraintCount(Oni.ConstraintType.ParticleCollision);
                 particleCollisionArgs.contacts.SetCount(numCollisions);
 
                 if (numCollisions > 0)
-                    Oni.GetParticleCollisionContacts(oniSolver, particleCollisionArgs.contacts.Data, numCollisions);
+                    implementation.GetParticleCollisionContacts(particleCollisionArgs.contacts.Data, numCollisions);
 
                 OnParticleCollision(this, particleCollisionArgs);
 
             }
 
-            Oni.ResetForces(oniSolver);
+            m_SolverImpl.ResetForces();
 
             if (OnEndStep != null)
                 OnEndStep(this);
@@ -1329,7 +1490,7 @@ namespace Obi
         // This is usually used for mesh generation, rendering setup and other tasks that must take place after all physics steps for this frame are done.
         public void Interpolate(float stepTime, float unsimulatedTime) // TODO: give a better name, as "Interpolate" is too specific.
         {
-            if (!isActiveAndEnabled || oniSolver == IntPtr.Zero)
+            if (!isActiveAndEnabled || !initialized)
                 return;
 
             // Only perform interpolation if the solver is visible, or if we must simulate even when invisible.
@@ -1338,7 +1499,7 @@ namespace Obi
                 using (m_StateInterpolationPerfMarker.Auto())
                 {
                     // interpolate physics state:
-                    Oni.ApplyPositionInterpolation(oniSolver, startPositions.GetIntPtr(), startOrientations.GetIntPtr(), stepTime, unsimulatedTime);
+                    m_SolverImpl.ApplyInterpolation(startPositions, startOrientations, stepTime, unsimulatedTime);
                 }
             }
 

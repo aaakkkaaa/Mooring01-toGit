@@ -106,10 +106,9 @@ namespace Obi
 					case Axis.Z: offset = new Vector3(x * sampleSize,y * sampleSize,sweep); break;
 				}
 
-				Vector4 position = origin + offset;
-				float distance = Oni.SampleDistanceField(field.OniDistanceField,position.x,position.y,position.z);
-				
-				float value = ObiUtils.Remap(distance,-maxDistance,maxDistance,0,1);
+                float distance = ASDF.Sample(field.nodes, origin + offset);
+
+                float value = ObiUtils.Remap(distance,-maxDistance,maxDistance,0,1);
 
 				cutawayTexture.SetPixel(x,y,new Color(value,0,0));
 			}

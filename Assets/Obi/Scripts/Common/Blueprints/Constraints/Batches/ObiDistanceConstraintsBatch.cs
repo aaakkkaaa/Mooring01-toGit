@@ -1,21 +1,38 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
 namespace Obi
 {
-    [System.Serializable]
+    [Serializable]
     public class ObiDistanceConstraintsBatch : ObiConstraintsBatch, IStructuralConstraintBatch
     {
-        [HideInInspector] public ObiNativeFloatList restLengths = new ObiNativeFloatList();                /**< Rest distances.*/
-        [HideInInspector] public ObiNativeVector2List stiffnesses = new ObiNativeVector2List();              /**< Stiffnesses of distance constraits.*/
+        [NonSerialized] protected ObiDistanceConstraintsData m_Constraints; // TODO: not good to get a ref to it, cycle in Unity serializer.
+        protected IDistanceConstraintsBatchImpl m_BatchImpl;   /**< pointer to constraint batch implementation.*/
+
+        [HideInInspector] public ObiNativeFloatList restLengths = new ObiNativeFloatList();                  /**< Rest distance for each constraint.*/
+        [HideInInspector] public ObiNativeVector2List stiffnesses = new ObiNativeVector2List();              /**< 2 values for each constraint: compliance and slack.*/
 
         public override Oni.ConstraintType constraintType
         {
             get { return Oni.ConstraintType.Distance; }
         }
 
-        public ObiDistanceConstraintsBatch(ObiDistanceConstraintsBatch source = null):base(source){}
+        public override IObiConstraints constraints
+        {
+            get { return m_Constraints; }
+        }
+
+        public override IConstraintsBatchImpl implementation
+        {
+            get { return m_BatchImpl; }
+        }
+
+        public ObiDistanceConstraintsBatch(ObiDistanceConstraintsData constraints = null, ObiDistanceConstraintsBatch source = null):base(source)
+        {
+            m_Constraints = constraints;
+        }
 
         public void AddConstraint(Vector2Int indices, float restLength)
         {
@@ -78,9 +95,9 @@ namespace Obi
             stiffnesses.Swap(sourceIndex, destIndex);
         }
 
-        public override IObiConstraintsBatch Clone()
+        public override IObiConstraintsBatch Clone(IObiConstraints constraints)
         {
-            var clone = new ObiDistanceConstraintsBatch(this);
+            var clone = new ObiDistanceConstraintsBatch(constraints as ObiDistanceConstraintsData,this);
 
             clone.particleIndices.ResizeUninitialized(particleIndices.count);
             clone.restLengths.ResizeUninitialized(restLengths.count);
@@ -93,25 +110,44 @@ namespace Obi
             return clone;
         }
 
-        protected override void OnAddToSolver(IObiConstraints constraints)
+        public override void AddToSolver()
         {
-            for (int i = 0; i < restLengths.count; i++)
+            // create and add the implementation:
+            if (m_Constraints != null && m_Constraints.implementation != null)
             {
-                particleIndices[i * 2] = constraints.GetActor().solverIndices[source.particleIndices[i * 2]];
-                particleIndices[i * 2 + 1] = constraints.GetActor().solverIndices[source.particleIndices[i * 2 + 1]];
-                stiffnesses[i] = new Vector2(0,restLengths[i]);
+                m_BatchImpl = m_Constraints.implementation.CreateConstraintsBatch();
             }
 
-            // pass constraint data arrays to the solver:
-            Oni.SetDistanceConstraints(batch, particleIndices.GetIntPtr(), restLengths.GetIntPtr(), stiffnesses.GetIntPtr(), m_ConstraintCount);
-            Oni.SetActiveConstraints(batch, m_ActiveConstraintCount);
+            if (m_BatchImpl != null)
+            {
+                lambdas.Clear();
+                for (int i = 0; i < restLengths.count; i++)
+                {
+                    particleIndices[i * 2] = constraints.GetActor().solverIndices[m_Source.particleIndices[i * 2]];
+                    particleIndices[i * 2 + 1] = constraints.GetActor().solverIndices[m_Source.particleIndices[i * 2 + 1]];
+                    stiffnesses[i] = new Vector2(0, restLengths[i]);
+                    lambdas.Add(0);
+                }
+
+                m_BatchImpl.SetDistanceConstraints(particleIndices, restLengths, stiffnesses, lambdas, m_ConstraintCount);
+                m_BatchImpl.SetActiveConstraints(m_ActiveConstraintCount);
+            }
+        }
+
+        public override void RemoveFromSolver()
+        {
+            if (m_Constraints != null && m_Constraints.implementation != null)
+                m_Constraints.implementation.RemoveBatch(m_BatchImpl);
+
+            if (m_BatchImpl != null)
+                m_BatchImpl.Destroy();
         }
 
         public void SetParameters(float compliance, float slack, float stretchingScale)
         {
             for (int i = 0; i < stiffnesses.count; i++)
             {
-                restLengths[i] = ((ObiDistanceConstraintsBatch)source).restLengths[i] * stretchingScale;
+                restLengths[i] = ((ObiDistanceConstraintsBatch)m_Source).restLengths[i] * stretchingScale;
                 stiffnesses[i] = new Vector2(compliance, slack * restLengths[i]);
             }
         }

@@ -10,15 +10,15 @@ void CrestNodeLightData_half
 	out half3 o_colour
 )
 {
-#ifdef UNIVERSAL_LIGHTING_INCLUDED
+#if SHADERGRAPH_PREVIEW
+	//Hardcoded data, used for the preview shader inside the graph
+	//where light functions are not available
+	o_direction = -normalize(float3(-0.5, 0.5, -0.5));
+	o_colour = float3(1.0, 1.0, 1.0);
+#else
 	//Actual light data from the pipeline
 	Light light = GetMainLight();
 	o_direction = light.direction;
 	o_colour = light.color;
-#else
-	//Hardcoded data, used for the preview shader inside the graph
-	//where light functions are not available
-	o_direction = normalize(float3(-0.5, 0.5, -0.5));
-	o_colour = float3(1.0, 1.0, 1.0);
 #endif
 }

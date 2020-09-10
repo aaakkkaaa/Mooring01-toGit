@@ -34,12 +34,12 @@ Shader "Crest/Underwater Curtain"
 
 			#pragma multi_compile_instancing
 
-			#pragma shader_feature _SUBSURFACESCATTERING_ON
-			#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
-			#pragma shader_feature _TRANSPARENCY_ON
-			#pragma shader_feature _CAUSTICS_ON
-			#pragma shader_feature _SHADOWS_ON
-			#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
+			#pragma shader_feature_local _SUBSURFACESCATTERING_ON
+			#pragma shader_feature_local _SUBSURFACESHALLOWCOLOUR_ON
+			#pragma shader_feature_local _TRANSPARENCY_ON
+			#pragma shader_feature_local _CAUSTICS_ON
+			#pragma shader_feature_local _SHADOWS_ON
+			#pragma shader_feature_local _COMPILESHADERWITHDEBUGINFO_ON
 
 			#if _COMPILESHADERWITHDEBUGINFO_ON
 			#pragma enable_d3d11_debug_symbols
@@ -47,6 +47,9 @@ Shader "Crest/Underwater Curtain"
 
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+
+			// @Hack: Work around to unity_CameraToWorld._13_23_33 not being set correctly in URP 7.4+
+			float3 _CameraForward;
 
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanInputsDriven.hlsl"
@@ -57,8 +60,6 @@ Shader "Crest/Underwater Curtain"
 			#include "UnderwaterShared.hlsl"
 
 			#include "../OceanEmission.hlsl"
-
-			float3 _CameraForward;
 
 			#define MAX_OFFSET 5.0
 
@@ -102,7 +103,8 @@ Shader "Crest/Underwater Curtain"
 				// view coordinate frame for camera
 				const float3 right   = unity_CameraToWorld._11_21_31;
 				const float3 up      = unity_CameraToWorld._12_22_32;
-				const float3 forward = unity_CameraToWorld._13_23_33;
+				// @Hack: Work around to unity_CameraToWorld._13_23_33 not being set correctly in URP 7.4+
+				const float3 forward = _CameraForward;
 
 				const float3 nearPlaneCenter = _WorldSpaceCameraPos + forward * _ProjectionParams.y * 1.001;
 				// Spread verts across the near plane.

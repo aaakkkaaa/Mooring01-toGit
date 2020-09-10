@@ -19,31 +19,30 @@ namespace Obi{
 			base.Awake();
 		}
 
-		public override void UpdateIfNeeded(){
+		public override void UpdateIfNeeded()
+        {
 
-			velocity = new Vector3(unityRigidbody.velocity.x,unityRigidbody.velocity.y,0);
-			angularVelocity = new Vector3(0,0,unityRigidbody.angularVelocity * Mathf.Deg2Rad);
+            var rb = ObiColliderWorld.GetInstance().rigidbodies[handle.index];
 
-			adaptor.Set(unityRigidbody,kinematicForParticles);
-			Oni.UpdateRigidbody(OniRigidbody,ref adaptor);
+            velocity = rb.velocity = unityRigidbody.velocity;
+            angularVelocity = rb.angularVelocity = new Vector4(0,0,unityRigidbody.angularVelocity* Mathf.Deg2Rad,0);
 
-		}
+            rb.FromRigidbody(unityRigidbody, false);
+
+            ObiColliderWorld.GetInstance().rigidbodies[handle.index] = rb;
+        }
 
 		/**
 		 * Reads velocities back from the solver.
 		 */
-		public override void UpdateVelocities()
+		public override void UpdateVelocities(Vector3 linearDelta, Vector3 angularDelta)
         {
 
 			// kinematic rigidbodies are passed to Obi with zero velocity, so we must ignore the new velocities calculated by the solver:
 			if (Application.isPlaying && (unityRigidbody.isKinematic || !kinematicForParticles))
             {
-
-                Oni.GetRigidbodyVelocity(OniRigidbody,ref oniVelocities);
-				Vector3 deltaVel = oniVelocities.linearVelocity - velocity;	
-				unityRigidbody.velocity += new Vector2(deltaVel.x,deltaVel.y);
-				unityRigidbody.angularVelocity += (oniVelocities.angularVelocity[2] - angularVelocity[2]) * Mathf.Rad2Deg;
-
+				unityRigidbody.velocity += new Vector2(linearDelta.x, linearDelta.y);
+				unityRigidbody.angularVelocity += angularDelta[2] * Mathf.Rad2Deg;
 			}
 
 		}

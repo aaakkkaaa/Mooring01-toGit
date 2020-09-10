@@ -105,6 +105,8 @@ void ApplyCaustics(in const float3 scenePos, in const half3 i_lightCol, in const
 	float mipLod = log2(max(i_sceneZ, 1.0)) + abs(sceneDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
 	// project along light dir, but multiply by a fudge factor reduce the angle bit - compensates for fact that in real life
 	// caustics come from many directions and don't exhibit such a strong directonality
+	// Removing the fudge factor (4.0) will cause the caustics to move around more with the waves. But this will also
+	// result in stretched/dilated caustics in certain areas. This is especially noticeable on angled surfaces.
 	float2 surfacePosXZ = scenePos.xz + i_lightDir.xz * sceneDepth / (4.*i_lightDir.y);
 	float4 cuv1 = float4((surfacePosXZ / _CausticsTextureScale + float2(0.044*_CrestTime + 17.16, -0.169*_CrestTime)), 0., mipLod);
 	float4 cuv2 = float4((1.37*surfacePosXZ / _CausticsTextureScale + float2(0.248*_CrestTime, 0.117*_CrestTime)), 0., mipLod);
@@ -120,23 +122,25 @@ void ApplyCaustics(in const float3 scenePos, in const half3 i_lightCol, in const
 		cuv2.xy += 1.77 * causticN;
 	}
 
-	// Scale caustics strength by primary light, depth fog density and scene depth.
-	half3 causticsStrength = lerp(_CausticsStrength * i_lightCol, 0.0, saturate(1.0 - exp(-_DepthFogDensity.xyz * sceneDepth)));
+	half causticsStrength = _CausticsStrength;
 
 #if _SHADOWS_ON
 	{
+		// Calculate projected position again as we do not want the fudge factor. If we include the fudge factor, the
+		// caustics will not be aligned with shadows.
+		const float2 shadowSurfacePosXZ = scenePos.xz + i_lightDir.xz * sceneDepth / i_lightDir.y;
 		real2 causticShadow = 0.0;
 		// As per the comment for the underwater code in ScatterColour,
 		// LOD_1 data can be missing when underwater
 		if (i_underwater)
 		{
-			const float3 uv_smallerLod = WorldToUV(surfacePosXZ);
+			const float3 uv_smallerLod = WorldToUV(shadowSurfacePosXZ);
 			SampleShadow(_LD_TexArray_Shadow, uv_smallerLod, 1.0, causticShadow);
 		}
 		else
 		{
 			// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
-			float3 uv_biggerLod = WorldToUV_BiggerLod(surfacePosXZ);
+			float3 uv_biggerLod = WorldToUV_BiggerLod(shadowSurfacePosXZ);
 			SampleShadow(_LD_TexArray_Shadow, uv_biggerLod, 1.0, causticShadow);
 		}
 		causticsStrength *= 1.0 - causticShadow.y;
@@ -202,7 +206,7 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const ha
 #endif
 		// Refractions don't work correctly in single pass. Use same code from underwater instead for now.
 #if UNITY_SINGLE_PASS_STEREO
-		float3 cameraForward = mul((float3x3)unity_CameraToWorld, float3(0, 0, 1));
+		float3 cameraForward = _CameraForward;
 		float3 scenePos = (((i_view) / dot(i_view, cameraForward)) * i_sceneZ) + _WorldSpaceCameraPos;
 #else
 		float3 scenePos = ComputeWorldSpacePosition(scenePosNDC, sceneZRefractDevice, UNITY_MATRIX_I_VP);

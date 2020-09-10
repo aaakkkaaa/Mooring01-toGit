@@ -19,15 +19,6 @@ namespace Obi
 
         protected override IEnumerator Initialize()
         {
-            path.OnPathChanged.RemoveAllListeners();
-            path.OnControlPointAdded.RemoveAllListeners();
-            path.OnControlPointRemoved.RemoveAllListeners();
-            path.OnControlPointRenamed.RemoveAllListeners();
-
-            path.OnPathChanged.AddListener(GenerateImmediate);
-            path.OnControlPointAdded.AddListener(ControlPointAdded);
-            path.OnControlPointRemoved.AddListener(ControlPointRemoved);
-            path.OnControlPointRenamed.AddListener(ControlPointRenamed);
 
             if (path.ControlPointCount < 2)
             {
@@ -129,7 +120,7 @@ namespace Obi
                 restPositions[i] = positions[i];
                 restPositions[i][3] = 1; // activate rest position.
                 principalRadii[i] = Vector3.one * particleThicknesses[i] * thickness;
-                phases[i] = Oni.MakePhase(particlePhases[i], 0);
+                phases[i] = ObiUtils.MakePhase(particlePhases[i], 0);
                 colors[i] = particleColors[i];
 
                 if (i % 100 == 0)
