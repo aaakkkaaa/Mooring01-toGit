@@ -6,8 +6,7 @@ namespace Obi
 {
 	/**
 	 * Custom IList implementation that allows access to the underlying raw array, for efficient C++ interop. Also
-	 * includes some auxiliar methods that make it easier and faster to send data back and forth between C# and C++, as
-     * well as deal with accesing the contents of the list directly without a copy.
+	 * includes some auxiliar methods that make it easier and faster to send data back and forth between C# and C++.
 	 */
 	public class ObiList<T> : IList<T>
 	{
@@ -33,8 +32,8 @@ namespace Obi
 	
 	    public void Add(T item)
 	    {
-            EnsureCapacity(count + 1);
-            data[count++] = item;
+			data[count] = item;
+			EnsureCapacity(++count);
 	    }
 	
 	    public void Clear()

@@ -9,7 +9,9 @@ namespace Obi
         ObiActor GetActor();
         Oni.ConstraintType? GetConstraintType();
 
-        IObiConstraintsBatch GetBatch(int i); 
+        IList<IObiConstraintsBatch> GetBatchInterfaces();
+        bool AddBatch(IObiConstraintsBatch batch);
+        bool RemoveBatch(IObiConstraintsBatch batch);
         int GetBatchCount();
         void Clear();
 
@@ -25,12 +27,12 @@ namespace Obi
     }
 
     [Serializable]
-    public abstract class ObiConstraints<T> : IObiConstraints where T : class, IObiConstraintsBatch
+    public class ObiConstraints<T> : IObiConstraints where T : class, IObiConstraintsBatch
     {
-        [NonSerialized] protected ObiActor actor;
+        protected ObiActor actor;
         [NonSerialized] protected ObiConstraints<T> source;
 
-        [NonSerialized] protected bool inSolver;
+        protected bool inSolver;
         [HideInInspector] public List<T> batches = new List<T>();
 
         public ObiConstraints(ObiActor actor = null, ObiConstraints<T> source = null)
@@ -41,69 +43,60 @@ namespace Obi
             if (source != null)
             {
                 foreach (T batch in source.batches)
-                    AddBatch(batch.Clone(this) as T);
+                    AddBatch(batch.Clone());
             }
         }
 
-        public abstract IObiConstraints Clone(ObiActor actor);
-        public virtual void CreateImplementation() { }// TODO: should be abstract
-        public virtual void DestroyImplementation() { }// TODO: should be abstract
+        public IObiConstraints Clone(ObiActor actor)
+        {
+            return new ObiConstraints<T>(actor,this);
+        }
 
         public ObiActor GetActor()
         {
             return actor;
         }
 
-        public IObiConstraintsBatch GetBatch(int i)
+        public IList<IObiConstraintsBatch> GetBatchInterfaces()
         {
-            return (IObiConstraintsBatch) batches[i];
+            return batches.CastList<T, IObiConstraintsBatch>();
         }
 
         public int GetBatchCount()
         {
-            return batches == null ? 0 : batches.Count;
+            return batches.Count;
         }
 
         public int GetConstraintCount()
         {
             int count = 0;
-            if (batches == null) return count;
-
             foreach (T batch in batches)
-                if (batch != null)
-                    count += batch.constraintCount;
-
+                count += batch.constraintCount;
             return count;
         }
 
         public int GetActiveConstraintCount()
         {
             int count = 0;
-            if (batches == null) return count;
-
             foreach (T batch in batches)
-                if (batch != null)
-                    count += batch.activeConstraintCount;
-
+                count += batch.activeConstraintCount;
             return count;
         }
 
         public void DeactivateAllConstraints()
         {
-            if (batches != null)
-                foreach (T batch in batches)
-                    if (batch != null)
-                        batch.DeactivateAllConstraints();
+            foreach (T batch in batches)
+                batch.DeactivateAllConstraints();
         }
 
         public T GetFirstBatch()
         {
-            return (batches != null && batches.Count > 0) ? batches[0] : null;
+            return batches.Count > 0 ? batches[0] : null;
         }
 
         public Oni.ConstraintType? GetConstraintType()
         {
-            if (batches != null && batches.Count > 0)
+            if (batches.Count > 0)
                 return batches[0].constraintType;
             else return null;
         }
@@ -111,41 +104,35 @@ namespace Obi
         public void Clear()
         {
             RemoveFromSolver();
-
-            if (batches != null)
-                batches.Clear();
+            batches.Clear();
         }
 
-        public virtual T CreateBatch(T source = null)
+        public bool AddBatch(IObiConstraintsBatch batch)
         {
-            return null;
+            T dataBatch = batch as T;
+            if (dataBatch != null)
+            {
+                batches.Add(dataBatch);
+                return true;
+            }
+            return false;
         }
 
-        public void AddBatch(T batch)
+        public bool RemoveBatch(IObiConstraintsBatch batch)
         {
-            if (batch != null)
-                batches.Add(batch);
-        }
-
-        public bool RemoveBatch(T batch)
-        {
-            if (batches == null || batch == null)
-                return false;
-            return batches.Remove(batch);
+            return batches.Remove(batch as T);
         }
 
         public bool AddToSolver()
         {
 
-            if (inSolver || actor == null || actor.solver == null || batches == null)
+            if (inSolver || actor == null || actor.solver == null)
                 return false;
 
             inSolver = true;
 
-            CreateImplementation();
-
             foreach (T batch in batches)
-                batch.AddToSolver();
+                batch.AddToSolver(this);
 
             GenerateBatchDependencies();
 
@@ -159,13 +146,11 @@ namespace Obi
         public bool RemoveFromSolver()
         {
 
-            if (!inSolver || actor == null || actor.solver == null || batches == null)
+            if (!inSolver || actor == null || actor.solver == null)
                 return false;
 
-            DestroyImplementation();
-
             foreach (T batch in batches)
-                batch.RemoveFromSolver();
+                batch.RemoveFromSolver(this);
 
             inSolver = false;
 
@@ -175,17 +160,15 @@ namespace Obi
 
         private void GenerateBatchDependencies()
         {
-            if (inSolver && batches != null)
+            if (inSolver)
             {
                 T prevBatch = null;
                 foreach (T batch in batches)
                 {
-                    if (batch != null)
-                    {
-                        // each batch depends on the previous one:
-                        batch.SetDependency(prevBatch);
-                        prevBatch = batch;
-                    }
+                    // each batch depends on the previous one:
+                    if (prevBatch != null)
+                        Oni.SetDependency(batch.oniBatch, prevBatch.oniBatch);
+                    prevBatch = batch;
                 }
             }
         }
@@ -193,8 +176,7 @@ namespace Obi
         public void SetEnabled(bool enabled)
         {
             foreach (T batch in batches)
-                if (batch != null)
-                    batch.SetEnabled(enabled);
+                batch.SetEnabled(enabled);
         }
     }
 }

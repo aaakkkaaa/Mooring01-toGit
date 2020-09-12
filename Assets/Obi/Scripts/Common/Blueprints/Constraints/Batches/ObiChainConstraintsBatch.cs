@@ -1,18 +1,14 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using System;
 
 namespace Obi
 {
-    [Serializable]
+    [System.Serializable]
     public class ObiChainConstraintsBatch : ObiConstraintsBatch
     {
-        [NonSerialized] protected ObiChainConstraintsData m_Constraints;
-        protected IChainConstraintsBatchImpl m_BatchImpl;   /**< pointer to constraint batch implementation.*/
-
-        [HideInInspector] public ObiNativeIntList firstParticle = new ObiNativeIntList();           /**< index of the first particle for each constraint.*/
-        [HideInInspector] public ObiNativeIntList numParticles = new ObiNativeIntList();            /**< number of particles for each constraint.*/
+        [HideInInspector] public ObiNativeIntList firstParticle = new ObiNativeIntList();           /**< index of first particle for each constraint.*/
+        [HideInInspector] public ObiNativeIntList numParticles = new ObiNativeIntList();            /**< num of particles for each constraint.*/
         [HideInInspector] public ObiNativeVector2List lengths = new ObiNativeVector2List();         /**< min/max lenghts for each constraint.*/
 
         public override Oni.ConstraintType constraintType
@@ -20,24 +16,11 @@ namespace Obi
             get { return Oni.ConstraintType.Chain; }
         }
 
-        public override IObiConstraints constraints
-        {
-            get { return m_Constraints; }
-        }
+        public ObiChainConstraintsBatch(ObiChainConstraintsBatch source = null) : base(source) { }
 
-        public override IConstraintsBatchImpl implementation
+        public override IObiConstraintsBatch Clone()
         {
-            get { return m_BatchImpl; }
-        }
-
-        public ObiChainConstraintsBatch(ObiChainConstraintsData constraints = null, ObiChainConstraintsBatch source = null) : base(source)
-        {
-            m_Constraints = constraints;
-        }
-
-        public override IObiConstraintsBatch Clone(IObiConstraints constraints)
-        {
-            var clone = new ObiChainConstraintsBatch(constraints as ObiChainConstraintsData, this);
+            var clone = new ObiChainConstraintsBatch(this);
 
             clone.particleIndices.ResizeUninitialized(particleIndices.count);
             clone.firstParticle.ResizeUninitialized(firstParticle.count);
@@ -83,40 +66,14 @@ namespace Obi
             lengths.Swap(sourceIndex, destIndex);
         }
 
-        public override void AddToSolver()
+        protected override void OnAddToSolver(IObiConstraints constraints)
         {
-            // create and add the implementation:
-            if (m_Constraints != null && m_Constraints.implementation != null)
-            {
-                m_BatchImpl = m_Constraints.implementation.CreateConstraintsBatch();
-            }
-
-            if (m_BatchImpl != null)
-            {
-                lambdas.Clear();
-
-                for (int i = 0; i < particleIndices.count; i++)
-                    particleIndices[i] = constraints.GetActor().solverIndices[m_Source.particleIndices[i]];
-
-                m_BatchImpl.SetChainConstraints(particleIndices, lengths, firstParticle, numParticles, m_ConstraintCount);
-                m_BatchImpl.SetActiveConstraints(m_ActiveConstraintCount);
-            }
-
-            /*for (int i = 0; i < particleIndices.count; i++)
-                particleIndices[i] = constraints.GetActor().solverIndices[m_Source.particleIndices[i]];*/
+            for (int i = 0; i < particleIndices.count; i++)
+                particleIndices[i] = constraints.GetActor().solverIndices[source.particleIndices[i]];
 
             // pass constraint data arrays to the solver:
-            //Oni.SetChainConstraints(batch, particleIndices.GetIntPtr(), lengths.GetIntPtr(), firstParticle.GetIntPtr(), numParticles.GetIntPtr(), m_ConstraintCount);
-            //Oni.SetActiveConstraints(batch, m_ActiveConstraintCount);
-        }
-
-        public override void RemoveFromSolver()
-        {
-            if (m_Constraints != null && m_Constraints.implementation != null)
-                m_Constraints.implementation.RemoveBatch(m_BatchImpl);
-
-            if (m_BatchImpl != null)
-                m_BatchImpl.Destroy();
+            Oni.SetChainConstraints(batch, particleIndices.GetIntPtr(), lengths.GetIntPtr(), firstParticle.GetIntPtr(), numParticles.GetIntPtr(), m_ConstraintCount);
+            Oni.SetActiveConstraints(batch, m_ActiveConstraintCount);
         }
 
         public void SetParameters(float tightness)

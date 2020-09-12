@@ -39,7 +39,7 @@ namespace Obi
         void OnEnable()
         {
             smoother = GetComponent<ObiPathSmoother>();
-            smoother.OnCurveGenerated += UpdateRenderer; 
+            smoother.OnCurveGenerated += UpdateRenderer;
             CreateMeshIfNeeded();
         }
 
@@ -72,18 +72,23 @@ namespace Obi
                 CreateMeshIfNeeded();
                 ClearMeshData();
 
-                int sectionIndex = 0;
-                int sectionSegments = section.Segments;
-                int verticesPerSection = sectionSegments + 1;           // the last vertex in each section must be duplicated, due to uv wraparound.
-                float vCoord = -uvScale.y * rope.restLength * uvAnchor; // v texture coordinate.
                 float actualToRestLengthRatio = smoother.SmoothLength / rope.restLength;
 
-                Vector3 vertex = Vector3.zero, normal = Vector3.zero;
+                int sectionSegments = section.Segments;
+                int verticesPerSection = sectionSegments + 1;           // the last vertex in each section must be duplicated, due to uv wraparound.
+
+                float vCoord = -uvScale.y * rope.restLength * uvAnchor; // v texture coordinate.
+                int sectionIndex = 0;
+
+                // for closed curves, last frame of the last curve must be equal to first frame of first curve.
+                Vector3 vertex, normal, scaledNormal, scaledBinormal;
+
                 Vector4 texTangent = Vector4.zero;
                 Vector2 uv = Vector2.zero;
 
                 for (int c = 0; c < smoother.smoothChunks.Count; ++c)
                 {
+
                     ObiList<ObiPathFrame> curve = smoother.smoothChunks[c];
 
                     for (int i = 0; i < curve.Count; ++i)
@@ -92,42 +97,28 @@ namespace Obi
                         int prevIndex = Mathf.Max(i - 1, 0);
 
                         // advance v texcoord:
-                        vCoord += uvScale.y * (Vector3.Distance(curve.Data[i].position, curve.Data[prevIndex].position) /
+                        vCoord += uvScale.y * (Vector3.Distance(curve[i].position, curve[prevIndex].position) /
                                                    (normalizeV ? smoother.SmoothLength : actualToRestLengthRatio));
 
                         // calculate section thickness and scale the basis vectors by it:
-                        float sectionThickness = curve.Data[i].thickness * thicknessScale;
+                        float sectionThickness = curve[i].thickness * thicknessScale;
+                        scaledNormal = curve[i].normal * sectionThickness;
+                        scaledBinormal = curve[i].binormal * sectionThickness;
 
                         // Loop around each segment:
                         int nextSectionIndex = sectionIndex + 1;
                         for (int j = 0; j <= sectionSegments; ++j)
                         {
-                            // make just one copy of the section vertex:
-                            Vector2 sectionVertex = section.vertices[j];
-
-                            // calculate normal using section vertex, curve normal and binormal:
-                            normal.x = (sectionVertex.x * curve.Data[i].normal.x + sectionVertex.y * curve.Data[i].binormal.x) * sectionThickness;
-                            normal.y = (sectionVertex.x * curve.Data[i].normal.y + sectionVertex.y * curve.Data[i].binormal.y) * sectionThickness;
-                            normal.z = (sectionVertex.x * curve.Data[i].normal.z + sectionVertex.y * curve.Data[i].binormal.z) * sectionThickness;
-
-                            // offset curve position by normal:
-                            vertex.x = curve.Data[i].position.x + normal.x;
-                            vertex.y = curve.Data[i].position.y + normal.y;
-                            vertex.z = curve.Data[i].position.z + normal.z;
-
-                            // cross(normal, curve tangent)
-                            texTangent.x = normal.y * curve.Data[i].tangent.z - normal.z * curve.Data[i].tangent.y;
-                            texTangent.y = normal.z * curve.Data[i].tangent.x - normal.x * curve.Data[i].tangent.z;
-                            texTangent.z = normal.x * curve.Data[i].tangent.y - normal.y * curve.Data[i].tangent.x;
+                            normal = section.vertices[j].x * scaledNormal + section.vertices[j].y * scaledBinormal;
+                            vertex = curve[i].position + normal;
+                            texTangent = Vector3.Cross(normal, curve[i].tangent);
                             texTangent.w = -1;
-
-                            uv.x = (j / (float)sectionSegments) * uvScale.x;
-                            uv.y = vCoord;
+                            uv.Set((j / (float)sectionSegments) * uvScale.x, vCoord);
 
                             vertices.Add(vertex);
                             normals.Add(normal);
                             tangents.Add(texTangent);
-                            vertColors.Add(curve.Data[i].color);
+                            vertColors.Add(curve[i].color);
                             uvs.Add(uv);
 
                             if (j < sectionSegments && i < curve.Count - 1)

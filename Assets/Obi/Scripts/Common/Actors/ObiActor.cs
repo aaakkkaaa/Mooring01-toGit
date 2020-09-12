@@ -74,7 +74,7 @@ namespace Obi
                 if (m_CollisionMaterial != value)
                 {
                     m_CollisionMaterial = value;
-                    UpdateCollisionMaterials();
+                    PushCollisionMaterial();
                 }
             }
         }
@@ -191,7 +191,7 @@ namespace Obi
 
         protected virtual void OnValidate()
         {
-            //PushCollisionMaterial();
+            PushCollisionMaterial();
         }
 
         void OnTransformParentChanged()
@@ -204,6 +204,7 @@ namespace Obi
         {
             if (m_Solver != null)
             {
+                m_Solver.Initialize();
                 if (!m_Solver.AddActor(this))
                     m_Solver = null;
                 else if (blueprint != null)
@@ -242,7 +243,7 @@ namespace Obi
             AddToSolver();
         }
 
-        protected void PushDistanceConstraints(bool enabled, float compliance, float maxCompression, float stretchingScale)
+        protected void PushDistanceConstraints(bool enabled, float compliance, float maxCompression)
         {
             var dc = GetConstraintsByType(Oni.ConstraintType.Distance) as ObiConstraints<ObiDistanceConstraintsBatch>;
             if (dc != null)
@@ -250,7 +251,7 @@ namespace Obi
                 foreach (ObiDistanceConstraintsBatch batch in dc.batches)
                 {
                     batch.SetEnabled(enabled);
-                    batch.SetParameters(Mathf.Max(0, compliance), maxCompression, stretchingScale);
+                    batch.SetParameters(Mathf.Max(0, compliance), maxCompression, 1);
                 }
             }
         }
@@ -359,13 +360,14 @@ namespace Obi
             }
         }
 
-        protected void UpdateCollisionMaterials()
+        protected void PushCollisionMaterial()
         {
             if (m_Solver != null && solverIndices != null)
             {
-                int index = m_CollisionMaterial != null ? m_CollisionMaterial.handle.index : -1;
+                IntPtr[] materials = new IntPtr[solverIndices.Length];
                 for (int i = 0; i < solverIndices.Length; i++)
-                    solver.collisionMaterials[solverIndices[i]] = index;
+                    materials[i] = m_CollisionMaterial != null ? m_CollisionMaterial.OniCollisionMaterial : IntPtr.Zero;
+                Oni.SetCollisionMaterials(m_Solver.OniSolver, materials, solverIndices, solverIndices.Length);
             }
         }
 
@@ -534,6 +536,7 @@ namespace Obi
                 b1[3] = m_Solver.maxScale * m_Solver.anisotropies[baseIndex][3];
                 b2[3] = m_Solver.maxScale * m_Solver.anisotropies[baseIndex + 1][3];
                 b3[3] = m_Solver.maxScale * m_Solver.anisotropies[baseIndex + 2][3];
+
             }
             else
             {
@@ -568,8 +571,8 @@ namespace Obi
             for (int i = 0; i < particleCount; ++i)
             {
                 int solverIndex = solverIndices[i];
-                var flags = (Oni.ParticleFlags)ObiUtils.GetFlagsFromPhase(solver.phases[solverIndex]);
-                solver.phases[solverIndex] = ObiUtils.MakePhase(newPhase, flags);
+                var flags = (Oni.ParticleFlags)Oni.GetFlagsFromPhase(solver.phases[solverIndex]);
+                solver.phases[solverIndex] = Oni.MakePhase(newPhase, flags);
             }
         }
 
@@ -793,7 +796,7 @@ namespace Obi
                     m_Solver.principalRadii[k] = bp.principalRadii[i];
 
                 if (bp.phases != null && i < bp.phases.Length)
-                    m_Solver.phases[k] = ObiUtils.MakePhase(bp.phases[i],0);
+                    m_Solver.phases[k] = Oni.MakePhase(bp.phases[i],0);
 
                 if (bp.restPositions != null && i < bp.restPositions.Length)
                     m_Solver.restPositions[k] = bp.restPositions[i];
@@ -812,8 +815,11 @@ namespace Obi
             // Push active particles to the solver:
             m_Solver.PushActiveParticles();
 
+            // Recalculate inertia tensors (shape matching constraints rest shape need up to date inertia tensors, for instance).
+            Oni.RecalculateInertiaTensors(m_Solver.OniSolver);
+
             // Push collision materials:
-            UpdateCollisionMaterials();
+            PushCollisionMaterial();
 
         }
 
@@ -827,7 +833,7 @@ namespace Obi
                 // Create runtime counterpart
                 IObiConstraints runtimeConstraints = constraintData.Clone(this);
 
-                if (runtimeConstraints != null && runtimeConstraints.GetConstraintType().HasValue)
+                if (runtimeConstraints.GetConstraintType().HasValue)
                 {
                     // Store a reference to it in the constraint map, so that they can be accessed by type enum:
                     m_Constraints[(int)runtimeConstraints.GetConstraintType().Value] = runtimeConstraints;
@@ -859,7 +865,7 @@ namespace Obi
         }
 
         /**
-         * Resets the position and velocity of all particles, to the values stored in the blueprint. Note however
+         * Resets the position and velocity (no other property is affected) of all particles, to the values stored in the blueprint. Note however
          * that this does not affect constraints, so if you've torn a cloth/rope or resized a rope, calling ResetParticles won't restore
          * the initial topology of the actor.
          */
@@ -966,8 +972,6 @@ namespace Obi
 
         public virtual void BeginStep(float stepTime)
         {
-            UpdateCollisionMaterials();
-
             if (OnBeginStep != null)
                 OnBeginStep(this,stepTime); 
         }

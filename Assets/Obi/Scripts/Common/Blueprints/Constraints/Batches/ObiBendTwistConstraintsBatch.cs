@@ -1,42 +1,25 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using System;
 
 namespace Obi
 {
-    [Serializable]
+    [System.Serializable]
     public class ObiBendTwistConstraintsBatch : ObiConstraintsBatch
     {
-        [NonSerialized] protected ObiBendTwistConstraintsData m_Constraints;
-        protected IBendTwistConstraintsBatchImpl m_BatchImpl;   /**< pointer to constraint batch implementation.*/
-
-        [HideInInspector] public ObiNativeQuaternionList restDarbouxVectors = new ObiNativeQuaternionList();                /**< Rest darboux vector for each constraint.*/
-        [HideInInspector] public ObiNativeVector3List stiffnesses = new ObiNativeVector3List();                             /**< 3 compliance values for each constraint, one for each local axis (x,y,z).*/
+        [HideInInspector] public ObiNativeQuaternionList restDarbouxVectors = new ObiNativeQuaternionList();                /**< Rest distances.*/
+        [HideInInspector] public ObiNativeVector3List stiffnesses = new ObiNativeVector3List(); /**< Stiffnesses of distance constraits.*/
 
         public override Oni.ConstraintType constraintType
         {
             get { return Oni.ConstraintType.BendTwist; }
         }
 
-        public override IObiConstraints constraints
-        {
-            get { return m_Constraints; }
-        }
+        public ObiBendTwistConstraintsBatch(ObiBendTwistConstraintsBatch source = null) : base(source) { }
 
-        public override IConstraintsBatchImpl implementation
+        public override IObiConstraintsBatch Clone()
         {
-            get { return m_BatchImpl; }
-        }
-
-        public ObiBendTwistConstraintsBatch(ObiBendTwistConstraintsData constraints = null, ObiBendTwistConstraintsBatch source = null) : base(source)
-        {
-            m_Constraints = constraints;
-        }
-
-        public override IObiConstraintsBatch Clone(IObiConstraints constraints)
-        {
-            var clone = new ObiBendTwistConstraintsBatch(constraints as ObiBendTwistConstraintsData, this);
+            var clone = new ObiBendTwistConstraintsBatch(this);
 
             clone.particleIndices.ResizeUninitialized(particleIndices.count);
             clone.restDarbouxVectors.ResizeUninitialized(restDarbouxVectors.count);
@@ -82,38 +65,17 @@ namespace Obi
             stiffnesses.Swap(sourceIndex, destIndex);
         }
 
-        public override void AddToSolver()
+        protected override void OnAddToSolver(IObiConstraints constraints)
         {
-            // create and add the implementation:
-            if (m_Constraints != null && m_Constraints.implementation != null)
+            for (int i = 0; i < restDarbouxVectors.count; i++)
             {
-                m_BatchImpl = m_Constraints.implementation.CreateConstraintsBatch();
+                particleIndices[i * 2] = constraints.GetActor().solverIndices[source.particleIndices[i * 2]];
+                particleIndices[i * 2 + 1] = constraints.GetActor().solverIndices[source.particleIndices[i * 2 + 1]];
             }
 
-            if (m_BatchImpl != null)
-            {
-                lambdas.Clear();
-                for (int i = 0; i < restDarbouxVectors.count; i++)
-                {
-                    particleIndices[i * 2] = constraints.GetActor().solverIndices[m_Source.particleIndices[i * 2]];
-                    particleIndices[i * 2 + 1] = constraints.GetActor().solverIndices[m_Source.particleIndices[i * 2 + 1]];
-                    lambdas.Add(0);
-                    lambdas.Add(0);
-                    lambdas.Add(0);
-                }
-
-                m_BatchImpl.SetBendTwistConstraints(particleIndices, restDarbouxVectors, stiffnesses, lambdas, m_ConstraintCount);
-                m_BatchImpl.SetActiveConstraints(m_ActiveConstraintCount);
-            }
-        }
-
-        public override void RemoveFromSolver()
-        {
-            if (m_Constraints != null && m_Constraints.implementation != null)
-                m_Constraints.implementation.RemoveBatch(m_BatchImpl);
-
-            if (m_BatchImpl != null)
-                m_BatchImpl.Destroy();
+            // pass constraint data arrays to the solver:
+            Oni.SetBendTwistConstraints(batch, particleIndices.GetIntPtr(), restDarbouxVectors.GetIntPtr(), stiffnesses.GetIntPtr(), m_ConstraintCount);
+            Oni.SetActiveConstraints(batch, m_ActiveConstraintCount);
         }
 
         public void SetParameters(float torsionCompliance, float bend1Compliance, float bend2Compliance)

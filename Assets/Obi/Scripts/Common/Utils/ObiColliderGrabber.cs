@@ -111,14 +111,8 @@ public class ObiColliderGrabber : MonoBehaviour
             // this one is an actual collision:
             if (contact.distance < 0.01f)
             {
-                Component contactCollider = ObiColliderWorld.GetInstance().colliderHandles[contact.other].owner;
-                if (contactCollider == localCollider)
-                {
-                    // try to grab the particle, if not already grabbed.
-                    GrabParticle(contact.particle);
-                }
-                /*
-                if ( ObiCollider.idToCollider.TryGetValue(contact.other, out contactCollider) )
+                Component contactCollider;
+                if (ObiCollider.idToCollider.TryGetValue(contact.other, out contactCollider))
                 {
                     // if the current contact references our collider, proceed to grab the particle.
                     if (contactCollider == localCollider.SourceCollider)
@@ -127,7 +121,6 @@ public class ObiColliderGrabber : MonoBehaviour
 						GrabParticle(contact.particle);
                     }
                 }
-                */
             }
         }
 

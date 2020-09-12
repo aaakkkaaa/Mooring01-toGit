@@ -21,11 +21,11 @@ namespace Obi
 
         public override int Get(int index)
         {
-            return ObiUtils.GetGroupFromPhase(editor.Blueprint.phases[index]);
+            return Oni.GetGroupFromPhase(editor.Blueprint.phases[index]);
         }
         public override void Set(int index, int value)
         {
-            editor.Blueprint.phases[index] = ObiUtils.MakePhase((int)value, 0);
+            editor.Blueprint.phases[index] = Oni.MakePhase((int)value, 0);
         }
         public override bool Masked(int index)
         {

@@ -22,9 +22,7 @@ public class ColliderHighlighter : MonoBehaviour {
 	
 	void Solver_OnCollision (object sender, Obi.ObiSolver.ObiCollisionEventArgs e)
 	{
-        var colliderWorld = ObiColliderWorld.GetInstance();
-
-        Oni.Contact[] contacts = e.contacts.Data;
+		Oni.Contact[] contacts = e.contacts.Data;
 		for(int i = 0; i < e.contacts.Count; ++i)
 		{
 			Oni.Contact c = contacts[i];
@@ -32,12 +30,11 @@ public class ColliderHighlighter : MonoBehaviour {
 			if (c.distance < 0.01f)
 			{
 				// get the collider:
-				var col = colliderWorld.colliderHandles[c.other].owner;
+				Collider collider = ObiCollider.idToCollider[c.other] as Collider;
 
-				if (col != null)
-                {
+				if (collider != null){
 					// make it blink:
-					Blinker blinker = col.GetComponent<Blinker>();
+					Blinker blinker = collider.GetComponent<Blinker>();
 	
 					if (blinker)
 						blinker.Blink();

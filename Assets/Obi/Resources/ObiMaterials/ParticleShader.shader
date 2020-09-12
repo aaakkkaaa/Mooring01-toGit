@@ -20,9 +20,7 @@ Properties {
 
 			#pragma multi_compile_fwdbase nolightmap
 
-		    #include "ObiEllipsoids.cginc"
-            #include "ObiUtils.cginc"
-            #include "ObiLightingBuiltIn.cginc"
+			#include "ObiEllipsoids.cginc"
 
 			fixed4 _Color;
 			fixed4 _LightColor0; 
@@ -48,12 +46,6 @@ Properties {
 				float3 a3 : TEXCOORD4;
 				LIGHTING_COORDS(5,6)
 			};
-
-            struct fout 
-            {
-                half4 color : SV_Target;
-                float depth : SV_Depth;
-            };
 
 			v2f vert(vin v)
 			{ 
@@ -134,8 +126,6 @@ Properties {
 				#pragma multi_compile_shadowcaster nolightmap
 
 				#include "ObiEllipsoids.cginc"
-                #include "ObiUtils.cginc"
-                #include "ObiLightingBuiltIn.cginc"
 				 
 				sampler3D  _DitherMaskLOD;
 				fixed4 _Color;
@@ -155,12 +145,6 @@ Properties {
 					float4 mapping  : TEXCOORD0;
 					float3 viewRay : TEXCOORD1;
 				};
-
-                struct fout 
-                {
-                    half4 color : SV_Target;
-                    float depth : SV_Depth;
-                };
 
 				v2f ellipsoidShadowVS( vin v , out float4 outpos : SV_POSITION )// clip space position output
 				{

@@ -12,23 +12,60 @@ namespace Obi{
 	[ExecuteInEditMode]
 	public abstract class ObiRigidbodyBase : MonoBehaviour
 	{
+        static ProfilerMarker m_UpdateRigidbodiesPerfMarker = new ProfilerMarker("UpdateRigidbodies");
+        static ProfilerMarker m_UpdateRigidbodyVelocitiesPerfMarker = new ProfilerMarker("UpdateRigidbodyVelocities");
 
         public bool kinematicForParticles = false;
 
-        public ObiRigidbodyHandle handle;
+        private IntPtr oniRigidbody = IntPtr.Zero;
+		protected Oni.Rigidbody adaptor = new Oni.Rigidbody();
+		protected Oni.RigidbodyVelocities oniVelocities = new Oni.RigidbodyVelocities();
+
 		protected Vector3 velocity, angularVelocity;
 
+        private delegate void RigidbodyUpdateCallback();
+        private static event RigidbodyUpdateCallback OnUpdateRigidbodies;
+        private static event RigidbodyUpdateCallback OnUpdateVelocities;
+
+		public IntPtr OniRigidbody {
+			get{
+                if (oniRigidbody == IntPtr.Zero)
+                    oniRigidbody = Oni.CreateRigidbody();
+                return oniRigidbody;
+            }
+		}
 
 		public virtual void Awake()
         {
-            handle = ObiColliderWorld.GetInstance().CreateRigidbody();
-            handle.owner = this;
-            UpdateIfNeeded();
+			UpdateIfNeeded();
+            ObiRigidbodyBase.OnUpdateRigidbodies += UpdateIfNeeded;
+            ObiRigidbodyBase.OnUpdateVelocities += UpdateVelocities;
 		}
 
 		public void OnDestroy()
         {
-            ObiColliderWorld.GetInstance().DestroyRigidbody(handle);
+            ObiRigidbodyBase.OnUpdateRigidbodies -= UpdateIfNeeded;
+            ObiRigidbodyBase.OnUpdateVelocities -= UpdateVelocities;
+			Oni.DestroyRigidbody(oniRigidbody);
+			oniRigidbody = IntPtr.Zero;
+		}
+
+        public static void UpdateAllRigidbodies()
+        {
+            using (m_UpdateRigidbodiesPerfMarker.Auto())
+            {
+                if (OnUpdateRigidbodies != null)
+                    OnUpdateRigidbodies();
+            }
+        }
+
+        public static void UpdateAllVelocities()
+        {
+            using (m_UpdateRigidbodyVelocitiesPerfMarker.Auto())
+            {
+                if (OnUpdateVelocities != null)
+                    OnUpdateVelocities();
+            }
         }
 
 		public abstract void UpdateIfNeeded();
@@ -36,7 +73,7 @@ namespace Obi{
 		/**
 		 * Reads velocities back from the solver.
 		 */
-		public abstract void UpdateVelocities(Vector3 linearDelta, Vector3 angularDelta);
+		public abstract void UpdateVelocities();
 
 	}
 }

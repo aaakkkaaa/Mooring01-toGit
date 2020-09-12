@@ -31,6 +31,7 @@ public class GrapplingHook : MonoBehaviour
     private ObiRopeCursor cursor;
 
     private RaycastHit hookAttachment;
+    private bool attached = false;
 
     void Awake()
     {

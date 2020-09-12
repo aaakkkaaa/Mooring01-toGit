@@ -255,12 +255,14 @@ public class Sailor : MonoBehaviour
                 ObiSolver.ParticleInActor pa = _solver.particleToActor[contact.particle];
                 if (pa.actor == WorkRope)
                 {
+                    /*
                     Component collider = ObiColliderWorld.GetInstance().colliderHandles[contact.other].owner;
                     if ((collider as ObiCollider).SourceCollider == _coll)
                     {
                         isRopeContact = true;
                     }
-                    /*
+                    */
+                    Component collider;
                     if (ObiCollider.idToCollider.TryGetValue(contact.other, out collider))
                     {
                         if (collider == _coll)
@@ -268,7 +270,6 @@ public class Sailor : MonoBehaviour
                             isRopeContact = true;
                         }
                     }
-                    */
                 }
             }
         }

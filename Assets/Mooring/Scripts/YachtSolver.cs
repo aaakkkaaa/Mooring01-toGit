@@ -118,8 +118,8 @@ public class YachtSolver : MonoBehaviour
     private float _NegativeMultiplier;
     private float _ForwardGear = 0.56f; // Сигнал на ручке при включении переднего хода
     private float _BackwardGear = -0.64f; // Сигнал на ручке при включении заднего хода
-    private float _ForwardGearEV = 0.16f; // Мощность двигателя при включении переднего хода
-    private float _BackwardGearEV = -0.16f; // Мощность двигателя при включении заднего хода
+    private float _ForwardGearEV = 0.12f; // Мощность двигателя при включении переднего хода (~264 об./мин.)
+    private float _BackwardGearEV = -0.12f; // Мощность двигателя при включении заднего хода
     private bool _ThrottleCalibrationMode = false;
     private int _ThrottleCalibrationStep = 0;
 

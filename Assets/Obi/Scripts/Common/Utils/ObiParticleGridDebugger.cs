@@ -2,44 +2,37 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Obi
-{
+namespace Obi{
 
-    [RequireComponent(typeof(ObiSolver))]
-    public class ObiParticleGridDebugger : MonoBehaviour
+[RequireComponent(typeof(ObiSolver))]
+public class ObiParticleGridDebugger : MonoBehaviour {
+
+	ObiSolver solver;
+	Oni.GridCell[] cells;
+
+    void Awake()
     {
-
-	    ObiSolver solver;
-        ObiNativeAabbList cells;
-
-        void OnEnable()
-        {
-            solver = GetComponent<ObiSolver>();
-            cells = new ObiNativeAabbList();
-        }
-
-        private void OnDisable()
-        {
-            cells.Dispose();
-        }
-
-        void LateUpdate ()
-	    {
-            cells.count = solver.implementation.GetParticleGridSize();
-            solver.implementation.GetParticleGrid(cells);
-	    }
-
-	    void OnDrawGizmos()
-        {
-
-		    if (cells != null)
-            {
-                Gizmos.color = Color.yellow;
-                for(int i = 0; i < cells.count; ++i)
-			        Gizmos.DrawWireCube(cells[i].center, cells[i].size);
-            }
-
-        }
-
+        solver = GetComponent<ObiSolver>();
     }
+
+	void LateUpdate ()
+	{
+		int cellCount = Oni.GetParticleGridSize(solver.OniSolver);
+		cells = new Oni.GridCell[cellCount];
+		Oni.GetParticleGrid(solver.OniSolver, cells);
+	}
+
+	void OnDrawGizmos(){
+
+		if (cells == null) return;
+
+		foreach (Oni.GridCell cell in cells){
+
+			Gizmos.color = (cell.count > 0) ? Color.yellow:Color.red;
+			Gizmos.DrawWireCube(cell.center,cell.size);
+			
+		}
+	}
+	
+}
 }

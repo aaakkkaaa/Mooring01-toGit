@@ -15,6 +15,7 @@ namespace Obi
         // each structural element is equivalent to 1 distance constraint and 2 bend constraints (with previous, and following element).
         // a structural element has force and rest length.
         // a function re-generates constraints from structural elements when needed, placing them in the appropiate batches.
+        // 
 
         public bool tearingEnabled = false;
         public float tearResistanceMultiplier = 1000;                   /**< Factor that controls how much a structural cloth spring can stretch before breaking.*/
@@ -22,7 +23,6 @@ namespace Obi
 
         // distance constraints:
         [SerializeField] protected bool _distanceConstraintsEnabled = true;
-        [SerializeField] protected float _stretchingScale = 1;
         [SerializeField] protected float _stretchCompliance = 0;
         [SerializeField] [Range(0, 1)] protected float _maxCompression = 0;
 
@@ -40,25 +40,19 @@ namespace Obi
         public bool distanceConstraintsEnabled
         {
             get { return _distanceConstraintsEnabled; }
-            set { if (value != _distanceConstraintsEnabled) { _distanceConstraintsEnabled = value; PushDistanceConstraints(_distanceConstraintsEnabled, _stretchCompliance, _maxCompression, _stretchingScale); } }
-        }
-
-        public float stretchingScale
-        {
-            get { return _stretchingScale; }
-            set { _stretchingScale = value; PushDistanceConstraints(_distanceConstraintsEnabled, _stretchCompliance, _maxCompression, _stretchingScale); }
+            set { if (value != _distanceConstraintsEnabled) { _distanceConstraintsEnabled = value; PushDistanceConstraints(_distanceConstraintsEnabled, _stretchCompliance, _maxCompression); ; } }
         }
 
         public float stretchCompliance
         {
             get { return _stretchCompliance; }
-            set { _stretchCompliance = value; PushDistanceConstraints(_distanceConstraintsEnabled, _stretchCompliance, _maxCompression, _stretchingScale); }
+            set { _stretchCompliance = value; PushDistanceConstraints(_distanceConstraintsEnabled, _stretchCompliance, _maxCompression); }
         }
 
         public float maxCompression
         {
             get { return _maxCompression; }
-            set { _maxCompression = value; PushDistanceConstraints(_distanceConstraintsEnabled, _stretchCompliance, _maxCompression, _stretchingScale); }
+            set { _maxCompression = value; PushDistanceConstraints(_distanceConstraintsEnabled, _stretchCompliance, _maxCompression); }
         }
 
         public bool bendConstraintsEnabled
@@ -129,27 +123,25 @@ namespace Obi
 
         private void SetupRuntimeConstraints()
         {
-            PushDistanceConstraints(_distanceConstraintsEnabled, _stretchCompliance, _maxCompression, _stretchingScale);
+            PushDistanceConstraints(_distanceConstraintsEnabled, _stretchCompliance, _maxCompression);
             PushBendConstraints(_bendConstraintsEnabled, _bendCompliance, _maxBending);
             SetSelfCollisions(selfCollisions);
             RecalculateRestLength();
         }
 
-        public override void Substep(float substepTime)
+        public override void EndStep()
         {
-            base.Substep(substepTime);
+            base.EndStep();
 
             if (isActiveAndEnabled)
-                ApplyTearing(substepTime);
+                ApplyTearing();
         }
 
-        protected void ApplyTearing(float substepTime)
+        protected void ApplyTearing()
         {
 
             if (!tearingEnabled)
                 return;
-
-            float sqrTime = substepTime * substepTime;
 
             List<ObiStructuralElement> tornElements = new List<ObiStructuralElement>();
 
@@ -158,19 +150,19 @@ namespace Obi
                 return;
 
             // get constraint forces for each batch:
-            for (int j = 0; j < dc.GetBatchCount(); ++j)
+            for (int j = 0; j < 2; ++j)
             {
-                var batch = dc.GetBatch(j) as ObiDistanceConstraintsBatch;
+                var batch = dc.GetBatchInterfaces()[j] as IStructuralConstraintBatch;
 
-                for (int i = 0; i < batch.activeConstraintCount; i++)
+                float[] forces = new float[(batch as IObiConstraintsBatch).activeConstraintCount];
+                Oni.GetBatchConstraintForces((batch as IObiConstraintsBatch).oniBatch, forces, forces.Length, 0);
+
+                for (int i = 0; i < forces.Length; i++)
                 {
                     int elementIndex = j + 2 * i;
+                    elements[elementIndex].constraintForce = forces[i];
 
-                    // divide lambda by squared timestep to get force in newtons:
-                    float force = batch.lambdas[i] / sqrTime;
-                    elements[elementIndex].constraintForce = force;
-
-                    if (-force > /*resistance * */tearResistanceMultiplier)
+                    if (-forces[i] > /*resistance * */tearResistanceMultiplier)
                     {
                         tornElements.Add(elements[elementIndex]);
                     }

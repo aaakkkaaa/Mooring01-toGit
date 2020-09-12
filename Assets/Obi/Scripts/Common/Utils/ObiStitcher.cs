@@ -37,10 +37,8 @@ namespace Obi
 
         [HideInInspector] public ObiNativeIntList particleIndices = new ObiNativeIntList();
         [HideInInspector] public ObiNativeFloatList stiffnesses = new ObiNativeFloatList();
-        [HideInInspector] public ObiNativeFloatList lambdas = new ObiNativeFloatList();
 
-        //private IntPtr batch;
-        private IStitchConstraintsBatchImpl m_BatchImpl;
+        private IntPtr batch;
         private bool inSolver = false;
 
         public ObiActor Actor1
@@ -49,9 +47,27 @@ namespace Obi
             {
                 if (actor1 != value)
                 {
-                    UnregisterActor(actor1);
+                    if (actor1 != null)
+                    {
+                        actor1.OnBlueprintLoaded -= Actor_OnBlueprintLoaded;
+                        actor1.OnBlueprintUnloaded -= Actor_OnBlueprintUnloaded;
+
+                        if (actor1.solver != null)
+                            Actor_OnBlueprintUnloaded(actor1, actor1.blueprint);
+
+                    }
+
                     actor1 = value;
-                    RegisterActor(actor1);
+
+                    if (actor1 != null)
+                    {
+                        actor1.OnBlueprintLoaded += Actor_OnBlueprintLoaded;
+                        actor1.OnBlueprintUnloaded += Actor_OnBlueprintUnloaded;
+
+                        if (actor1.solver != null)
+                            Actor_OnBlueprintLoaded(actor1, actor1.blueprint);
+
+                    }
                 }
             }
             get { return actor1; }
@@ -63,9 +79,27 @@ namespace Obi
             {
                 if (actor2 != value)
                 {
-                    UnregisterActor(actor2);
+                    if (actor2 != null)
+                    {
+                        actor2.OnBlueprintLoaded -= Actor_OnBlueprintLoaded;
+                        actor2.OnBlueprintUnloaded -= Actor_OnBlueprintUnloaded;
+
+                        if (actor2.solver != null)
+                            Actor_OnBlueprintUnloaded(actor2, actor2.blueprint);
+
+                    }
+
                     actor2 = value;
-                    RegisterActor(actor2);
+
+                    if (actor2 != null)
+                    {
+                        actor2.OnBlueprintLoaded += Actor_OnBlueprintLoaded;
+                        actor2.OnBlueprintUnloaded += Actor_OnBlueprintUnloaded;
+
+                        if (actor2.solver != null)
+                            Actor_OnBlueprintLoaded(actor2, actor2.blueprint);
+
+                    }
                 }
             }
             get { return actor2; }
@@ -81,41 +115,27 @@ namespace Obi
             get { return stitches.AsReadOnly(); }
         }
 
-        private void RegisterActor(ObiActor actor)
-        {
-            if (actor != null)
-            {
-                actor.OnBlueprintLoaded += Actor_OnBlueprintLoaded;
-                actor.OnBlueprintUnloaded += Actor_OnBlueprintUnloaded;
-
-                if (actor.solver != null)
-                    Actor_OnBlueprintLoaded(actor, actor.blueprint);
-
-            }
-        }
-
-        private void UnregisterActor(ObiActor actor)
-        {
-            if (actor != null)
-            {
-                actor.OnBlueprintLoaded -= Actor_OnBlueprintLoaded;
-                actor.OnBlueprintUnloaded -= Actor_OnBlueprintUnloaded;
-
-                if (actor.solver != null)
-                    Actor_OnBlueprintUnloaded(actor, actor.blueprint);
-            }
-        }
-
         public void OnEnable()
         {
-            RegisterActor(actor1);
-            RegisterActor(actor2);
+
+            if (actor1 != null)
+            {
+                actor1.OnBlueprintLoaded += Actor_OnBlueprintLoaded;
+                actor1.OnBlueprintUnloaded += Actor_OnBlueprintUnloaded;
+            }
+            if (actor2 != null)
+            {
+                actor2.OnBlueprintLoaded += Actor_OnBlueprintLoaded;
+                actor2.OnBlueprintUnloaded += Actor_OnBlueprintUnloaded;
+            }
+
+            if (actor1 != null && actor2 != null)
+                Oni.EnableBatch(batch, true);
         }
 
         public void OnDisable()
         {
-            UnregisterActor(actor1);
-            UnregisterActor(actor2);
+            Oni.EnableBatch(batch, false);
         }
 
         /**
@@ -151,7 +171,7 @@ namespace Obi
         void Actor_OnBlueprintUnloaded(ObiActor actor, ObiActorBlueprint blueprint)
         {
             // when any actor is removed from solver, remove stitches.
-            this.RemoveFromSolver(actor.solver);
+            this.RemoveFromSolver(null);
         }
 
         void Actor_OnBlueprintLoaded(ObiActor actor, ObiActorBlueprint blueprint)
@@ -166,42 +186,41 @@ namespace Obi
                     return;
                 }
 
-                AddToSolver(actor1.solver);
+                AddToSolver();
             }
         }
 
-        private void AddToSolver(ObiSolver solver)
+        private void AddToSolver()
         {
-            if (!inSolver)
-            {
-                // create a constraint batch (CreateStitchConstraints() in burst returns a singleton):
-                m_BatchImpl = solver.implementation.CreateStitchConstraints().CreateConstraintsBatch();
 
-                // push current data to solver:
-                PushDataToSolver();
+            // create a constraint batch:
+            batch = Oni.CreateBatch((int)Oni.ConstraintType.Stitch);
+            Oni.AddBatch(actor1.solver.OniSolver, batch);
 
-                // enable/disable the batch:
-                m_BatchImpl.enabled = isActiveAndEnabled;
+            inSolver = true;
 
-                inSolver = true;
-            }
+            // push current data to solver:
+            PushDataToSolver();
+
+            // enable/disable the batch:
+            if (isActiveAndEnabled)
+                OnEnable();
+            else
+                OnDisable();
 
         }
 
-        private void RemoveFromSolver(ObiSolver solver)
+        private void RemoveFromSolver(object info)
         {
+
             // remove the constraint batch from the solver 
             // (no need to destroy it as its destruction is managed by the solver)
-            // Oni.RemoveBatch(actor1.solver.OniSolver, batch);
-            if (inSolver && m_BatchImpl != null)
-            {
-                solver.implementation.CreateStitchConstraints().RemoveBatch(m_BatchImpl);
-                m_BatchImpl.Destroy();
-                m_BatchImpl = null;
+            Oni.RemoveBatch(actor1.solver.OniSolver, batch);
 
-                inSolver = false;
-            }
+            // important: set the batch pointer to null, as it could be destroyed by the solver.
+            batch = IntPtr.Zero;
 
+            inSolver = false;
         }
 
         public void PushDataToSolver()
@@ -211,21 +230,18 @@ namespace Obi
                 return;
 
             // set solver constraint data:
-            lambdas.Clear();
             particleIndices.ResizeUninitialized(stitches.Count * 2);
             stiffnesses.ResizeUninitialized(stitches.Count);
-            lambdas.ResizeUninitialized(stitches.Count);
 
             for (int i = 0; i < stitches.Count; i++)
             {
                 particleIndices[i * 2] = actor1.solverIndices[stitches[i].particleIndex1];
                 particleIndices[i * 2 + 1] = actor2.solverIndices[stitches[i].particleIndex2];
                 stiffnesses[i] = 0;
-                lambdas[i] = 0;
             }
 
-            m_BatchImpl.SetStitchConstraints(particleIndices,stiffnesses,lambdas, stitches.Count);
-            m_BatchImpl.SetActiveConstraints(stitches.Count);
+            Oni.SetStitchConstraints(batch, particleIndices.GetIntPtr(), stiffnesses.GetIntPtr(), stitches.Count);
+            Oni.SetActiveConstraints(batch, stitches.Count);
 
         }
 

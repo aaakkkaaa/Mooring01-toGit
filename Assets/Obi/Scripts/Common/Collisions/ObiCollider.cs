@@ -28,13 +28,29 @@ namespace Obi
                 }
 
                 sourceCollider = value;
-
                 RemoveCollider();
                 AddCollider();
 
             }
             get { return sourceCollider; }
         }
+
+        [SerializeProperty("AccurateContacts")]
+        [SerializeField] private bool accurateContacts;
+
+        public bool AccurateContacts
+        {
+            set
+            {
+                if (accurateContacts != value)
+                {
+                    accurateContacts = value;
+                    CreateTracker();
+                }
+            }
+            get { return accurateContacts; }
+        }
+
 
         [SerializeProperty("UseDistanceFields")]
         [SerializeField] private bool useDistanceFields = false;
@@ -66,31 +82,37 @@ namespace Obi
 
             if (tracker != null)
             {
+                Oni.SetColliderShape(oniCollider, IntPtr.Zero);
                 tracker.Destroy();
                 tracker = null;
             }
 
             if (useDistanceFields)
-                tracker = new ObiDistanceFieldShapeTracker(this, sourceCollider, distanceField);
+                tracker = new ObiDistanceFieldShapeTracker(distanceField);
             else
             {
 
                 if (sourceCollider is SphereCollider)
-                    tracker = new ObiSphereShapeTracker(this, (SphereCollider)sourceCollider);
+                    tracker = new ObiSphereShapeTracker((SphereCollider)sourceCollider);
                 else if (sourceCollider is BoxCollider)
-                    tracker = new ObiBoxShapeTracker(this, (BoxCollider)sourceCollider);
+                    tracker = new ObiBoxShapeTracker((BoxCollider)sourceCollider);
                 else if (sourceCollider is CapsuleCollider)
-                    tracker = new ObiCapsuleShapeTracker(this, (CapsuleCollider)sourceCollider);
+                    tracker = new ObiCapsuleShapeTracker((CapsuleCollider)sourceCollider);
                 else if (sourceCollider is CharacterController)
                     tracker = new ObiCapsuleShapeTracker((CharacterController)sourceCollider);
                 else if (sourceCollider is TerrainCollider)
-                    tracker = new ObiTerrainShapeTracker(this, (TerrainCollider)sourceCollider);
+                    tracker = new ObiTerrainShapeTracker((TerrainCollider)sourceCollider, accurateContacts);
                 else if (sourceCollider is MeshCollider)
-                    tracker = new ObiMeshShapeTracker(this,(MeshCollider)sourceCollider);
+                {
+                    tracker = new ObiMeshShapeTracker((MeshCollider)sourceCollider);
+                }
                 else
                     Debug.LogWarning("Collider type not supported by Obi.");
 
             }
+
+            if (tracker != null)
+                Oni.SetColliderShape(oniCollider, tracker.OniShape);
 
         }
 
@@ -101,6 +123,12 @@ namespace Obi
                 enabled = sourceCollider.enabled;
 
             return sourceCollider;
+        }
+
+        protected override void UpdateAdaptor()
+        {
+            adaptor.Set(sourceCollider, Phase, Thickness);
+            Oni.UpdateCollider(oniCollider, ref adaptor);
         }
 
         protected override void FindSourceCollider()
