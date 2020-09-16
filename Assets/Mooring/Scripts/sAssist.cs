@@ -1,4 +1,5 @@
 ﻿using Obi;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -142,6 +143,7 @@ public class sAssist : MonoBehaviour
         // Провести калибровку положения базы камеры ([CameraRig]) относительно трекера HTC Vive, закрепленного на консоли штурвала в реальном пространстве
 
         // Высота консоли в модели яхты
+        print("_ConsoleTracker.localPosition.y = " + _ConsoleTracker.localPosition.y);
         if (_ConsoleTracker.localPosition.y != 0.0f) // если VR работает
         {
             // Положение трекера на консоли штурвала

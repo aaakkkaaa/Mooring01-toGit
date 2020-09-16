@@ -217,6 +217,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _checkShaderName: 1
   _disableRenderer: 1
+  _followHorizontalMotion: 0
 --- !u!1 &5240227697776568242
 GameObject:
   m_ObjectHideFlags: 0
@@ -406,9 +407,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e66dbc64761412d41801763633a21b35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _localOffset: {x: 0, y: 0, z: 0}
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weightUpDownMul: 0.3
   _teleportSpeed: 500
   _warnOnTeleport: 0
@@ -454,8 +452,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5240227698549704823}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.221, z: 0}
-  m_LocalScale: {x: 1.9, y: 0.5, z: 3.25}
+  m_LocalPosition: {x: 0, y: 0.22, z: 0}
+  m_LocalScale: {x: 1.7, y: 0.5, z: 3.2}
   m_Children: []
   m_Father: {fileID: 5240227698650314143}
   m_RootOrder: 0
@@ -649,9 +647,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e66dbc64761412d41801763633a21b35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _localOffset: {x: 0, y: 0, z: 0}
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weightUpDownMul: 0.3
   _teleportSpeed: 500
   _warnOnTeleport: 0

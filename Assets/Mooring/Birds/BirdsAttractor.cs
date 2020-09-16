@@ -33,6 +33,17 @@ public class BirdsAttractor : MonoBehaviour
 
     private Vector3 _basePose;
 
+    // Крики птиц
+    [Header("Bird's Calls")]
+
+    // Минимальный и максимальный интералы между криками (сек.)
+    [SerializeField]
+    private int _minMute = 30;
+    [SerializeField]
+    private int _maxMute = 60;
+    // Аудио источник - крик птиц
+    private AudioSource _BirdCall;
+
     private void Start()
     {
         _basePose = transform.position;
@@ -48,6 +59,12 @@ public class BirdsAttractor : MonoBehaviour
             bird.attractor = this;
             bird.Init();
         }
+
+        // Крики птиц
+        // Аудио источник - крик птиц (находится на текущем GameObject)
+        _BirdCall = GetComponent<AudioSource>();
+        // Запускаем корутину криков птиц
+        StartCoroutine(BirdCall());
     }
 
     void FixedUpdate()
@@ -59,4 +76,22 @@ public class BirdsAttractor : MonoBehaviour
         transform.position = tPos;
         POS = tPos;
     }
+
+    // Крики птиц
+    // Воспроизводим через случайные интервалы времени от _minMute до _maxMute в секундах
+    IEnumerator BirdCall()
+    {
+        // Сначала пауза: от 5 секунд до _maxMute
+        yield return new WaitForSeconds(UnityEngine.Random.Range(5, _maxMute));
+        _BirdCall.Play();
+
+        // Воспроизводим 
+        // Осторожно: "бесконечный" цикл
+        while (true)
+        {
+            yield return new WaitForSeconds(UnityEngine.Random.Range(_minMute, _maxMute));
+            _BirdCall.Play();
+        }
+    }
+
 }

@@ -21,7 +21,7 @@ public class sTime : MonoBehaviour
         //UnixStartTime = DateTimeOffset.Now.ToUnixTimeSeconds();
     }
 
-    // Возвращает текщее время работы программы в секундах
+    // Возвращает текущее время работы программы в секундах
     public float CurrentTimeSec()
     {
         return (_StopWatch.ElapsedMilliseconds - StartTime) / 1000.0f;

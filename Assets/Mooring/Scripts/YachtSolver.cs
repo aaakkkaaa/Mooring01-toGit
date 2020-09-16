@@ -43,9 +43,12 @@ public class YachtSolver : MonoBehaviour
     private float KBetaForv = 0.7f;          // Чтобы уменьшить влияние Beta, так как руль обдувается водой винта (3 стр 55)
     private float KBetaBack = 1.0f;          // Чтобы уменьшить влияние Beta, так как руль обдувается водой винта (3 стр 55)
     private float KrudVzxContraEnx = 0.7f;   // Соотношение влияния руля в потоке воды и руля в потоке винта
-    private float KwindF2 = 1.0f;            // Для подстройки влияния ветра на силу - множитель при V*V
-    private float KwindF1 = 10.0f;           // Для подстройки влияния ветра на силу - множитель при V
-    private float KwindM = 1.0f;             // Для подстройки влияния ветра на момент
+    //private float KwindF1 = 10.0f;           // Для подстройки влияния ветра на силу - множитель при V
+    private float KwindF1 = 3.0f;           // Для подстройки влияния ветра на силу - множитель при V
+    //private float KwindF2 = 1.0f;            // Для подстройки влияния ветра на силу - множитель при V*V
+    private float KwindF2 = 0.3f;            // Для подстройки влияния ветра на силу - множитель при V*V
+    //private float KwindM = 1.0f;             // Для подстройки влияния ветра на момент
+    private float KwindM = 0.2f;             // Для подстройки влияния ветра на момент
     private float Krotvz = 0.5f;             // Подстройка вляния скорости вращения Omega и боковой скорости Vx на продольную скорость Vz
 
     // занос кормы
@@ -318,7 +321,11 @@ public class YachtSolver : MonoBehaviour
         // поворот пера руля
         RuderValue = -steeringWheel * 35 / 540;
         // Ограничение составляющих момента вращения при RuderValue => 0. Применяется для величин MrudVzX и vToRot
-        float KruderMom = Mathf.Abs(Mathf.Atan(RuderValue)) * 2 / Mathf.PI;
+        float KruderMom = 1.0f;
+        if (engineValue != 0.0f)
+        {
+            KruderMom = Mathf.Abs(Mathf.Atan(RuderValue)) * 2 / Mathf.PI;
+        }
         // сила тяги
         float FengOld = Feng; // для анализа, нужен ли занос кормы от работы винта
         //Feng = enginePower * engineValue / maxV; 

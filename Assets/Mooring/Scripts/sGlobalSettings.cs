@@ -33,6 +33,18 @@ public class sGlobalSettings : MonoBehaviour
 
     //[Header("Другое")]
 
+
+
+    private void Awake()
+    {
+        // Инициализируем генератор случайных чисел UnityEngine.Random
+        // используется в BirdsAttractor.cs
+
+        TimeSpan CurTime = DateTime.Now.TimeOfDay; // текущее время
+        int Seed = (int)CurTime.TotalSeconds - (int)CurTime.TotalHours * 3600; // секунды с начала последнего часа
+        UnityEngine.Random.InitState(Seed);
+    }
+
     // Start is called before the first frame update
     void Start()
     {
