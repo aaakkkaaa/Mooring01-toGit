@@ -27,7 +27,7 @@ public class BoatPathManager : MonoBehaviour
         _branches[2] = new string[] { "P-0.5-1", "P+0.5-1" };
         _branches[3] = new string[] { "P+0.5-1", "P+0.75-2.3" };
         _branches[4] = new string[] { "P+0.5-1", "P+1-1" };
-        //_branches[5] = new string[] { "P+1-1", "P+0.8+0.8", "P+0.5+1", "P+0.5+2", "P+1.5+2" };
+        _branches[5] = new string[] { "P+1-1", "P+0.8+0.8", "P+0.5+1", "P+0.5+2", "P+1.5+2" };
         _branches[5] = new string[] { "P+1-1", "P+0.5+1", "P+0.5+2", "P+1.5+2" };
         _branches[6] = new string[] { "P+1-1", "P+1.5-1" };
         _branches[7] = new string[] { "P+1.5-1", "P+1.9-2.1" };
@@ -67,7 +67,7 @@ public class BoatPathManager : MonoBehaviour
             {
                 if (cur == _branches[i][j] && exclude != i)
                 {
-                    start.Add(i);
+                    start.Add(i);   // добавили индекс массива точек
                 }
             }
         }
@@ -119,6 +119,11 @@ public class BoatPathManager : MonoBehaviour
             {
                 if (i != _curBranch)
                 {
+                    if( branch[idx] == _branches[i][0] || branch[idx] == _branches[i][_branches[i].Length-1])
+                    {
+                        return true; // найдена точка ветвления
+                    }
+                    /*
                     for (int j = 0; j < _branches[i].Length; j++)
                     {
                         if ( branch[idx] == _branches[i][j] )
@@ -126,6 +131,7 @@ public class BoatPathManager : MonoBehaviour
                             return true;    // найдена точка ветвления
                         }
                     }
+                    */
                 }
             }
 
@@ -135,6 +141,7 @@ public class BoatPathManager : MonoBehaviour
         return false;   // дошли до конца ветки
     }
 
+    // для отладки
     private void PrintResult(List<string> res)
     {
         string str = "";
