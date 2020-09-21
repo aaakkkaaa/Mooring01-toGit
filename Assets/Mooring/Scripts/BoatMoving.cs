@@ -48,7 +48,7 @@ public class BoatMoving : MonoBehaviour
     private BoatPathManager _pathMngr;
     // имена всех точек пути
     private List<string> _path;
-    // Использовать для данного судная специальный путь
+    // Использовать для данного судна специальный путь
     [SerializeField]
     private bool _useSpecificPath;
     // Специальный путь для данного судна
@@ -61,6 +61,9 @@ public class BoatMoving : MonoBehaviour
 
     // класс со служебными функциями
     private sAssist _assist;
+
+    // для контроля за параметрами и демпфирования
+    private Rigidbody _rBody;
 
 
     void Start()
@@ -77,6 +80,7 @@ public class BoatMoving : MonoBehaviour
 
         _assist = FindObjectsOfType<sAssist>()[0];
 
+        _rBody = GetComponent<Rigidbody>();
     }
 
     private void Update()
@@ -269,6 +273,18 @@ public class BoatMoving : MonoBehaviour
         Vector3 curRot = transform.eulerAngles;
         curRot.y += ang;
         transform.eulerAngles = curRot;
+    }
+
+    private void FixedUpdate()
+    {
+        //print( gameObject.name + "   Скорость = " + _rBody.velocity);
+        Vector3 rbV = _rBody.velocity;
+        if ( Mathf.Abs(rbV.y) > 2.0  )
+        {
+            rbV.y = Mathf.Sign(rbV.y) * 2.0f;
+            _rBody.velocity = rbV;
+        }
+
     }
 
 }
