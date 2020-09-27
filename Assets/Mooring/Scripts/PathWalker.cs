@@ -54,6 +54,7 @@ public class PathWalker : MonoBehaviour
 
     void Update()
     {
+        /*
         if (Input.GetKeyDown("g")) // сделать шаг к нужной точке
         {
             bool isRotLeft = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateLeft");
@@ -65,6 +66,7 @@ public class PathWalker : MonoBehaviour
                 WalkTo(WalkTarget.name);
             }
         }
+        */
     }
 
     // определить путь и начать поворот, потом движение 

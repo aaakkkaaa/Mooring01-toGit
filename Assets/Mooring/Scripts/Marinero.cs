@@ -58,6 +58,7 @@ public class Marinero : MonoBehaviour
     {
         CurState = "IDLE";
         //_walker.WalkTo("Point_05");
+        _walker.WalkTo("Point_01");
     }
 
     private void FixedUpdate()
