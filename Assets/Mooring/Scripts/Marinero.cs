@@ -42,6 +42,8 @@ public class Marinero : MonoBehaviour
     private ObiSolver _solver;
     private Collider _coll;
 
+    private PathWalker _walker;
+
     private IEnumerator _coroutineLimitV;
 
 
@@ -49,11 +51,13 @@ public class Marinero : MonoBehaviour
     {
         _animator = gameObject.GetComponent<Animator>();
         _coll = gameObject.GetComponent<Collider>();
+        _walker = GetComponent<PathWalker>();
     }
 
     private void Start()
     {
         CurState = "IDLE";
+        //_walker.WalkTo("Point_05");
     }
 
     private void FixedUpdate()
@@ -331,6 +335,7 @@ public class Marinero : MonoBehaviour
        
     }
 
+    // отпустить канат, так как яхта уплывает, и бросать конец сейлору невозможно
     private void FreeRope()
     {
         _animator.SetTrigger("FreeRope");

@@ -71,7 +71,7 @@ public class BoatPathManager : MonoBehaviour
                 }
             }
         }
-        print("CreatePath (cur=" + cur + ") -> " + start.Count);
+        //print("CreatePath (cur=" + cur + ") -> " + start.Count);
 
         // выбираем ветку из числа содержащих начальный узел cur
         _curBranch = -1;
@@ -156,7 +156,7 @@ public class BoatPathManager : MonoBehaviour
                 str += (res[i] + " - ");
             }
         }
-        print(str);
+        //print(str);
     }
 
 

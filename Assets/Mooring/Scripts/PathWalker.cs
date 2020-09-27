@@ -47,7 +47,7 @@ public class PathWalker : MonoBehaviour
     // Для остановки корутины в конце движения
     private IEnumerator _angleCorrector;
 
-    void Start()
+    void Awake()
     {
         _animator = gameObject.GetComponent<Animator>();
     }
@@ -134,9 +134,7 @@ public class PathWalker : MonoBehaviour
             }
             else
             {
-                // поворот закончился
-                float toLast = (_path[_path.Count - 1].localPosition - _path[0].localPosition).magnitude;
-                // идем к первой точке
+                // поворот закончился идем к первой точке
                 _idx = 1;
                 _animator.SetTrigger("GoLong");
                 _normTimeStart = _animator.GetCurrentAnimatorStateInfo(0).normalizedTime;

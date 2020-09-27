@@ -90,7 +90,7 @@ public class BoatMoving : MonoBehaviour
         // Начинаем плыть
         if (startPoint != null && _state == "IDLE")
         {
-            print(gameObject.name + " -> Начинаем плыть");
+            //print(gameObject.name + " -> Начинаем плыть");
 
             // Построить путь судна
             if (_useSpecificPath)
@@ -108,7 +108,7 @@ public class BoatMoving : MonoBehaviour
             _curIdx = 0;
             _curP = startPoint;
             _nextP = _points.transform.Find(_path[_curIdx + 1]).gameObject;
-            print(gameObject.name + "  START  _nextP = " + _nextP.name);
+            //print(gameObject.name + "  START  _nextP = " + _nextP.name);
             _Vz = 0;
         }
         //}
