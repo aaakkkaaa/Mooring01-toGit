@@ -189,22 +189,23 @@ public class YachtSolver : MonoBehaviour
         
     }
 
-    /* Вывод для контроля частоты кадров
+    //Вывод для контроля частоты кадров
     private int FrameCount = 0;
     private int FrameCount2 = 0;
-    */
+    private int FramePeriod = 50;
 
     private void Update()
     {
-        /* Вывод для контроля частоты кадров
+        // Вывод для контроля частоты кадров
         FrameCount++;
         FrameCount2++;
-        if (FrameCount2 >= 25)
+        if (FrameCount2 >= FramePeriod)
         {
             FrameCount2 = 0;
-            _Record.MyLog(FrameCount.ToString());
+            _Record.MyLog("FPS", FrameCount.ToString());
         }
-        */
+        //*/
+
         // Режим калибровки ручки газ-реверс
 
         if (_ThrottleCalibrationMode)

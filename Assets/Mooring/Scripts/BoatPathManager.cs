@@ -21,7 +21,7 @@ public class BoatPathManager : MonoBehaviour
 
     void Start()
     {
-        _branches = new string[12][];
+        _branches = new string[13][];
         _branches[0] = new string[] { "P+2+3", "P+1+3", "P-1+4", "P-0.5-1" };
         _branches[1] = new string[] { "P-0.5-1", "P-1-2.4" };
         _branches[2] = new string[] { "P-0.5-1", "P+0.5-1" };
@@ -35,6 +35,7 @@ public class BoatPathManager : MonoBehaviour
         _branches[9] = new string[] { "P+1.5-1", "P+2.5-0.5", "P+2.5+0", "P+2.5+1.5", "P+2.8+2.2" };
         _branches[10] = new string[] { "P+1-1", "P+0.8+0.8", "P+1.5+1" };
         _branches[11] = new string[] { "P+4-4", "P-2-4", "P-2+0", "P-1.5+0.5", "P-1-1", "P-0.5-1" };
+        _branches[12] = new string[] { "P+4.5-4", "P+4-4"};
 
         //CreatePath("P10");
     }
@@ -71,7 +72,7 @@ public class BoatPathManager : MonoBehaviour
                 }
             }
         }
-        //print("CreatePath (cur=" + cur + ") -> " + start.Count);
+        print("CreatePath (cur=" + cur + ") -> " + start.Count);
 
         // выбираем ветку из числа содержащих начальный узел cur
         _curBranch = -1;
@@ -156,7 +157,7 @@ public class BoatPathManager : MonoBehaviour
                 str += (res[i] + " - ");
             }
         }
-        //print(str);
+        print(str);
     }
 
 

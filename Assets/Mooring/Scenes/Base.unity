@@ -2098,7 +2098,9 @@ MonoBehaviour:
   RecDir: Record
   _RecFileNames:
   - Main
-  WriteLog: 0
+  - Track
+  - FPS
+  WriteLog: 1
 --- !u!4 &1894480077
 Transform:
   m_ObjectHideFlags: 0

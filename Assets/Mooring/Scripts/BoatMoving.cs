@@ -83,14 +83,14 @@ public class BoatMoving : MonoBehaviour
         _rBody = GetComponent<Rigidbody>();
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         //if (Input.GetKeyDown(KeyCode.P))
         //{
         // Начинаем плыть
         if (startPoint != null && _state == "IDLE")
         {
-            //print(gameObject.name + " -> Начинаем плыть");
+            print(gameObject.name + " -> Начинаем плыть");
 
             // Построить путь судна
             if (_useSpecificPath)
@@ -108,7 +108,7 @@ public class BoatMoving : MonoBehaviour
             _curIdx = 0;
             _curP = startPoint;
             _nextP = _points.transform.Find(_path[_curIdx + 1]).gameObject;
-            //print(gameObject.name + "  START  _nextP = " + _nextP.name);
+            print(gameObject.name + "  START  _nextP = " + _nextP.name);
             _Vz = 0;
         }
         //}
@@ -127,9 +127,9 @@ public class BoatMoving : MonoBehaviour
 
             //print("ang = " + ang + "     ang1 = " + ang1);
             float dAng;
-            if (Mathf.Abs(ang) > rotV * Time.deltaTime)
+            if (Mathf.Abs(ang) > rotV * Time.fixedDeltaTime)
             {
-                dAng = Mathf.Sign(ang) * rotV * Time.deltaTime;
+                dAng = Mathf.Sign(ang) * rotV * Time.fixedDeltaTime;
             }
             else
             {
@@ -146,7 +146,7 @@ public class BoatMoving : MonoBehaviour
         {
             if (_Vz < maxVz)
             {
-                _Vz += Az * Time.deltaTime;
+                _Vz += Az * Time.fixedDeltaTime;
             }
             if (_Vz > maxVz)
             {
@@ -203,7 +203,7 @@ public class BoatMoving : MonoBehaviour
         if (_state == "SLOW")
         {
             //CorrectDirection();
-            _Vz -= Aslow*Time.deltaTime;
+            _Vz -= Aslow*Time.fixedDeltaTime;
             if (_Vz <= 0)
             {
                 _Vz = 0;
@@ -220,7 +220,7 @@ public class BoatMoving : MonoBehaviour
         }
         if (_state == "ROTATION")
         {
-            float dVz = _Vz * Time.deltaTime;
+            float dVz = _Vz * Time.fixedDeltaTime;
             float newL = _p0q0 + dVz;
             // не пора ли выходить из разворота
             if (newL >= _p0p1)
@@ -249,7 +249,7 @@ public class BoatMoving : MonoBehaviour
                 // перемещение и разворот
                 transform.position = Breal;
                 CorrectDirection(Q1test);
-                _p0q0 += _Vz * Time.deltaTime / correction;
+                _p0q0 += _Vz * Time.fixedDeltaTime / correction;
             }
         }
     }
@@ -257,7 +257,7 @@ public class BoatMoving : MonoBehaviour
     // смещение на каждом шаге
     private void MovingStep()
     {
-        Vector3 locPos = new Vector3(0, 0, _Vz*Time.deltaTime);
+        Vector3 locPos = new Vector3(0, 0, _Vz*Time.fixedDeltaTime);
         Vector3 pos = transform.TransformPoint(locPos);
         transform.position = pos;
     }
@@ -275,16 +275,17 @@ public class BoatMoving : MonoBehaviour
         transform.eulerAngles = curRot;
     }
 
+    /*
     private void FixedUpdate()
     {
         //print( gameObject.name + "   Скорость = " + _rBody.velocity);
         Vector3 rbV = _rBody.velocity;
-        if ( Mathf.Abs(rbV.y) > 2.0  )
+        if ( Mathf.Abs(rbV.y) > 0.1  )
         {
-            rbV.y = Mathf.Sign(rbV.y) * 2.0f;
+            rbV.y = Mathf.Sign(rbV.y) * 0.1f;
             _rBody.velocity = rbV;
         }
 
     }
-
+    */
 }

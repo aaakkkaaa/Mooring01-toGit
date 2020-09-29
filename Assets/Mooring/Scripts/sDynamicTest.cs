@@ -19,6 +19,9 @@ public class sDynamicTest : MonoBehaviour
     [SerializeField]
     string _TaskFile = "MAH00869";
 
+    // Глобальные параметры
+    sGlobalSettings _GlobalSettings;
+
     // Класс управления яхтой
     YachtSolver _YachtSolver;
 
@@ -66,6 +69,9 @@ public class sDynamicTest : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        // Глобальные параметры
+        _GlobalSettings = GameObject.Find("GlobalS").GetComponent<sGlobalSettings>();
+
         // Класс управления яхтой
         _YachtSolver = _MainShip.GetComponent<YachtSolver>();
 
@@ -76,7 +82,7 @@ public class sDynamicTest : MonoBehaviour
         _Time = transform.GetComponent<sTime>();
 
         // Открыть файл с заданием и считать все строки в массив
-        string[] TaskData = File.ReadAllLines(Path.Combine(_Record.RecDir, _TaskFile + ".txt"));
+        string[] TaskData = File.ReadAllLines(Path.Combine(_GlobalSettings.RecDir, _TaskFile + ".txt"));
 
         // Подготовить массив команд-структур
         _Command = new CommandPars[TaskData.Length - 3];

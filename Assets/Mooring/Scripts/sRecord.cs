@@ -17,9 +17,6 @@ public class sRecord : MonoBehaviour
     // Класс с параметрами для записи логов
     private sGlobalSettings _GlobalS;
 
-    // Папка для записи файлов
-    public string RecDir;
-
     // Класс точного времени
     sTime _Time;
 
@@ -27,9 +24,6 @@ public class sRecord : MonoBehaviour
     {
         // Ссылка на класс с параметрами для записи логов
         _GlobalS = GameObject.Find("GlobalS").GetComponent<sGlobalSettings>();
-
-        // Папка для записи файлов
-        RecDir = _GlobalS.RecDir;
 
         // Класс точного времени
         _Time = transform.GetComponent<sTime>();

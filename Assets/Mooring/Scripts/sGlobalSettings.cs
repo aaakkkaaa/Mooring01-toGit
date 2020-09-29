@@ -50,9 +50,9 @@ public class sGlobalSettings : MonoBehaviour
     {
         // ********************** Подготовится к записи данных в файлы ********************************************
 
-        // Создать папку
-        Directory.CreateDirectory(RecDir);
-        RecDir = Path.Combine(Directory.GetCurrentDirectory(), RecDir);
+        //// Создать папку
+        //Directory.CreateDirectory(RecDir);
+        //RecDir = Path.Combine(Directory.GetCurrentDirectory(), RecDir);
 
         if (WriteLog)
         {
