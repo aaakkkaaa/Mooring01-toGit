@@ -2,8 +2,6 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
-    <CscToolPath>C:\Program Files\Unity\Hub\Editor\2019.4.11f1\Editor\Data\Tools\RoslynScripts</CscToolPath>
-    <CscToolExe>unity_csc.bat</CscToolExe>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -11,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{786BEFE3-11AA-A648-1B21-B7F206A2DE7A}</ProjectGuid>
+    <ProjectGuid>{5D2587A7-D22D-F2D9-1D43-50E36C9FCB71}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Assembly-CSharp</AssemblyName>
@@ -53,6 +51,9 @@
     <UnityBuildTarget>StandaloneWindows64:19</UnityBuildTarget>
     <UnityVersion>2019.4.11f1</UnityVersion>
   </PropertyGroup>
+  <ItemGroup>
+    <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
+  </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2019.4.11f1\Editor\Data\Managed/UnityEngine/UnityEngine.dll</HintPath>
@@ -101,6 +102,7 @@
     <Compile Include="Assets\Mooring\Scripts\sSailorM_IK.cs" />
     <Compile Include="Assets\Mooring\Scripts\sTime.cs" />
     <Compile Include="Assets\Mooring\Scripts\sTimeLerp.cs" />
+    <Compile Include="Assets\Mooring\Scripts\sWristwatch.cs" />
     <Compile Include="Assets\Obi\Samples\Common\SampleResources\Scripts\ActorSpawner.cs" />
     <Compile Include="Assets\Obi\Samples\Common\SampleResources\Scripts\AddRandomVelocity.cs" />
     <Compile Include="Assets\Obi\Samples\Common\SampleResources\Scripts\Blinker.cs" />
@@ -397,7 +399,7 @@
       <HintPath>C:/Program Files/Unity/Hub/Editor/2019.4.11f1/Editor/Data/Managed/UnityEditor.dll</HintPath>
     </Reference>
     <Reference Include="Valve.Newtonsoft.Json">
-      <HintPath>D:/00/Mooring/Warehouse/Mooring24/Assets/SteamVR/Input/Plugins/JSON.NET/Valve.Newtonsoft.Json.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring28/Assets/SteamVR/Input/Plugins/JSON.NET/Valve.Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib">
       <HintPath>C:/Program Files/Unity/Hub/Editor/2019.4.11f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/mscorlib.dll</HintPath>
@@ -754,95 +756,95 @@
       <HintPath>C:/Program Files/Unity/Hub/Editor/2019.4.11f1/Editor/Data/MonoBleedingEdge/lib/mono/unityscript/Boo.Lang.dll</HintPath>
     </Reference>
     <Reference Include="Unity.RenderPipeline.Universal.ShaderLibrary">
-      <HintPath>D:/00/Mooring/Warehouse/Mooring24/Library/ScriptAssemblies/Unity.RenderPipeline.Universal.ShaderLibrary.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring28/Library/ScriptAssemblies/Unity.RenderPipeline.Universal.ShaderLibrary.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Timeline.Editor">
-      <HintPath>D:/00/Mooring/Warehouse/Mooring24/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring28/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.RenderPipelines.Universal.Shaders">
-      <HintPath>D:/00/Mooring/Warehouse/Mooring24/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Shaders.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring28/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Shaders.dll</HintPath>
     </Reference>
     <Reference Include="Unity.VSCode.Editor">
-      <HintPath>D:/00/Mooring/Warehouse/Mooring24/Library/ScriptAssemblies/Unity.VSCode.Editor.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring28/Library/ScriptAssemblies/Unity.VSCode.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.RenderPipelines.Core.Editor">
-      <HintPath>D:/00/Mooring/Warehouse/Mooring24/Library/ScriptAssemblies/Unity.RenderPipelines.Core.Editor.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring28/Library/ScriptAssemblies/Unity.RenderPipelines.Core.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.RenderPipelines.Core.Runtime">
-      <HintPath>D:/00/Mooring/Warehouse/Mooring24/Library/ScriptAssemblies/Unity.RenderPipelines.Core.Runtime.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring28/Library/ScriptAssemblies/Unity.RenderPipelines.Core.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro.Editor">
-      <HintPath>D:/00/Mooring/Warehouse/Mooring24/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring28/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.RenderPipelines.Universal.Runtime">
-      <HintPath>D:/00/Mooring/Warehouse/Mooring24/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring28/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="Unity.RenderPipelines.Universal.Editor">
-      <HintPath>D:/00/Mooring/Warehouse/Mooring24/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Editor.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring28/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Editor.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>D:/00/Mooring/Warehouse/Mooring24/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring28/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Timeline">
-      <HintPath>D:/00/Mooring/Warehouse/Mooring24/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring28/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
     </Reference>
     <Reference Include="Unity.CollabProxy.Editor">
-      <HintPath>D:/00/Mooring/Warehouse/Mooring24/Library/ScriptAssemblies/Unity.CollabProxy.Editor.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring28/Library/ScriptAssemblies/Unity.CollabProxy.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Rider.Editor">
-      <HintPath>D:/00/Mooring/Warehouse/Mooring24/Library/ScriptAssemblies/Unity.Rider.Editor.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring28/Library/ScriptAssemblies/Unity.Rider.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary">
-      <HintPath>D:/00/Mooring/Warehouse/Mooring24/Library/ScriptAssemblies/Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring28/Library/ScriptAssemblies/Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll</HintPath>
     </Reference>
     <Reference Include="Unity.ShaderGraph.Editor">
-      <HintPath>D:/00/Mooring/Warehouse/Mooring24/Library/ScriptAssemblies/Unity.ShaderGraph.Editor.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring28/Library/ScriptAssemblies/Unity.ShaderGraph.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.RenderPipelines.Core.ShaderLibrary">
-      <HintPath>D:/00/Mooring/Warehouse/Mooring24/Library/ScriptAssemblies/Unity.RenderPipelines.Core.ShaderLibrary.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring28/Library/ScriptAssemblies/Unity.RenderPipelines.Core.ShaderLibrary.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro">
-      <HintPath>D:/00/Mooring/Warehouse/Mooring24/Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring28/Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.UI">
-      <HintPath>D:/00/Mooring/Warehouse/Mooring24/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring28/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Assembly-CSharp-firstpass.csproj">
-      <Project>{981B3CF6-EE17-EC18-861F-AB5A386ADBA5}</Project>
+      <Project>{315EA174-AE24-3E1C-BBAD-A9B4FC066987}</Project>
       <Name>Assembly-CSharp-firstpass</Name>
     </ProjectReference>
     <ProjectReference Include="Obi.csproj">
-      <Project>{F49C844F-B23F-70C8-7C98-03E31AE10E10}</Project>
+      <Project>{570B6F93-DFD4-BFF0-0C55-7C3882B01111}</Project>
       <Name>Obi</Name>
     </ProjectReference>
     <ProjectReference Include="SteamVR_Actions.csproj">
-      <Project>{892FE19F-37E4-5EB4-FC5C-47942047868F}</Project>
+      <Project>{468B8981-903C-B4E4-AAFD-D6EE882903CC}</Project>
       <Name>SteamVR_Actions</Name>
     </ProjectReference>
     <ProjectReference Include="Crest.Examples.csproj">
-      <Project>{8D8C571A-C70A-7855-CE47-923B8360AC74}</Project>
+      <Project>{C3E8E295-4875-B3F4-70E0-C23D46B2E86C}</Project>
       <Name>Crest.Examples</Name>
     </ProjectReference>
     <ProjectReference Include="Crest.csproj">
-      <Project>{2E972B85-9F9D-1302-1496-E8A433A93761}</Project>
+      <Project>{6CDC427C-CE8E-C870-8DBC-BB6D0D7A8496}</Project>
       <Name>Crest</Name>
     </ProjectReference>
     <ProjectReference Include="SteamVR_Input_Editor.csproj">
-      <Project>{F7FF3C21-E2C0-3E41-DFBF-04BF0CF7B93E}</Project>
+      <Project>{00E7A19C-30EA-3490-5974-A7DC5708B913}</Project>
       <Name>SteamVR_Input_Editor</Name>
     </ProjectReference>
     <ProjectReference Include="SteamVR_Editor.csproj">
-      <Project>{4E3E46AB-7ED6-6820-C445-9A77AC292A95}</Project>
+      <Project>{F294DA9E-6C4C-8F84-4BFA-49EE1DD8FF4B}</Project>
       <Name>SteamVR_Editor</Name>
     </ProjectReference>
     <ProjectReference Include="SteamVR.csproj">
-      <Project>{9BBD5F0A-C330-6216-F7BD-C802C8ECA300}</Project>
+      <Project>{27363F36-21DC-0867-A1D5-17974603C38E}</Project>
       <Name>SteamVR</Name>
     </ProjectReference>
     <ProjectReference Include="SteamVR_Windows_EditorHelper.csproj">
-      <Project>{98400610-9826-2571-61DE-7493B52DD8E2}</Project>
+      <Project>{B277D922-378E-BCAC-4EA8-77C642925C54}</Project>
       <Name>SteamVR_Windows_EditorHelper</Name>
     </ProjectReference>
   </ItemGroup>

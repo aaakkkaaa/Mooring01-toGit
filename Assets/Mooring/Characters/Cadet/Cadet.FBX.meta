@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: ad75cdde23c8d3545bcf418336b5ad36
+guid: 4175e1137f3855b47a4b7e287f30f260
 ModelImporter:
   serializedVersion: 19301
   internalIDToNameTable: []
@@ -28,12 +28,12 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: m019_body
-    second: {fileID: 2100000, guid: 73b4406901e137643b6606f4d7c2cd71, type: 2}
+    second: {fileID: 2100000, guid: eb409ac9d1e649741a7c1546107d0d76, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: m019_head
-    second: {fileID: 2100000, guid: b8e9194b0b15df940abdf4ffdb30fcde, type: 2}
+    second: {fileID: 2100000, guid: 3209da5a4da46904a96624024017748f, type: 2}
   materials:
     materialImportMode: 1
     materialName: 0
@@ -525,51 +525,6 @@ ModelImporter:
       position: {x: 0, y: 0, z: 0}
       rotation: {x: 0, y: 0.0000016533702, z: 0, w: 1}
       scale: {x: 1, y: 1, z: 1}
-    - name: Wristwatch.001
-      parentName: Cadet(Clone)
-      position: {x: -0.58625793, y: 1.0897232, z: 0.064583614}
-      rotation: {x: -0.6923098, y: -0.16957429, z: 0.39879513, w: 0.57698715}
-      scale: {x: 1, y: 1, z: 1}
-    - name: Wristwatch.005
-      parentName: Cadet(Clone)
-      position: {x: -0.5838815, y: 1.0909245, z: 0.07108781}
-      rotation: {x: -0.6923098, y: -0.16957437, z: 0.3987952, w: 0.5769871}
-      scale: {x: 1, y: 1, z: 1}
-    - name: Wristwatch
-      parentName: Cadet(Clone)
-      position: {x: -0.58083296, y: 1.0849092, z: 0.06470038}
-      rotation: {x: -0.6923098, y: -0.16957429, z: 0.39879513, w: 0.57698715}
-      scale: {x: 1, y: 1, z: 1}
-    - name: Wristwatch.004
-      parentName: Cadet(Clone)
-      position: {x: -0.58585674, y: 1.0893674, z: 0.06459226}
-      rotation: {x: -0.6923098, y: -0.16957429, z: 0.39879513, w: 0.57698715}
-      scale: {x: 1, y: 1, z: 1}
-    - name: Wristwatch.003
-      parentName: Cadet(Clone)
-      position: {x: -0.58574086, y: 1.0892644, z: 0.06459475}
-      rotation: {x: -0.60944396, y: 0.36962986, z: 0.6899824, w: 0.12600084}
-      scale: {x: 1, y: 0.99999994, z: 1}
-    - name: Wristwatch.002
-      parentName: Cadet(Clone)
-      position: {x: -0.58601725, y: 1.0895096, z: 0.0645888}
-      rotation: {x: -0.6094441, y: 0.3696299, z: 0.6899823, w: 0.12600036}
-      scale: {x: 0.9999999, y: 0.9999999, z: 1}
-    - name: Wristwatch.006
-      parentName: Cadet(Clone)
-      position: {x: -0.58083296, y: 1.0849092, z: 0.06470038}
-      rotation: {x: -0.6923098, y: -0.16957429, z: 0.39879513, w: 0.57698715}
-      scale: {x: 1, y: 1, z: 1}
-    - name: Lifejacket
-      parentName: Cadet(Clone)
-      position: {x: -0.006511305, y: 1.3417525, z: 0.056950804}
-      rotation: {x: -0.7071068, y: 4.3329547e-22, z: 9.05808e-22, w: 0.7071067}
-      scale: {x: 0.019655487, y: 0.019655487, z: 0.019655487}
-    - name: LifejacketOpen
-      parentName: Cadet(Clone)
-      position: {x: -0.0000032708049, y: 1.41199, z: 0.051605895}
-      rotation: {x: -0.7071068, y: -4.6227946e-22, z: 1.3072272e-23, w: 0.7071067}
-      scale: {x: 1, y: 1, z: 1}
     - name: Bip01
       parentName: Cadet(Clone)
       position: {x: -0, y: 0.8951848, z: -2.7097638e-10}
@@ -590,6 +545,66 @@ ModelImporter:
       position: {x: -0.12025947, y: -0.0016285778, z: -0.000000008254992}
       rotation: {x: 0, y: 0, z: 0, w: 1}
       scale: {x: 1.0000002, y: 1.0000004, z: 1.0000002}
+    - name: Bip01 L Thigh
+      parentName: Bip01 Spine
+      position: {x: 0.12021279, y: -0.0037249175, z: 0.08836847}
+      rotation: {x: 0, y: 1, z: 0, w: -0.00000004371139}
+      scale: {x: 1.0000014, y: 1.0000015, z: 1.0000006}
+    - name: Bip01 L Calf
+      parentName: Bip01 L Thigh
+      position: {x: -0.3990354, y: 0.00000009313226, z: -0.0000001383014}
+      rotation: {x: 0, y: 0, z: 0, w: 1}
+      scale: {x: 1.0000008, y: 1, z: 1.0000006}
+    - name: Bip01 L Foot
+      parentName: Bip01 L Calf
+      position: {x: -0.39668894, y: 0.00000006146729, z: 0.00000007310882}
+      rotation: {x: 0, y: 0, z: 0, w: 1}
+      scale: {x: 0.99999934, y: 1.0000005, z: 1.0000001}
+    - name: Bip01 L Toe0
+      parentName: Bip01 L Foot
+      position: {x: -0.10162373, y: 0.13629565, z: -0.00000021324377}
+      rotation: {x: 0, y: 0, z: 0.7071068, w: -0.7071068}
+      scale: {x: 1, y: 0.9999996, z: 1.0000012}
+    - name: Bip01 L Toe0Nub
+      parentName: Bip01 L Toe0
+      position: {x: -0.08381466, y: -0.00000004278263, z: 0.000000012398232}
+      rotation: {x: 0, y: 0, z: 0, w: 1}
+      scale: {x: 1.0000008, y: 1, z: 0.9999998}
+    - name: Bip01 L Toe0Nub_end
+      parentName: Bip01 L Toe0Nub
+      position: {x: -0, y: 0.083814725, z: 0}
+      rotation: {x: 0, y: 0, z: 0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: Bip01 R Thigh
+      parentName: Bip01 Spine
+      position: {x: 0.1202128, y: -0.0037244111, z: -0.0883685}
+      rotation: {x: 0, y: 1, z: 0, w: -0.00000004371139}
+      scale: {x: 1.0000013, y: 1.000001, z: 1.0000008}
+    - name: Bip01 R Calf
+      parentName: Bip01 R Thigh
+      position: {x: -0.39903527, y: 0.000000117346644, z: -0.0000000027939677}
+      rotation: {x: 0, y: 0, z: 0, w: 1}
+      scale: {x: 1.0000006, y: 1.0000007, z: 1.0000015}
+    - name: Bip01 R Foot
+      parentName: Bip01 R Calf
+      position: {x: -0.39668915, y: -0.000000029802322, z: 0.000000016298145}
+      rotation: {x: 0, y: 0, z: 0, w: 1}
+      scale: {x: 1, y: 1.0000002, z: 1.0000004}
+    - name: Bip01 R Toe0
+      parentName: Bip01 R Foot
+      position: {x: -0.101623856, y: 0.13629569, z: 0.00000023376197}
+      rotation: {x: 0, y: 0, z: 0.7071068, w: -0.7071068}
+      scale: {x: 1.0000005, y: 0.99999994, z: 1.0000012}
+    - name: Bip01 R Toe0Nub
+      parentName: Bip01 R Toe0
+      position: {x: -0.08381468, y: 0.000000019732397, z: 0.000000011117663}
+      rotation: {x: 0, y: 0, z: 0, w: 1}
+      scale: {x: 1.000001, y: 1.0000002, z: 1.0000019}
+    - name: Bip01 R Toe0Nub_end
+      parentName: Bip01 R Toe0Nub
+      position: {x: -0, y: 0.083814725, z: 0}
+      rotation: {x: 0, y: 0, z: 0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
     - name: Bip01 Spine1
       parentName: Bip01 Spine
       position: {x: -0.15316862, y: -0.00012195157, z: 0.0000000012726704}
@@ -658,7 +673,7 @@ ModelImporter:
     - name: Bip01 L Finger0
       parentName: Bip01 L Hand
       position: {x: -0.02676095, y: 0.006282402, z: -0.03198262}
-      rotation: {x: 0, y: 0.3826835, z: 0, w: -0.9238795}
+      rotation: {x: 0.6532815, y: -0.27059805, z: 0.27059805, w: 0.6532815}
       scale: {x: 0.9999965, y: 1.0000039, z: 1.0000025}
     - name: Bip01 L Finger01
       parentName: Bip01 L Finger0
@@ -803,7 +818,7 @@ ModelImporter:
     - name: Bip01 R Finger0
       parentName: Bip01 R Hand
       position: {x: -0.026760776, y: 0.006282082, z: 0.031982496}
-      rotation: {x: 0, y: 0.38268346, z: 0, w: 0.9238795}
+      rotation: {x: -0.6532815, y: 0.27059805, z: 0.27059805, w: 0.6532815}
       scale: {x: 0.9999959, y: 1.000004, z: 1.0000049}
     - name: Bip01 R Finger01
       parentName: Bip01 R Finger0
@@ -925,65 +940,15 @@ ModelImporter:
       position: {x: -0, y: 0.016301397, z: 0}
       rotation: {x: 0, y: 0, z: 0, w: 1}
       scale: {x: 1, y: 1, z: 1}
-    - name: Bip01 L Thigh
-      parentName: Bip01 Spine
-      position: {x: 0.12021279, y: -0.0037249175, z: 0.08836847}
-      rotation: {x: 0, y: 1, z: 0, w: -0.00000004371139}
-      scale: {x: 1.0000014, y: 1.0000015, z: 1.0000006}
-    - name: Bip01 L Calf
-      parentName: Bip01 L Thigh
-      position: {x: -0.3990354, y: 0.00000009313226, z: -0.0000001383014}
-      rotation: {x: 0, y: 0, z: 0, w: 1}
-      scale: {x: 1.0000008, y: 1, z: 1.0000006}
-    - name: Bip01 L Foot
-      parentName: Bip01 L Calf
-      position: {x: -0.39668894, y: 0.00000006146729, z: 0.00000007310882}
-      rotation: {x: 0, y: 0, z: 0, w: 1}
-      scale: {x: 0.99999934, y: 1.0000005, z: 1.0000001}
-    - name: Bip01 L Toe0
-      parentName: Bip01 L Foot
-      position: {x: -0.10162373, y: 0.13629565, z: -0.00000021324377}
-      rotation: {x: 0, y: 0, z: 0.7071068, w: -0.7071068}
-      scale: {x: 1, y: 0.9999996, z: 1.0000012}
-    - name: Bip01 L Toe0Nub
-      parentName: Bip01 L Toe0
-      position: {x: -0.08381466, y: -0.00000004278263, z: 0.000000012398232}
-      rotation: {x: 0, y: 0, z: 0, w: 1}
-      scale: {x: 1.0000008, y: 1, z: 0.9999998}
-    - name: Bip01 L Toe0Nub_end
-      parentName: Bip01 L Toe0Nub
-      position: {x: -0, y: 0.083814725, z: 0}
-      rotation: {x: 0, y: 0, z: 0, w: 1}
-      scale: {x: 1, y: 1, z: 1}
-    - name: Bip01 R Thigh
-      parentName: Bip01 Spine
-      position: {x: 0.1202128, y: -0.0037244111, z: -0.0883685}
-      rotation: {x: 0, y: 1, z: 0, w: -0.00000004371139}
-      scale: {x: 1.0000013, y: 1.000001, z: 1.0000008}
-    - name: Bip01 R Calf
-      parentName: Bip01 R Thigh
-      position: {x: -0.39903527, y: 0.000000117346644, z: -0.0000000027939677}
-      rotation: {x: 0, y: 0, z: 0, w: 1}
-      scale: {x: 1.0000006, y: 1.0000007, z: 1.0000015}
-    - name: Bip01 R Foot
-      parentName: Bip01 R Calf
-      position: {x: -0.39668915, y: -0.000000029802322, z: 0.000000016298145}
-      rotation: {x: 0, y: 0, z: 0, w: 1}
-      scale: {x: 1, y: 1.0000002, z: 1.0000004}
-    - name: Bip01 R Toe0
-      parentName: Bip01 R Foot
-      position: {x: -0.101623856, y: 0.13629569, z: 0.00000023376197}
-      rotation: {x: 0, y: 0, z: 0.7071068, w: -0.7071068}
-      scale: {x: 1.0000005, y: 0.99999994, z: 1.0000012}
-    - name: Bip01 R Toe0Nub
-      parentName: Bip01 R Toe0
-      position: {x: -0.08381468, y: 0.000000019732397, z: 0.000000011117663}
-      rotation: {x: 0, y: 0, z: 0, w: 1}
-      scale: {x: 1.000001, y: 1.0000002, z: 1.0000019}
-    - name: Bip01 R Toe0Nub_end
-      parentName: Bip01 R Toe0Nub
-      position: {x: -0, y: 0.083814725, z: 0}
-      rotation: {x: 0, y: 0, z: 0, w: 1}
+    - name: Lifejacket
+      parentName: Cadet(Clone)
+      position: {x: -0.006511305, y: 1.3417525, z: 0.056950804}
+      rotation: {x: -0.7071068, y: 4.3329547e-22, z: 9.05808e-22, w: 0.7071067}
+      scale: {x: 0.019655487, y: 0.019655487, z: 0.019655487}
+    - name: LifejacketOpen
+      parentName: Cadet(Clone)
+      position: {x: -0.0000032708049, y: 1.41199, z: 0.051605895}
+      rotation: {x: -0.7071068, y: -4.6227946e-22, z: 1.3072272e-23, w: 0.7071067}
       scale: {x: 1, y: 1, z: 1}
     - name: m019_hipoly_no-opacity
       parentName: Cadet(Clone)
@@ -994,6 +959,11 @@ ModelImporter:
       parentName: Cadet(Clone)
       position: {x: -0.000000005661712, y: 0.000000059604645, z: -0.00000000264495}
       rotation: {x: -0.7071068, y: 1.2347683e-10, z: -1.2347681e-10, w: 0.7071067}
+      scale: {x: 1, y: 1, z: 1}
+    - name: Wristwatch.006
+      parentName: Cadet(Clone)
+      position: {x: -0.58083296, y: 1.0849092, z: 0.06470038}
+      rotation: {x: -0.6923098, y: -0.16957429, z: 0.39879513, w: 0.57698715}
       scale: {x: 1, y: 1, z: 1}
     armTwist: 0.5
     foreArmTwist: 0.5
