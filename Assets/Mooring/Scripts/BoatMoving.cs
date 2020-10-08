@@ -23,10 +23,6 @@ public class BoatMoving : MonoBehaviour
     // ускорение при замедлении
     private float Aslow;
 
-    // текущая точка
-    private GameObject _curP;
-    // следующая точка
-    private GameObject _nextP;
     // направление на следующую точку
     private Vector3 _dirToNext;
 
@@ -47,17 +43,22 @@ public class BoatMoving : MonoBehaviour
     // возвращает путь по начальной точке
     private BoatPathManager _pathMngr;
     // имена всех точек пути
-    private List<string> _path;
+    [NonSerialized] public List<string> path;
     // Использовать для данного судна специальный путь
     [SerializeField]
     private bool _useSpecificPath;
     // Специальный путь для данного судна
     [SerializeField]
     private List<string> _specificPath;
+    // точки пути, смещенные вправо
+    private List<Vector3> _realPath;
+    // велечина смещения вправо
+    private float lOrt = 3.0f;
+
     // индекс текущей точки
     private int _curIdx;
 
-    private string _state = "IDLE";
+    private string _state = "BEGIN";
 
     // класс со служебными функциями
     private sAssist _assist;
@@ -65,30 +66,44 @@ public class BoatMoving : MonoBehaviour
     // для контроля за параметрами и демпфирования
     private Rigidbody _rBody;
 
+    // все самодвижущиеся лодки
+    private BoatMoving[] _boats;
+    // индекс данной лодки
+    private int _myBoatidx;
+    // дистанция опасного сближения
+    private float _dangerDist = 50.0f;
+    // Для выключения корутины (пока не используется)
+    private IEnumerator _detectDanger;
+
+    // для отладки построения вспомогательного пути
+    public GameObject GreenObj;
+    private List<GameObject> _allGreen;
 
     void Start()
     {
         _pathMngr = FindObjectsOfType<BoatPathManager>()[0];
         //print(_pathMngr.name);
         _points = _pathMngr.gameObject;
-        /*
-        Vector3 startPos = startPoint.transform.position;
-        startPos.y = transform.position.y;
-        transform.position = startPos;
-        */
         transform.position = startPoint.transform.position;
 
         _assist = FindObjectsOfType<sAssist>()[0];
 
         _rBody = GetComponent<Rigidbody>();
+
+        // для определения опасного сближения подготовка данных
+        _boats = FindObjectsOfType<BoatMoving>();
+        _myBoatidx = Array.IndexOf(_boats, this);
+        print("Индекс данной лодки = " + _myBoatidx);
+
+        // запуск процесса определения опасного сближения
+        _detectDanger = DetectDanger();
+        StartCoroutine(_detectDanger);
     }
 
     private void FixedUpdate()
     {
-        //if (Input.GetKeyDown(KeyCode.P))
-        //{
         // Начинаем плыть
-        if (startPoint != null && _state == "IDLE")
+        if (startPoint != null && (_state == "IDLE" || _state == "BEGIN") )
         {
             print(gameObject.name + " -> Начинаем плыть");
 
@@ -96,34 +111,51 @@ public class BoatMoving : MonoBehaviour
             if (_useSpecificPath)
             {
                 // Особый путь
-                _path = _specificPath;
+                path = _specificPath;
             }
             else
             {
                 // Путь по общим отрезкам маршрутов (_branches в BoatPathManager) с элементами случайности
-                _path = _pathMngr.CreatePath(startPoint.name);
+                path = _pathMngr.CreatePath(startPoint.name);
             }
+
+            // создать массив из точек, смещенных вправо относительно точек заданного пути
+            CreateRealPath( );
+            DebugShowRealPath();
             
-            _state = "START";
+            if(_state == "BEGIN") // первый заход, мы стоим в несмещенной точке - надо сместить
+            {
+                transform.position = _realPath[0];
+            }
+            else
+            {
+                // мы стоим в предыдущей точке, куда только что приплыли, надо ее добавить в путь
+                _realPath.Insert(0, transform.position);
+            }
             _curIdx = 0;
+
+            /*
+
             _curP = startPoint;
-            _nextP = _points.transform.Find(_path[_curIdx + 1]).gameObject;
+            _nextP = _points.transform.Find(path[_curIdx + 1]).gameObject;
             print(gameObject.name + "  START  _nextP = " + _nextP.name);
+            */
+
             _Vz = 0;
+
+            _state = "START";
         }
-        //}
 
         if (_state == "START")
         {
             // перед началом движения поворачиваем нос к следующей точке
             Vector3 zGlobal = transform.TransformDirection(Vector3.forward);
-            _dirToNext = _nextP.transform.position - transform.position;
+            //_dirToNext = _nextP.transform.position - transform.position;
+            _dirToNext = _realPath[1] - transform.position;
             //_dirToNext.x = _dirToNext.z = 0;
             Quaternion rot = Quaternion.FromToRotation(zGlobal, _dirToNext);
             float ang = rot.eulerAngles.y;
             ang = _assist.NormalizeAngle(ang);
-
-            float ang1 = Vector3.Angle(zGlobal, _dirToNext);
 
             //print("ang = " + ang + "     ang1 = " + ang1);
             float dAng;
@@ -154,17 +186,17 @@ public class BoatMoving : MonoBehaviour
                 _state = "STRAIGHT";
                 //print(gameObject.name + "  Заканчиваем ускорение");
             }
-            CorrectDirection( _nextP.transform.position );
+            CorrectDirection( _realPath[_curIdx+1] );
             MovingStep();
         }
         if (_state == "STRAIGHT")
         {
-            CorrectDirection(_nextP.transform.position );
+            CorrectDirection(_realPath[_curIdx + 1]);
             MovingStep();
 
             // расстояние до ближайшей точки
-            float len = (transform.position - _nextP.transform.position).magnitude;
-            if (_curIdx == _path.Count - 2)
+            float len = (transform.position - _realPath[_curIdx + 1]).magnitude;
+            if (_curIdx == _realPath.Count - 2)
             {
                 // предпоследняя точка, проверяем, не пора ли замедляться
                 if (len < LenSlow)
@@ -183,14 +215,18 @@ public class BoatMoving : MonoBehaviour
                     _P0 = transform.position;
                     // точка окончания поворота лежит на прямой, соединяющей следующие две маршрутные точки
                     //print("ИЩУ: " + _path[_curIdx + 2]);
-                    GameObject next2P = _points.transform.Find(_path[_curIdx + 2]).gameObject;
+                    /*
+                    GameObject next2P = _points.transform.Find(path[_curIdx + 2]).gameObject;
                     Vector3 nextDir = next2P.transform.position - _nextP.transform.position;
+                    */
+                    Vector3 nextDir = _realPath[_curIdx + 2] - _realPath[_curIdx + 1];
                     nextDir.y = transform.position.y;
                     nextDir = nextDir.normalized;
                     // отступаем от следующей точки в найденном направлении на расстояние len
-                    _P2 = _nextP.transform.position + nextDir * len;
+                    //_P2 = _nextP.transform.position + nextDir * len;
+                    _P2 = _realPath[_curIdx + 1] + nextDir * len;
                     _P2.y = transform.position.y;
-                    _P1 = _nextP.transform.position;
+                    _P1 = _realPath[_curIdx + 1];
                     _P1.y = transform.position.y;
                     _p0q0 = 0;
                     _p0p1 = (_P1 - _P0).magnitude;
@@ -210,7 +246,7 @@ public class BoatMoving : MonoBehaviour
                 _state = "IDLE";
                 //print(gameObject.name + " Остановились");
                 // установить новую текущую точку
-                startPoint = _points.transform.Find(_path[_path.Count - 1]).gameObject;
+                startPoint = _points.transform.Find(path[path.Count - 1]).gameObject;
 
             }
             else
@@ -226,9 +262,9 @@ public class BoatMoving : MonoBehaviour
             if (newL >= _p0p1)
             {
                 _state = "STRAIGHT";
-                _curP = _nextP;
+                //_curP = _nextP;
                 _curIdx++;
-                _nextP = _points.transform.Find(_path[_curIdx + 1]).gameObject;
+                //_nextP = _points.transform.Find(path[_curIdx + 1]).gameObject;
             }
             else
             {
@@ -275,17 +311,89 @@ public class BoatMoving : MonoBehaviour
         transform.eulerAngles = curRot;
     }
 
-    /*
-    private void FixedUpdate()
+    // определение угрозы столкновения
+    private IEnumerator DetectDanger()
     {
-        //print( gameObject.name + "   Скорость = " + _rBody.velocity);
-        Vector3 rbV = _rBody.velocity;
-        if ( Mathf.Abs(rbV.y) > 0.1  )
+        do
         {
-            rbV.y = Mathf.Sign(rbV.y) * 0.1f;
-            _rBody.velocity = rbV;
+            yield return new WaitForSeconds(2);
+            for (int i = _myBoatidx+1; i < _boats.Length; i++)
+            {
+                float dist = (transform.position - _boats[i].transform.position).magnitude;
+                if ( dist < _dangerDist)
+                {
+                    print("Опасное сближение лодок " + _myBoatidx + " и " + i);
+                }
+            }
+        } while (true);
+       
+    }
+
+    // на основе path создать 
+    private void CreateRealPath( )
+    {
+        _realPath = new List<Vector3>();
+        // первая точка
+        Vector3 p0 = _points.transform.Find(path[0]).transform.position;
+        Vector3 p1 = _points.transform.Find(path[1]).transform.position;
+        Vector3 direct = (p1 - p0).normalized;
+        Vector3 ort = new Vector3(direct.z, direct.y, -direct.x);
+        Vector3 real = p0 + ort * lOrt;
+        _realPath.Add(real);
+
+        // промежуточные точки
+        for(int i=1; i<path.Count-1; i++)
+        {
+            direct = (p1 - p0).normalized;
+            ort = new Vector3(direct.z, direct.y, -direct.x);
+            Vector3 real1 = p1 + ort * lOrt;
+
+            p0 = p1;
+            p1 = _points.transform.Find(path[i+1]).transform.position;
+            direct = (p1 - p0).normalized;
+            ort = new Vector3(direct.z, direct.y, -direct.x);
+            Vector3 real2 = p0 + ort * lOrt;
+
+            real = (real1 + real2) / 2;
+            _realPath.Add(real);
         }
 
+        // последняя точка
+        direct = (p1 - p0).normalized;
+        ort = new Vector3(direct.z, direct.y, -direct.x);
+        real = p1 + ort * lOrt;
+        _realPath.Add(real);
+
     }
-    */
+
+    private void DebugShowRealPath()
+    {
+        if (GreenObj == null)
+        {
+            print("Нет зеленого цилиндра");
+            return;
+        }
+        if(_allGreen != null)
+        {
+            for (int i = 0; i < _allGreen.Count; i++ )
+            {
+                Destroy(_allGreen[i]);
+            }
+        }
+        _allGreen = new List<GameObject>();
+        for(int i=0; i<_realPath.Count; i++)
+        {
+            GameObject green = Instantiate<GameObject>(GreenObj);
+            green.transform.position = _realPath[i];
+            _allGreen.Add(green);
+        }
+
+        
+    }
+
+
+
 }
+
+
+
