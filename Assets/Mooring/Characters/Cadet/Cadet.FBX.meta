@@ -28,17 +28,17 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: m019_body
-    second: {fileID: 2100000, guid: eb409ac9d1e649741a7c1546107d0d76, type: 2}
+    second: {fileID: 2100000, guid: 1f756f421abfbbe419fc8dcc79abfb65, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: m019_head
-    second: {fileID: 2100000, guid: 3209da5a4da46904a96624024017748f, type: 2}
+    second: {fileID: 2100000, guid: a985032544ff6af449e7d5f50df88165, type: 2}
   materials:
     materialImportMode: 1
     materialName: 0
     materialSearch: 1
-    materialLocation: 0
+    materialLocation: 1
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
