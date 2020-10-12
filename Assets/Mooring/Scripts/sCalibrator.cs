@@ -60,6 +60,12 @@ public class sCalibrator : MonoBehaviour
     [SerializeField]
     Transform _HelmHandPlaceRight;
 
+    // Точки-цели на ограждении для калибровки рук
+    [SerializeField]
+    Transform _GuardrailHandPlaceLeft;
+    [SerializeField]
+    Transform _GuardrailHandPlaceRight;
+
     // Класс для записи в файл
     [SerializeField]
     sRecord _Record;
@@ -167,8 +173,8 @@ public class sCalibrator : MonoBehaviour
 
         // Ошибка? - проверить
         // Масштабируем смещение точек - целей на штурвале
-        _HelmHandPlaceLeft.localPosition *= Proportions;
-        _HelmHandPlaceRight.localPosition *= Proportions;
+        //_HelmHandPlaceLeft.localPosition *= Proportions;
+        //_HelmHandPlaceRight.localPosition *= Proportions;
 
         _TextMessage.ShowMessage("Масштабирование (" + Proportions.ToString("F3", CultureInfo.InvariantCulture) + ") выполнено.\nЗаймите положение для калибровки рук", 3);
 
@@ -288,6 +294,11 @@ public class sCalibrator : MonoBehaviour
 
     private void CorrectOneTarget(Transform Target, Transform PatternJoint, string ConsoleText)
     {
+        // Начальное определение координат для положения рук на ограждении. Служебная операция, выполяется один раз для установки постоянных значений в инспекторе
+        //_GuardrailHandPlaceLeft.SetPositionAndRotation(Target.position, Target.rotation);
+        //_Record.MyLog("");
+        //_Record.MyLog(ConsoleText + ": Guardrail Hand Place: localPos =\t" + tab(_GuardrailHandPlaceLeft.localPosition, "F3") + "\tLocalEu =\t" + tab(_GuardrailHandPlaceLeft.localEulerAngles, "F1"));
+        //_Record.MyLog("");
 
         _Record.MyLog(ConsoleText + ": " + Target.name + ".  Было: pos =\t" + tab(Target.localPosition,"F3") + "\teu =\t" + tab(Target.localEulerAngles,"F1"));
         Target.SetPositionAndRotation(PatternJoint.position, PatternJoint.rotation);

@@ -77,14 +77,15 @@ public class UI_Dialog : MonoBehaviour
     }
 
 
-    //void Update()
-    //{
-    //    if (Input.GetKeyDown("1"))
-    //    {
-    //        print("1 pressed");
-    //        ShowDialog("Нажато один. Привет, мир!", 3.0f);
-    //    }
-    //}
+    void Update()
+    {
+        // Закрытие диалога по нажатию клавиши Escape
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            gameObject.SetActive(false);
+            _DialogIsOn = false;
+        }
+    }
 
 
     // Подготовить и показать диалог Да/Нет. Отображается текст (Message) переданный из вызывающей функции

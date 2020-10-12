@@ -156,7 +156,7 @@ public class sDevices : MonoBehaviour
 
             float EV = Mathf.Abs(_YachtSolver.engineValue);
             _EngineVar.pitch = EV * 1.5f + 1; // pitch меняется от 1 до 2.5
-            _EngineVar.volume = EV + 0.1f; // громкость мняется от 0.1 до 1.1
+            _EngineVar.volume = EV + 0.2f; // громкость мняется от 0.2 до 1.2
             _EngineConst.volume = EV + 0.5f; // громкость мняется от 0.5 до 1.5
             if (_Propeller.isPlaying) // Была включена передача
             {

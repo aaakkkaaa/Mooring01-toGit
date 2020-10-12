@@ -2100,7 +2100,7 @@ MonoBehaviour:
   - Main
   - Track
   - FPS
-  WriteLog: 0
+  WriteLog: 1
 --- !u!4 &1894480077
 Transform:
   m_ObjectHideFlags: 0
