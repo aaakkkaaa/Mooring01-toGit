@@ -334,34 +334,47 @@ public class BoatMoving : MonoBehaviour
     {
         _realPath = new List<Vector3>();
         // первая точка
-        Vector3 p0 = _points.transform.Find(path[0]).transform.position;
-        Vector3 p1 = _points.transform.Find(path[1]).transform.position;
-        Vector3 direct = (p1 - p0).normalized;
-        Vector3 ort = new Vector3(direct.z, direct.y, -direct.x);
-        Vector3 real = p0 + ort * lOrt;
+        Vector3 p0 = _points.transform.Find(path[0]).position;
+        Vector3 p1 = _points.transform.Find(path[1]).position;
+        Vector3 direct0 = (p1 - p0).normalized;
+        Vector3 ort0 = new Vector3(direct0.z, direct0.y, -direct0.x);
+        Vector3 real = p0 + ort0 * lOrt;
         _realPath.Add(real);
 
         // промежуточные точки
         for(int i=1; i<path.Count-1; i++)
         {
-            direct = (p1 - p0).normalized;
-            ort = new Vector3(direct.z, direct.y, -direct.x);
-            Vector3 real1 = p1 + ort * lOrt;
+            Vector3 direct1 = (p1 - p0).normalized;
+            Vector3 ort1 = new Vector3(direct1.z, direct1.y, -direct1.x);
 
             p0 = p1;
-            p1 = _points.transform.Find(path[i+1]).transform.position;
-            direct = (p1 - p0).normalized;
-            ort = new Vector3(direct.z, direct.y, -direct.x);
-            Vector3 real2 = p0 + ort * lOrt;
+            p1 = _points.transform.Find(path[i+1]).position;
+            Vector3 direct2 = (p1 - p0).normalized;
+            Vector3 ort2 = new Vector3(direct2.z, direct2.y, -direct2.x);
 
-            real = (real1 + real2) / 2;
+            print("ort1 = " + ort1 + "  ort2 = " + ort2);
+            Vector3 realOrt = ((ort1 + ort2) / 2).normalized;
+
+            float angel = Vector3.SignedAngle(direct1, direct2, Vector3.up)/2.0f;
+            float cosAng = Mathf.Cos(angel / 180 * Mathf.PI);
+            if ( Mathf.Abs(cosAng) > 0.01f )
+            {
+                real = p0 + realOrt / cosAng * lOrt;
+            }
+            else
+            {
+                print("Слишком острый угол " + _points.transform.Find(path[i + 1]).gameObject.name);
+                real = p0;
+            }
+
             _realPath.Add(real);
+
         }
 
         // последняя точка
-        direct = (p1 - p0).normalized;
-        ort = new Vector3(direct.z, direct.y, -direct.x);
-        real = p1 + ort * lOrt;
+        direct0 = (p1 - p0).normalized;
+        ort0 = new Vector3(direct0.z, direct0.y, -direct0.x);
+        real = p1 + ort0 * lOrt;
         _realPath.Add(real);
 
     }
