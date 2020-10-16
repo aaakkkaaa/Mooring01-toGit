@@ -8,6 +8,13 @@ using Valve.VR;
 
 public class sCalibrator : MonoBehaviour
 {
+    // Начальные значения параметров калибровки головы и рук
+    Vector3 _CadetHeadTargetPos0;
+    Vector3 _LeftArmTargetPos0;
+    Vector3 _LeftArmTargetEu0;
+    Vector3 _RightArmTargetPos0;
+    Vector3 _RightArmTargetEu0;
+
     // Камера и трекеры рук
     [SerializeField]
     Transform _Camera;
@@ -35,13 +42,13 @@ public class sCalibrator : MonoBehaviour
     [SerializeField]
     UI_TextMessage _TextMessage;
 
-    // Класс для вывода диалогов
+    // Класс для вывода диалогов Да/Нет
     [SerializeField]
     UI_Dialog _Dialog;
 
-    // Класс улетающего меню для масштабирования по росту
+    // Класс для диалога калибровки
     [SerializeField]
-    UI_GoAway _GoAway;
+    UI_CalibrationDialog _CalibrationDialog;
 
     // Модель-шаблон для калибровки рук
     Transform _PatternModel;
@@ -54,12 +61,6 @@ public class sCalibrator : MonoBehaviour
     [SerializeField]
     Transform _Console;
 
-    // Точки-цели на штурвале для калибровки рук
-    [SerializeField]
-    Transform _HelmHandPlaceLeft;
-    [SerializeField]
-    Transform _HelmHandPlaceRight;
-
     // Точки-цели на ограждении для калибровки рук
     [SerializeField]
     Transform _GuardrailHandPlaceLeft;
@@ -70,17 +71,7 @@ public class sCalibrator : MonoBehaviour
     [SerializeField]
     sRecord _Record;
 
-    // Родительский объект точек-целей на штурвале для калибровки рук (куда вернуть их после калибровки рук)
-    Transform _HelmHandPlacesParent;
-
-    // Суставы модели-шаблона
-    //Transform _PatternHead;
-    //Transform _PatternRightHand;
-    //Transform _PatternLeftHand;
-    //Transform _PatternLeftFoot;
-    //Transform _PatternRighFoot;
-
-    // Дочерний объект камеры - таргета головы модели курсанта
+    // Дочерний объект камеры - таргет головы модели курсанта
     Transform _CadetHeadTarget;
 
     // Класс инвесной кинематики VRIK (RootMotion.FinalIK)
@@ -92,15 +83,15 @@ public class sCalibrator : MonoBehaviour
     // Флаг состояния калибровки
     bool _CalibrationMode = false;
 
+    // Текущий шаг калибровки
+    //int _CalibrationStep = 0;
+
 
     // Start is called before the first frame update
     void Start()
     {
         // Получить доступ к классу VRIK
         _VRIK = GetComponent<VRIK>();
-
-        // Родительский объект точек-целей на штурвале для калибровки рук (куда вернуть их после калибровки рук)
-        _HelmHandPlacesParent = _HelmHandPlaceLeft.parent;
 
         // Дочерний объект камеры - таргета головы модели курсанта
         for (int i = 0; i < _Camera.childCount; i++)
@@ -113,19 +104,28 @@ public class sCalibrator : MonoBehaviour
             }
         }
 
+        // Начальные значения параметров калибровки рук
+        _CadetHeadTargetPos0 = _VRIK.solver.spine.headTarget.localPosition;
+        _LeftArmTargetPos0 = _VRIK.solver.leftArm.target.localPosition;
+        _LeftArmTargetEu0 = _VRIK.solver.leftArm.target.localEulerAngles;
+        _RightArmTargetPos0 = _VRIK.solver.rightArm.target.localPosition;
+        _RightArmTargetEu0 = _VRIK.solver.rightArm.target.localEulerAngles;
     }
 
     // Update is called once per frame
     void Update()
     {
         // Всегда ожидаем начала калибровки. 
-        // Встать ровно, смотреть перед собой.
         // Сигнал: поднять руки над головой на время >2 секунд
-        if (HandsUpTime())
+        if (!_CalibrationMode)
         {
-            // Вызвать диалог для подтверждения начала калибровки
-            _Dialog.ShowDialog("Начать калибровку?", "ScaleModel");
+            if (HandsUpTime())
+            {
+                // Вызвать диалог для подтверждения начала калибровки
+                _Dialog.ShowDialog("Начать калибровку?", "CadetCalibration");
+            }
         }
+
         //if (Input.GetKeyDown("space"))
         //{
         //    Transform CadetLHTrackerTarget = GameObject.Find("Cadet LH Tracker Target").transform;
@@ -147,112 +147,95 @@ public class sCalibrator : MonoBehaviour
         //}
     }
 
-    // Определить высоту камеры
-    public void GetCameraHeight()
+    // Приготовиться к калибровке
+    public void MakeReady()
     {
         _CalibrationMode = true;
-        _GoAway.FlyAway();
-    }
 
-    // Выполнить масштабирование модели по росту пользователя
-    public void ScaleModel(float CameraHeight)
-    {
-        // Коэфициент масштабирования
-        float Proportions = CameraHeight / _ModelEyesHeight;
-        print("Коэфициент масштабирования модели курсанта: " + Proportions);
-        // Масштабируем модель
-        transform.localScale = Vector3.one * Proportions;
-        // Масштабируем смещение таргета головы и рук пользователя относительно камеры и трекеров
-        _CadetHeadTarget.localPosition *= Proportions;
-        _VRIK.solver.leftArm.target.localPosition *= Proportions;
-        _VRIK.solver.rightArm.target.localPosition *= Proportions;
-        //// Масштабируем смещение таргета головы и рук пользователя относительно камеры и трекеров
-        //_CadetHeadTarget.localPosition *= Proportions;
-        //_VRIK.solver.leftArm.target.localPosition *= Proportions;
-        //_VRIK.solver.rightArm.target.localPosition *= Proportions;
+        // Восстановить масштаб модели курсанта
+        transform.localScale = Vector3.one;
+        // Восстановить начальные значения параметров калибровки головы и рук
+        _VRIK.solver.spine.headTarget.localPosition = _CadetHeadTargetPos0;
+        _VRIK.solver.leftArm.target.localPosition = _LeftArmTargetPos0;
+        _VRIK.solver.leftArm.target.localEulerAngles = _LeftArmTargetEu0;
+        _VRIK.solver.rightArm.target.localPosition = _RightArmTargetPos0;
+        _VRIK.solver.rightArm.target.localEulerAngles = _RightArmTargetEu0;
 
-        // Ошибка? - проверить
-        // Масштабируем смещение точек - целей на штурвале
-        //_HelmHandPlaceLeft.localPosition *= Proportions;
-        //_HelmHandPlaceRight.localPosition *= Proportions;
-
-        _TextMessage.ShowMessage("Масштабирование (" + Proportions.ToString("F3", CultureInfo.InvariantCulture) + ") выполнено.\nЗаймите положение для калибровки рук", 3);
-
-        // Приготовиться к калибровке рук
-
-        // Создать модель-шаблон для калибровки рук и совместить ее с основной моделью
+        // Создать модель-шаблон для калибровки
         _PatternModel = Instantiate(transform);
+        // Удалить с модели-шаблона скрипт калибровки
         Destroy(_PatternModel.GetComponent<sCalibrator>());
         _PatternModel.parent = transform.parent;
         _PatternModel.name = "Cadet Clone";
         _PatternModel.localPosition = transform.localPosition;
         _PatternModel.localRotation = transform.localRotation;
         _PatternModel.localScale = transform.localScale;
-        // Заменить материал на теле модели-шаблона
-        _PatternModel.Find("m019_hipoly_no-opacity").GetComponent<Renderer>().material = _PatternModelSkin;
+        // Спрятать все лишнее (часы, браслет, тело)
+        //_PatternModel.Find("m019_hipoly_no-opacity").gameObject.SetActive(false);
+        _PatternModel.Find("Wristwatch.006").gameObject.SetActive(false);
+        _PatternModel.Find("Bip01/Bip01 Pelvis/Bip01 Spine/Bip01 Spine1/Bip01 Spine2/Bip01 Neck/Bip01 L Clavicle/Bip01 L UpperArm/Bip01 L Forearm/Wristwatch").gameObject.SetActive(false);
+        _PatternModel.Find("m019_hipoly_no-opacity").gameObject.SetActive(false);
+        // Заменить материал на перчатках
+        _PatternModel.Find("m019_hipoly_no-opacity.001").GetComponent<Renderer>().material = _PatternModelSkin;
+        //_PatternModel.Find("m019_hipoly_no-opacity").GetComponent<Renderer>().material = _PatternModelSkin;
 
         // Получить доступ к классу VRIK модели-шаблона
         _PatternModelVRIK = _PatternModel.GetComponent<VRIK>();
 
-        //_PatternLeftHand = _PatternModelVRIK.references.leftHand;
-        //_PatternRightHand = _PatternModelVRIK.references.rightHand;
-
-        //_PatternHead = _PatternModel.Find("Bip01 Head");
-        //_PatternLeftFoot = _PatternModel.Find("Bip01 L Toe0");
-        //_PatternRighFoot = _PatternModel.Find("Bip01 R Toe0");
-
-
         // Установить модели-шаблону цели для ИК.
         // Голове и ногам - соответствующие точки основной модели
-        _PatternModelVRIK.solver.spine.headTarget = _VRIK.references.head;
+        _PatternModelVRIK.solver.spine.headTarget = _VRIK.references.head; // Голова
+        _PatternModelVRIK.solver.spine.positionWeight = 1.0f;
+        _PatternModelVRIK.solver.spine.rotationWeight = 1.0f;
+        _PatternModelVRIK.solver.spine.pelvisTarget = _VRIK.references.pelvis; // Крестец
+        _PatternModelVRIK.solver.spine.pelvisPositionWeight = 1.0f;
+        _PatternModelVRIK.solver.spine.pelvisRotationWeight = 1.0f;
         _PatternModelVRIK.solver.leftLeg.target = _VRIK.references.leftToes;
         _PatternModelVRIK.solver.leftLeg.positionWeight = 1.0f;
         _PatternModelVRIK.solver.leftLeg.rotationWeight = 1.0f;
         _PatternModelVRIK.solver.rightLeg.target = _VRIK.references.rightToes;
         _PatternModelVRIK.solver.rightLeg.positionWeight = 1.0f;
         _PatternModelVRIK.solver.rightLeg.rotationWeight = 1.0f;
-        // Рукам - точки-цели на штурвале (предварительно вынеся точки-цели из детей штурвала в модель яхты, чтобы не крутились)
-        _HelmHandPlaceLeft.SetParent(_Console.parent);
-        _HelmHandPlaceRight.SetParent(_Console.parent);
-        _PatternModelVRIK.solver.leftArm.target = _HelmHandPlaceLeft;
-        _PatternModelVRIK.solver.rightArm.target = _HelmHandPlaceRight;
+        // Рукам - точки-цели на ограждении
+        _PatternModelVRIK.solver.leftArm.target = _GuardrailHandPlaceLeft;
+        _PatternModelVRIK.solver.rightArm.target = _GuardrailHandPlaceRight;
         _PatternModelVRIK.solver.leftArm.positionWeight = 1.0f;
         _PatternModelVRIK.solver.leftArm.rotationWeight = 1.0f;
         _PatternModelVRIK.solver.rightArm.positionWeight = 1.0f;
         _PatternModelVRIK.solver.rightArm.rotationWeight = 1.0f;
 
-        StartCoroutine(CalibrateHands());
+
+        _CalibrationDialog.ShowDialog();
     }
 
-    IEnumerator CalibrateHands()
+
+    // Выполнить калибровку 1) модели курсанта и 2) положения рук.
+    public void Calibrate(float CameraHeight)
     {
-        yield return new WaitForSeconds(2f);
-        _TextMessage.ShowMessage("□□□□□", 2);
-        for (int i = 0; i < 5; i++)
-        {
-            yield return new WaitForSeconds(1f);
-            if (i == 0) _TextMessage.ShowMessage("■□□□□", 2);
-            else if (i == 1) _TextMessage.ShowMessage("■■□□□", 2);
-            else if (i == 2) _TextMessage.ShowMessage("■■■□□", 2);
-            else if (i == 3) _TextMessage.ShowMessage("■■■■□", 2);
-            else if (i == 4) _TextMessage.ShowMessage("■■■■■", 0.1f);
-        }
-        // Выполнить калибровку таргетов суставов
-        {
-            CorrectOneTarget(_VRIK.solver.leftArm.target, _HelmHandPlaceLeft, "Левая рука");
-            CorrectOneTarget(_VRIK.solver.rightArm.target, _HelmHandPlaceRight, "Правая рука");
+        // Выполнить масштабирование модели курсанта и ее красной копии (шаблона) по росту пользователя
 
-            // Удалить модель-шаблон
-            Destroy(_PatternModel.gameObject);
+        // Коэфициент масштабирования
+        float Proportions = CameraHeight / _ModelEyesHeight;
+        print("Коэфициент масштабирования модели курсанта: " + Proportions);
+        // Масштабируем модель
+        transform.localScale = Vector3.one * Proportions;
+        // Масштабируем смещение таргетов головы и рук пользователя относительно их родителей - камеры и трекеров
+        _CadetHeadTarget.localPosition *= Proportions;
+        _VRIK.solver.leftArm.target.localPosition *= Proportions;
+        _VRIK.solver.rightArm.target.localPosition *= Proportions;
 
-            // Вернуть точки-цели на штурвале родителю
-            _HelmHandPlaceLeft.SetParent(_HelmHandPlacesParent);
-            _HelmHandPlaceRight.SetParent(_HelmHandPlacesParent);
+        // Выполнить калибровку таргетов суставов рук
 
-            _TextMessage.ShowMessage("Калибровка рук выполнена", 3);
+        CorrectOneTarget(_VRIK.solver.leftArm.target, _GuardrailHandPlaceLeft, "Левая рука");
+        CorrectOneTarget(_VRIK.solver.rightArm.target, _GuardrailHandPlaceRight, "Правая рука");
 
-            _CalibrationMode = false;
-        }
+        // Удалить модель-шаблон
+        Destroy(_PatternModel.gameObject);
+
+        _TextMessage.ShowMessage("Калибровка выполнена. Масштаб = " + Proportions.ToString("F3"), 3);
+
+        _CalibrationMode = false;
+
     }
 
 

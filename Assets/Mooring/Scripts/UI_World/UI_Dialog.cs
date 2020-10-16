@@ -11,7 +11,11 @@ public class UI_Dialog : MonoBehaviour
     [SerializeField]
     float _Distance = 0.5f;
 
-    // Класс калибровки модели курсанта
+    // Время жизни диалогa
+    [SerializeField]
+    float _LifeTime = 10.0f;
+
+    // Начальный класс калибровки модели курсанта
     [SerializeField]
     sCalibrator _Calibrator;
 
@@ -27,6 +31,9 @@ public class UI_Dialog : MonoBehaviour
 
     // Флаг отображения диалога
     bool _DialogIsOn = false;
+
+    // Флаг "Коллизия руки с кнопкой еще продолжается" (смысл: "Выбор практически сделан, но не закончен")
+    bool _CollisionIsOn = false;
 
     // Цвета подсветки кнопок Да и Нет
     Color _ButtonsColorDefault; // 130,77,24,90; 824D18
@@ -82,8 +89,7 @@ public class UI_Dialog : MonoBehaviour
         // Закрытие диалога по нажатию клавиши Escape
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            gameObject.SetActive(false);
-            _DialogIsOn = false;
+            CloseDialog();
         }
     }
 
@@ -115,9 +121,13 @@ public class UI_Dialog : MonoBehaviour
         _MethodKey = MethodKey;
         // Вставить текст сообщения
         _DialogMessage.text = Message;
+
         // Включить себя
         gameObject.SetActive(true);
         _DialogIsOn = true;
+
+        // Выключить себя через заданное время жизни
+        StartCoroutine(TimeIsOver(_LifeTime));
     }
 
     // Подсвечивать опцию выбора.
@@ -125,6 +135,8 @@ public class UI_Dialog : MonoBehaviour
     public void myTriggerEnter(Collider MyCollider, Transform Activator)
     {
         print("myTriggerEnter: Коллайдер " + MyCollider.name + " - вход");
+
+        _CollisionIsOn = true;
 
         // Имя объекта внешнего коллайдера
         string ExtName = Activator.name;
@@ -156,16 +168,38 @@ public class UI_Dialog : MonoBehaviour
         else if(myTr.name == "Butt_Y")
         {
             print("Выбрано ДА");
-            if(_MethodKey == "ScaleModel")
+            if(_MethodKey == "CadetCalibration")
             {
-                _Calibrator.GetCameraHeight();
+                // Приготовиться к калибровке
+                _Calibrator.MakeReady();
             }
         }
 
         // Выключить себя
-        
-        gameObject.SetActive(false);
-        _DialogIsOn = false;
+        CloseDialog();
+    }
+
+    // Закрытие диалога
+    private void CloseDialog()
+    {
+        if (_DialogIsOn)
+        {
+            // Выключить себя
+            _DialogIsOn = false;
+            _CollisionIsOn = false;
+            gameObject.SetActive(false);
+        }
+    }
+
+    // Выключить себя через заданное время жизни
+    IEnumerator TimeIsOver(float lifeTime)
+    {
+        yield return new WaitForSeconds(lifeTime);
+        // Если коллизия руки с кнопкой продолжается, то не выключать. Все равно выключится после окончания коллизии  
+        if (!_CollisionIsOn)
+        {
+            CloseDialog();
+        }
     }
 
 }

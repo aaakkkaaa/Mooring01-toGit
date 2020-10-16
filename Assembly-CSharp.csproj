@@ -86,8 +86,9 @@
     <Compile Include="Assets\Mooring\Scripts\StepTest.cs" />
     <Compile Include="Assets\Mooring\Scripts\Traveler.cs" />
     <Compile Include="Assets\Mooring\Scripts\UI_World\UI_ActiveHand.cs" />
+    <Compile Include="Assets\Mooring\Scripts\UI_World\UI_CalibrationDialog.cs" />
+    <Compile Include="Assets\Mooring\Scripts\UI_World\UI_CalibrationTarget.cs" />
     <Compile Include="Assets\Mooring\Scripts\UI_World\UI_Dialog.cs" />
-    <Compile Include="Assets\Mooring\Scripts\UI_World\UI_GoAway.cs" />
     <Compile Include="Assets\Mooring\Scripts\UI_World\UI_TextMessage.cs" />
     <Compile Include="Assets\Mooring\Scripts\Wind.cs" />
     <Compile Include="Assets\Mooring\Scripts\YachtSolver.cs" />

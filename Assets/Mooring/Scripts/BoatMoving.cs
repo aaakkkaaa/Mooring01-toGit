@@ -404,8 +404,6 @@ public class BoatMoving : MonoBehaviour
         
     }
 
-
-
 }
 
 
