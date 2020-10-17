@@ -202,18 +202,6 @@ namespace RootMotion.FinalIK {
 		private void RotateToTarget(Vector3 targetPosition, IKSolver.Bone bone, float weight) {
 			// Swing
 			if (XY) {
-				/*
-				if (weight >= 0f) {
-					Vector3 dir = transformAxis;
-					Vector3 targetDir = targetPosition - transform.position;
-
-					float angleDir = Mathf.Atan2(dir.x, dir.y) * Mathf.Rad2Deg;
-					float angleTarget = Mathf.Atan2(targetDir.x, targetDir.y) * Mathf.Rad2Deg;
-
-					bone.transform.rotation = Quaternion.AngleAxis((angleTarget - angleDir) * weight, Vector3.back) * bone.transform.rotation;
-				}
-				*/
-
 				if (weight >= 0f) {
 					Vector3 dir = transformAxis;
 					Vector3 targetDir = targetPosition - transform.position;

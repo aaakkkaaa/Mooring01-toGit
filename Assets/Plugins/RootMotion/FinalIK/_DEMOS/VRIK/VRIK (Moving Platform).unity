@@ -933,10 +933,12 @@ MonoBehaviour:
     rightFoot: {fileID: 1998698651}
     rightToes: {fileID: 718314650}
   solver:
+    executedInEditor: 0
     IKPosition: {x: 0, y: 0, z: 0}
     IKPositionWeight: 1
     root: {fileID: 0}
     LOD: 0
+    scale: 1
     plantFeet: 0
     spine:
       bones: []
@@ -1068,6 +1070,7 @@ MonoBehaviour:
         m_PreInfinity: 2
         m_PostInfinity: 2
         m_RotationOrder: 4
+      maxBodyYOffset: 0.05
       heelHeight:
         serializedVersion: 2
         m_Curve:

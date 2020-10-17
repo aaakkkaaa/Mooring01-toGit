@@ -291,10 +291,10 @@ namespace RootMotion.FinalIK {
 			// Interpolate the angle
 			angle = Mathf.Lerp(angle, angleTarget, Time.deltaTime * rootRotationSpeed);
 
-			if (characterRootRigidbody == null) {
-				characterRoot.rotation = Quaternion.Slerp(characterRoot.rotation, Quaternion.AngleAxis(-angle, characterRoot.right) * horizontalRotation, weight);
-			} else {
-				characterRootRigidbody.MoveRotation(Quaternion.Slerp(characterRoot.rotation, Quaternion.AngleAxis(-angle, characterRoot.right) * horizontalRotation, weight));
+            if (characterRootRigidbody == null) {
+                characterRoot.rotation = Quaternion.Slerp(characterRoot.rotation, Quaternion.AngleAxis(-angle, characterRoot.right) * horizontalRotation, weight);
+            } else {
+                characterRootRigidbody.MoveRotation(Quaternion.Slerp(characterRoot.rotation, Quaternion.AngleAxis(-angle, characterRoot.right) * horizontalRotation, weight));
 			}
 		}
 		

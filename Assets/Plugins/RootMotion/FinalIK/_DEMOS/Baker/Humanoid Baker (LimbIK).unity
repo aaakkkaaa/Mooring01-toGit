@@ -345,6 +345,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fixTransforms: 1
   solver:
+    executedInEditor: 0
     IKPosition: {x: -0.42021608, y: 0.99223435, z: -0.04566379}
     IKPositionWeight: 1
     root: {fileID: 1694551985}

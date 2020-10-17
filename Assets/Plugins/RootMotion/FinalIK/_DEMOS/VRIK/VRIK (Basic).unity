@@ -313,13 +313,13 @@ Transform:
   m_PrefabParentObject: {fileID: 465308, guid: c1d0e7d5e70d7964793432391bb8b05b, type: 2}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 70202230}
-  m_LocalRotation: {x: -0.48090896, y: 0.5183901, z: 0.4809071, w: -0.5183885}
+  m_LocalRotation: {x: -0.20559013, y: 0.67656034, z: 0.20558769, w: -0.6765594}
   m_LocalPosition: {x: -0, y: 0.0276, z: 0.0225}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_Children: []
   m_Father: {fileID: 274364953}
   m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -90.00001, z: -33.805}
 --- !u!1 &92363436
 GameObject:
   m_ObjectHideFlags: 0
@@ -2716,10 +2716,12 @@ MonoBehaviour:
     rightFoot: {fileID: 1998698651}
     rightToes: {fileID: 718314650}
   solver:
+    executedInEditor: 0
     IKPosition: {x: 0, y: 0, z: 0}
     IKPositionWeight: 1
     root: {fileID: 0}
     LOD: 0
+    scale: 1
     plantFeet: 0
     spine:
       bones: []
@@ -2923,6 +2925,7 @@ MonoBehaviour:
         m_PreInfinity: 2
         m_PostInfinity: 2
         m_RotationOrder: 4
+      maxBodyYOffset: 0.05
       heelHeight:
         serializedVersion: 2
         m_Curve:
@@ -6893,10 +6896,12 @@ MonoBehaviour:
     rightFoot: {fileID: 1303164941}
     rightToes: {fileID: 279068717}
   solver:
+    executedInEditor: 0
     IKPosition: {x: 0, y: 0, z: 0}
     IKPositionWeight: 1
     root: {fileID: 0}
     LOD: 0
+    scale: 1
     plantFeet: 0
     spine:
       bones: []
@@ -7040,6 +7045,7 @@ MonoBehaviour:
         m_PreInfinity: 2
         m_PostInfinity: 2
         m_RotationOrder: 4
+      maxBodyYOffset: 0.05
       heelHeight:
         serializedVersion: 2
         m_Curve:
@@ -8251,10 +8257,12 @@ MonoBehaviour:
     rightFoot: {fileID: 157056696}
     rightToes: {fileID: 643264104}
   solver:
+    executedInEditor: 0
     IKPosition: {x: 0, y: 0, z: 0}
     IKPositionWeight: 1
     root: {fileID: 0}
     LOD: 0
+    scale: 1
     plantFeet: 0
     spine:
       bones: []
@@ -8263,7 +8271,7 @@ MonoBehaviour:
       positionWeight: 1
       rotationWeight: 1
       pelvisPositionWeight: 1
-      pelvisRotationWeight: 0
+      pelvisRotationWeight: 0.691
       chestGoal: {fileID: 0}
       chestGoalWeight: 0
       minHeadHeight: 0.8
@@ -8386,6 +8394,7 @@ MonoBehaviour:
         m_PreInfinity: 2
         m_PostInfinity: 2
         m_RotationOrder: 4
+      maxBodyYOffset: 0.05
       heelHeight:
         serializedVersion: 2
         m_Curve:

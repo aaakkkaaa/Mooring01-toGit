@@ -160,6 +160,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fixTransforms: 0
   solver:
+    executedInEditor: 0
     IKPosition: {x: -12.216087, y: -6.0334287, z: -0.000001085371}
     IKPositionWeight: 1
     root: {fileID: 6838754}
@@ -912,6 +913,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fixTransforms: 0
   solver:
+    executedInEditor: 0
     IKPosition: {x: 3.5263572, y: 13.160541, z: -0.00000024637606}
     IKPositionWeight: 1
     root: {fileID: 123585051}
@@ -1199,6 +1201,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fixTransforms: 0
   solver:
+    executedInEditor: 0
     IKPosition: {x: 5.2653584, y: -4.6922016, z: -0.0000004145406}
     IKPositionWeight: 1
     root: {fileID: 191846744}
@@ -1578,6 +1581,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fixTransforms: 0
   solver:
+    executedInEditor: 0
     IKPosition: {x: 7.4791956, y: -11.388447, z: -0.000000807757}
     IKPositionWeight: 1
     root: {fileID: 246495369}
@@ -2233,6 +2237,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fixTransforms: 0
   solver:
+    executedInEditor: 0
     IKPosition: {x: -5.29972, y: -4.653356, z: -0.00000041284267}
     IKPositionWeight: 1
     root: {fileID: 585780724}
@@ -3076,6 +3081,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fixTransforms: 0
   solver:
+    executedInEditor: 0
     IKPosition: {x: -8.179166e-15, y: 7.052713, z: 0.000000098845874}
     IKPositionWeight: 1
     root: {fileID: 688132807}
@@ -4313,6 +4319,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fixTransforms: 0
   solver:
+    executedInEditor: 0
     IKPosition: {x: -7.562724, y: -11.333148, z: -0.0000012578203}
     IKPositionWeight: 1
     root: {fileID: 1135773622}
@@ -4791,6 +4798,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fixTransforms: 0
   solver:
+    executedInEditor: 0
     IKPosition: {x: -3.52636, y: 13.160539, z: -0.00000018716717}
     IKPositionWeight: 1
     root: {fileID: 1216478628}
@@ -5946,6 +5954,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fixTransforms: 0
   solver:
+    executedInEditor: 0
     IKPosition: {x: 0, y: 0, z: 0}
     IKPositionWeight: 1
     root: {fileID: 0}
@@ -7617,6 +7626,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fixTransforms: 0
   solver:
+    executedInEditor: 0
     IKPosition: {x: 12.1714, y: -6.1230793, z: -0.0000005183923}
     IKPositionWeight: 1
     root: {fileID: 2137351123}

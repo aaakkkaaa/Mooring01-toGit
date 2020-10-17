@@ -15,7 +15,7 @@ namespace RootMotion.Demos {
         private string colliderName;
 
 		void Update() {
-			// On left mouse button...
+            // On left mouse button...
 			if (Input.GetMouseButtonDown(0)) {
 				Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 

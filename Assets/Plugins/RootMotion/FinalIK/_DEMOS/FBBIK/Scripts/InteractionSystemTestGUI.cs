@@ -7,7 +7,6 @@ namespace RootMotion.Demos {
 	/// <summary>
 	/// Simple GUI for quickly testing out interactions.
 	/// </summary>
-	[RequireComponent(typeof(InteractionSystem))]
 	public class InteractionSystemTestGUI : MonoBehaviour {
 
 		[Tooltip("The object to interact to")]

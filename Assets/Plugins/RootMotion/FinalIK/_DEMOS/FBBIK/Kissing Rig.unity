@@ -1484,6 +1484,7 @@ MonoBehaviour:
     - {fileID: 1852161729}
     eyes: []
   solver:
+    executedInEditor: 0
     IKPosition: {x: 0, y: 0, z: 0}
     IKPositionWeight: 1
     root: {fileID: 609786270}
@@ -4319,6 +4320,7 @@ MonoBehaviour:
     - {fileID: 1924498683}
     eyes: []
   solver:
+    executedInEditor: 0
     IKPosition: {x: 0, y: 0, z: 0}
     IKPositionWeight: 1
     root: {fileID: 1740218113}

@@ -650,6 +650,7 @@ MonoBehaviour:
     m_Bits: 0
   blockingRadius: 1
   blockingSmoothTime: 0.1
+  blockingOriginOffset: 0
   blockedOffset: 0.5
 --- !u!1 &351840287
 GameObject:
@@ -2677,10 +2678,12 @@ MonoBehaviour:
     rightFoot: {fileID: 1219298528}
     rightToes: {fileID: 2037248587}
   solver:
+    executedInEditor: 0
     IKPosition: {x: 0, y: 0, z: 0}
     IKPositionWeight: 1
     root: {fileID: 0}
     LOD: 0
+    scale: 1
     plantFeet: 1
     spine:
       bones: []
@@ -2812,6 +2815,7 @@ MonoBehaviour:
         m_PreInfinity: 2
         m_PostInfinity: 2
         m_RotationOrder: 4
+      maxBodyYOffset: 0.05
       heelHeight:
         serializedVersion: 2
         m_Curve:

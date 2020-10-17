@@ -29,13 +29,12 @@ namespace RootMotion.Demos {
 				}
 			}
 
-            
 			// Pass on the FixedUpdate call
 			base.Update();
 		}
 
-		// Triggering the interactions
-		void OnGUI() {
+        // Triggering the interactions
+        void OnGUI() {
 			// If jumping or falling, do nothing
 			if (!character.onGround) return;
 

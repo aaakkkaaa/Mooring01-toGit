@@ -1253,6 +1253,7 @@ MonoBehaviour:
     - {fileID: 751020379}
     eyes: []
   solver:
+    executedInEditor: 0
     IKPosition: {x: 0, y: 0, z: 0}
     IKPositionWeight: 1
     root: {fileID: 343994129}
@@ -4436,6 +4437,7 @@ MonoBehaviour:
     - {fileID: 745254445}
     eyes: []
   solver:
+    executedInEditor: 0
     IKPosition: {x: 0, y: 0, z: 0}
     IKPositionWeight: 1
     root: {fileID: 1368386896}

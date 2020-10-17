@@ -1128,8 +1128,6 @@ MonoBehaviour:
     scaleMlp: 1
     headTrackerForward: {x: 0, y: 0, z: 1}
     headTrackerUp: {x: 0, y: 1, z: 0}
-    bodyTrackerForward: {x: 0, y: -1, z: 0}
-    bodyTrackerUp: {x: 0, y: 0, z: -1}
     handTrackerForward: {x: 0, y: 0, z: 1}
     handTrackerUp: {x: 0, y: 1, z: 0}
     footTrackerForward: {x: 0, y: 0, z: 1}
@@ -4867,10 +4865,12 @@ MonoBehaviour:
     rightFoot: {fileID: 1678882361}
     rightToes: {fileID: 1027124193}
   solver:
+    executedInEditor: 0
     IKPosition: {x: 0, y: 0, z: 0}
     IKPositionWeight: 1
     root: {fileID: 0}
     LOD: 0
+    scale: 1
     plantFeet: 1
     spine:
       bones: []
@@ -5002,6 +5002,7 @@ MonoBehaviour:
         m_PreInfinity: 2
         m_PostInfinity: 2
         m_RotationOrder: 4
+      maxBodyYOffset: 0.05
       heelHeight:
         serializedVersion: 2
         m_Curve:

@@ -23,12 +23,13 @@ namespace RootMotion.Demos {
         public Transform gunTarget; // The copy of the gun that has been parented to the camera
         public FullBodyBipedIK ik; // Reference to the FBBIK component
         public AimIK gunAim; // Reference to the AimIK component
+        public AimIK headAim; // AimIK solver used for look-at when aimWeight < 1
         public CameraControllerFPS cam; // Reference to the FPS camera
         public Recoil recoil; // The recoil component (optional)
         [Range(0f, 1f)] public float cameraRecoilWeight = 0.5f; // How much of the recoil motion is added to the camera?
 
-        public Vector3 gunTargetDefaultLocalPosition;
-		public Vector3 gunTargetDefaultLocalRotation;
+        private Vector3 gunTargetDefaultLocalPosition;
+		private Vector3 gunTargetDefaultLocalRotation;
 		private Vector3 camDefaultLocalPosition;
 		private Vector3 camRelativeToGunTarget;
 		private bool updateFrame;
@@ -42,6 +43,7 @@ namespace RootMotion.Demos {
 			// Disable the camera and IK components so we can handle their execution order
 			cam.enabled = false;
 			gunAim.enabled = false;
+            if (headAim != null) headAim.enabled = false;
 			ik.enabled = false;
 
 			if (recoil != null && ik.solver.iterations == 0) Debug.LogWarning("FPSAiming with Recoil needs FBBIK solver iteration count to be at least 1 to maintain accuracy.");
@@ -76,20 +78,27 @@ namespace RootMotion.Demos {
 			LookDownTheSight();
 		}
 
-		private void Aiming() {
-			if (aimWeight <= 0f) return;
-			
-			// Remember the rotation of the camera because we need to reset it later so the IK would not interfere with the rotating of the camera
-			Quaternion camRotation = cam.transform.rotation;
+        private void Aiming()
+        {
+            if (headAim == null && aimWeight <= 0f) return;
 
-			// Aim the gun towards camera forward
-			gunAim.solver.IKPosition = cam.transform.position + cam.transform.forward * 10f + cam.transform.rotation * aimOffset;
-			gunAim.solver.IKPositionWeight = aimWeight;
-			gunAim.solver.Update();
-			cam.transform.rotation = camRotation;
-		}
+            // Remember the rotation of the camera because we need to reset it later so the IK would not interfere with the rotating of the camera
+            Quaternion camRotation = cam.transform.rotation;
 
-		private void LookDownTheSight() {
+            // Aim head towards camera forward
+            headAim.solver.IKPosition = cam.transform.position + cam.transform.forward * 10f;
+            headAim.solver.IKPositionWeight = 1f - aimWeight;
+            headAim.solver.Update();
+
+            // Aim the gun towards camera forward
+            gunAim.solver.IKPosition = cam.transform.position + cam.transform.forward * 10f + cam.transform.rotation * aimOffset;
+            gunAim.solver.IKPositionWeight = aimWeight;
+            gunAim.solver.Update();
+            
+            cam.transform.rotation = camRotation;
+        }
+
+        private void LookDownTheSight() {
 			float sW = aimWeight * sightWeight;
 			//if (sW <= 0f && recoil == null) return;
 

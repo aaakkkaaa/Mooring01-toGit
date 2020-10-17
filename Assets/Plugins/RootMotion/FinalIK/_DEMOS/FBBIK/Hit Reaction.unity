@@ -758,6 +758,7 @@ MonoBehaviour:
     m_Bits: 0
   blockingRadius: 1
   blockingSmoothTime: 0.1
+  blockingOriginOffset: 0
   blockedOffset: 0.5
 --- !u!1 &351840287
 GameObject:
@@ -2873,6 +2874,7 @@ MonoBehaviour:
     - {fileID: 1296935205}
     eyes: []
   solver:
+    executedInEditor: 0
     IKPosition: {x: 0, y: 0, z: 0}
     IKPositionWeight: 1
     root: {fileID: 1693034326}

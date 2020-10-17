@@ -54,7 +54,7 @@ namespace RootMotion.Demos
                 {
                     Debug.LogError("Avatar needs to be calibrated before RecalibrateScale is called.");
                 }
-                VRIKCalibrator.RecalibrateScale(ik, settings);
+                VRIKCalibrator.RecalibrateScale(ik, data, settings);
             }
         }
     }

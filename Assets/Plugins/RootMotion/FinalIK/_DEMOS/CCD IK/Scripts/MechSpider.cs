@@ -22,12 +22,22 @@ namespace RootMotion.Demos {
 		public float raycastHeight = 10f; // The height of ray origin
 		public float raycastDistance = 5f; // The distance of rays (total ray length = raycastHeight + raycastDistance)
 
+        public Vector3 velocity { get; private set; }
+
 		private Vector3 lastPosition;
 		private Vector3 defaultBodyLocalPosition;
 		private float sine;
 		private RaycastHit rootHit;
 
-		void Update() {
+        private void Start()
+        {
+            lastPosition = transform.position;
+        }
+
+        void Update() {
+            velocity = (transform.position - lastPosition) / Time.deltaTime;
+            lastPosition = transform.position;
+
 			// Find the normal of the plane defined by leg positions
 			Vector3 legsPlaneNormal = GetLegsPlaneNormal();
 

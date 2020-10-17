@@ -261,7 +261,7 @@ namespace RootMotion.FinalIK {
 		 * Fixes all the Transforms used by the solver to their default local states.
 		 * */
 		protected override void FixTransforms() {
-			solvers.lookAt.FixTransforms();
+            solvers.lookAt.FixTransforms();
 			for (int i = 0; i < solvers.limbs.Length; i++) solvers.limbs[i].FixTransforms();
 		}
 

@@ -7,7 +7,6 @@ namespace RootMotion.Demos {
 	/// <summary>
 	/// Making a character hold on to a target and swing about it while maintaining his animation.
 	/// </summary>
-	[RequireComponent(typeof(FullBodyBipedIK))]
 	public class PendulumExample : MonoBehaviour {
 
 		[Tooltip("The master weight of this script.")]

@@ -5,8 +5,6 @@ using RootMotion.FinalIK;
 namespace RootMotion.Demos {
 
 	// Extends the default Animator controller for 3rd person view to add IK
-	[RequireComponent(typeof(AimIK))]
-	[RequireComponent(typeof(FullBodyBipedIK))]
 	public class AnimatorController3rdPersonIK: AnimatorController3rdPerson {
 
 		[Range(0f, 1f)] public float headLookWeight = 1f;

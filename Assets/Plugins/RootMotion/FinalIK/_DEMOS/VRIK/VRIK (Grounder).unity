@@ -890,10 +890,12 @@ MonoBehaviour:
     rightFoot: {fileID: 1998698651}
     rightToes: {fileID: 718314650}
   solver:
+    executedInEditor: 0
     IKPosition: {x: 0, y: 0, z: 0}
     IKPositionWeight: 1
     root: {fileID: 0}
     LOD: 0
+    scale: 1
     plantFeet: 0
     spine:
       bones: []
@@ -1025,6 +1027,7 @@ MonoBehaviour:
         m_PreInfinity: 2
         m_PostInfinity: 2
         m_RotationOrder: 4
+      maxBodyYOffset: 0.05
       heelHeight:
         serializedVersion: 2
         m_Curve:
@@ -1808,6 +1811,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fixTransforms: 1
   solver:
+    executedInEditor: 0
     IKPosition: {x: -0.14987741, y: 0.13231415, z: -0.062359765}
     IKPositionWeight: 1
     root: {fileID: 1169798038}
@@ -1892,6 +1896,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fixTransforms: 1
   solver:
+    executedInEditor: 0
     IKPosition: {x: 0.14991422, y: 0.13232702, z: -0.062422015}
     IKPositionWeight: 1
     root: {fileID: 1199999277}

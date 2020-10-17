@@ -92,7 +92,8 @@ namespace RootMotion.Demos {
 
 			// place hit.point to the default position relative to the body
 			Vector3 stepTarget = mechSpider.transform.TransformPoint(defaultPosition);
-			stepTarget += (hit.point - position) * velocityPrediction;
+            //stepTarget += (hit.point - position) * velocityPrediction;
+            stepTarget += mechSpider.velocity * velocityPrediction;
 
 			Vector3 up = mechSpider.transform.up;
 
