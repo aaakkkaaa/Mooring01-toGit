@@ -29,9 +29,15 @@ void OceanNormals_half
 {
 	o_normalTS = half3(0.0, 0.0, 1.0);
 
+	// TODO pass this in? it needs _normalScrollSpeeds and _farNormalsWeight
+	const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[i_sliceIndex0];
+	
+	CascadeParams cascadeData0 = MakeCascadeParams(i_oceanPosScale0, i_oceanParams0);
+	CascadeParams cascadeData1 = MakeCascadeParams(i_oceanPosScale1, i_oceanParams1);
+
 	// Normal - geom + normal mapping. Subsurface scattering.
-	const float3 uv_slice_smallerLod = WorldToUV(i_positionXZWSUndisplaced, i_oceanPosScale0, i_oceanParams0, i_sliceIndex0);
-	const float3 uv_slice_biggerLod = WorldToUV(i_positionXZWSUndisplaced, i_oceanPosScale1, i_oceanParams1, i_sliceIndex0 + 1.0);
+	const float3 uv_slice_smallerLod = WorldToUV(i_positionXZWSUndisplaced, cascadeData0, i_sliceIndex0);
+	const float3 uv_slice_biggerLod = WorldToUV(i_positionXZWSUndisplaced, cascadeData1, i_sliceIndex0 + 1.0);
 	const float wt_smallerLod = (1.0 - i_lodAlpha) * i_oceanParams0.z;
 	const float wt_biggerLod = (1.0 - wt_smallerLod) * i_oceanParams1.z;
 	float3 dummy = 0.0;
@@ -45,9 +51,9 @@ void OceanNormals_half
 	real3 n_pixel = n_geom;
 //#if _APPLYNORMALMAPPING_ON
 #if defined(CREST_FLOW_ON)
-	ApplyNormalMapsWithFlow(i_flow, i_positionXZWSUndisplaced, i_normals, i_normalsScale, i_normalsStrength, i_lodAlpha, n_pixel);
+	ApplyNormalMapsWithFlow(i_flow, i_positionXZWSUndisplaced, i_normals, i_normalsScale, i_normalsStrength, i_lodAlpha, cascadeData0, instanceData, n_pixel);
 #else
-	n_pixel.xz += (i_isUnderwater ? -1.0 : 1.0) * SampleNormalMaps(i_positionXZWSUndisplaced, i_normals, i_normalsScale, i_normalsStrength, i_lodAlpha);
+	n_pixel.xz += (i_isUnderwater ? -1.0 : 1.0) * SampleNormalMaps(i_positionXZWSUndisplaced, i_normals, i_normalsScale, i_normalsStrength, i_lodAlpha, cascadeData0, instanceData);
 	n_pixel = normalize(n_pixel);
 #endif
 //#endif

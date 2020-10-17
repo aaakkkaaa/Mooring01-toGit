@@ -28,6 +28,12 @@
             "typeInfo": {
                 "fullName": "UnityEditor.ShaderGraph.Internal.ColorShaderProperty"
             },
+            "JSONnodeData": "{\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"bc80e868-7537-43d0-8fb0-12241905b897\"\n    },\n    \"m_Name\": \"Scatter Colour Shadow\",\n    \"m_DefaultReferenceName\": \"Color_B49908FC\",\n    \"m_OverrideReferenceName\": \"_ScatterColourShadow\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Precision\": 2,\n    \"m_GPUInstanced\": false,\n    \"m_Hidden\": false,\n    \"m_Value\": {\n        \"r\": 0.0,\n        \"g\": 0.0,\n        \"b\": 0.501960813999176,\n        \"a\": 0.0\n    },\n    \"m_ColorMode\": 0\n}"
+        },
+        {
+            "typeInfo": {
+                "fullName": "UnityEditor.ShaderGraph.Internal.ColorShaderProperty"
+            },
             "JSONnodeData": "{\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"28938d53-33fd-467e-855a-be49fac0df14\"\n    },\n    \"m_Name\": \"Scatter Colour Shallow\",\n    \"m_DefaultReferenceName\": \"Color_A8095A27\",\n    \"m_OverrideReferenceName\": \"_ScatterColourShallow\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Precision\": 0,\n    \"m_GPUInstanced\": false,\n    \"m_Hidden\": false,\n    \"m_Value\": {\n        \"r\": 0.3758455216884613,\n        \"g\": 0.7105558514595032,\n        \"b\": 0.7735849022865295,\n        \"a\": 0.0\n    },\n    \"m_ColorMode\": 0\n}"
         },
         {
@@ -40,7 +46,7 @@
             "typeInfo": {
                 "fullName": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty"
             },
-            "JSONnodeData": "{\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"22272f0c-fcf3-48a2-b9a2-66cf96270ccd\"\n    },\n    \"m_Name\": \"Scatter Colour Shallow Depth Falloff\",\n    \"m_DefaultReferenceName\": \"Vector1_DB967704\",\n    \"m_OverrideReferenceName\": \"_ScatterColourShallowDepthFalloff\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Precision\": 2,\n    \"m_GPUInstanced\": false,\n    \"m_Hidden\": false,\n    \"m_Value\": 2.569999933242798,\n    \"m_FloatType\": 1,\n    \"m_RangeValues\": {\n        \"x\": 0.0,\n        \"y\": 10.0\n    }\n}"
+            "JSONnodeData": "{\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"22272f0c-fcf3-48a2-b9a2-66cf96270ccd\"\n    },\n    \"m_Name\": \"Scatter Colour Shallow Depth Falloff\",\n    \"m_DefaultReferenceName\": \"Vector1_DB967704\",\n    \"m_OverrideReferenceName\": \"_ScatterColourShallowDepthFalloff\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Precision\": 2,\n    \"m_GPUInstanced\": false,\n    \"m_Hidden\": false,\n    \"m_Value\": 2.569999933242798,\n    \"m_FloatType\": 1,\n    \"m_RangeValues\": {\n        \"x\": 0.009999999776482582,\n        \"y\": 10.0\n    }\n}"
         },
         {
             "typeInfo": {
@@ -64,7 +70,7 @@
             "typeInfo": {
                 "fullName": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty"
             },
-            "JSONnodeData": "{\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"2bf24e06-a0f3-46c0-a751-61d50a7dc97b\"\n    },\n    \"m_Name\": \"SSS Sun Falloff\",\n    \"m_DefaultReferenceName\": \"Vector1_B9424F3E\",\n    \"m_OverrideReferenceName\": \"_SSSSunFalloff\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Precision\": 2,\n    \"m_GPUInstanced\": false,\n    \"m_Hidden\": false,\n    \"m_Value\": 5.0,\n    \"m_FloatType\": 1,\n    \"m_RangeValues\": {\n        \"x\": 0.0,\n        \"y\": 16.0\n    }\n}"
+            "JSONnodeData": "{\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"2bf24e06-a0f3-46c0-a751-61d50a7dc97b\"\n    },\n    \"m_Name\": \"SSS Sun Falloff\",\n    \"m_DefaultReferenceName\": \"Vector1_B9424F3E\",\n    \"m_OverrideReferenceName\": \"_SSSSunFalloff\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Precision\": 2,\n    \"m_GPUInstanced\": false,\n    \"m_Hidden\": false,\n    \"m_Value\": 5.0,\n    \"m_FloatType\": 1,\n    \"m_RangeValues\": {\n        \"x\": 0.009999999776482582,\n        \"y\": 16.0\n    }\n}"
         },
         {
             "typeInfo": {
@@ -657,6 +663,12 @@
                 "fullName": "UnityEditor.ShaderGraph.PositionNode"
             },
             "JSONnodeData": "{\n    \"m_GuidSerialized\": \"c2516d05-a471-429c-a3bb-83139fa9d97a\",\n    \"m_GroupGuidSerialized\": \"00000000-0000-0000-0000-000000000000\",\n    \"m_Name\": \"Position\",\n    \"m_NodeVersion\": 1,\n    \"m_DrawState\": {\n        \"m_Expanded\": true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n            \"x\": 1457.0,\n            \"y\": 1873.0001220703125,\n            \"width\": 206.0,\n            \"height\": 132.0\n        }\n    },\n    \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\": \"UnityEditor.ShaderGraph.Vector3MaterialSlot\"\n            },\n            \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 0,\\n    \\\"m_DisplayName\\\": \\\"Out\\\",\\n    \\\"m_SlotType\\\": 1,\\n    \\\"m_Priority\\\": 2147483647,\\n    \\\"m_Hidden\\\": false,\\n    \\\"m_ShaderOutputName\\\": \\\"Out\\\",\\n    \\\"m_StageCapability\\\": 3,\\n    \\\"m_Value\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0\\n    },\\n    \\\"m_DefaultValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0\\n    },\\n    \\\"m_Labels\\\": [\\n        \\\"X\\\",\\n        \\\"Y\\\",\\n        \\\"Z\\\"\\n    ]\\n}\"\n        }\n    ],\n    \"m_Precision\": 1,\n    \"m_PreviewExpanded\": false,\n    \"m_CustomColors\": {\n        \"m_SerializableColors\": []\n    },\n    \"m_Space\": 1\n}"
+        },
+        {
+            "typeInfo": {
+                "fullName": "UnityEditor.ShaderGraph.PropertyNode"
+            },
+            "JSONnodeData": "{\n    \"m_GuidSerialized\": \"119c7a31-df9b-491d-8eed-dd462c2b5a05\",\n    \"m_GroupGuidSerialized\": \"00000000-0000-0000-0000-000000000000\",\n    \"m_Name\": \"Property\",\n    \"m_NodeVersion\": 0,\n    \"m_DrawState\": {\n        \"m_Expanded\": true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n            \"x\": -379.0,\n            \"y\": 1328.0,\n            \"width\": 199.0,\n            \"height\": 34.0\n        }\n    },\n    \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\": \"UnityEditor.ShaderGraph.Vector4MaterialSlot\"\n            },\n            \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 0,\\n    \\\"m_DisplayName\\\": \\\"Scatter Colour Shadow\\\",\\n    \\\"m_SlotType\\\": 1,\\n    \\\"m_Priority\\\": 2147483647,\\n    \\\"m_Hidden\\\": false,\\n    \\\"m_ShaderOutputName\\\": \\\"Out\\\",\\n    \\\"m_StageCapability\\\": 3,\\n    \\\"m_Value\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_DefaultValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    }\\n}\"\n        }\n    ],\n    \"m_Precision\": 2,\n    \"m_PreviewExpanded\": true,\n    \"m_CustomColors\": {\n        \"m_SerializableColors\": []\n    },\n    \"m_PropertyGuidSerialized\": \"bc80e868-7537-43d0-8fb0-12241905b897\"\n}"
         }
     ],
     "m_Groups": [
@@ -1259,6 +1271,12 @@
                 "fullName": "UnityEditor.Graphing.Edge"
             },
             "JSONnodeData": "{\n    \"m_OutputSlot\": {\n        \"m_SlotId\": 1,\n        \"m_NodeGUIDSerialized\": \"129013c1-71b9-4d21-b986-f54429ed4d7e\"\n    },\n    \"m_InputSlot\": {\n        \"m_SlotId\": 1,\n        \"m_NodeGUIDSerialized\": \"51ca9c86-223c-4c2f-98d3-1fded23eac1f\"\n    }\n}"
+        },
+        {
+            "typeInfo": {
+                "fullName": "UnityEditor.Graphing.Edge"
+            },
+            "JSONnodeData": "{\n    \"m_OutputSlot\": {\n        \"m_SlotId\": 0,\n        \"m_NodeGUIDSerialized\": \"119c7a31-df9b-491d-8eed-dd462c2b5a05\"\n    },\n    \"m_InputSlot\": {\n        \"m_SlotId\": 1573868264,\n        \"m_NodeGUIDSerialized\": \"55ab19e8-b163-46f4-afb7-3fbdbb3aa169\"\n    }\n}"
         }
     ],
     "m_PreviewData": {

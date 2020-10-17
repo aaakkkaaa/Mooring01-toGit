@@ -67,17 +67,22 @@ void CrestNodeApplyCaustics_float
 		// caustics will not be aligned with shadows.
 		const float2 shadowSurfacePosXZ = i_scenePos.xz + i_lightDir.xz * sceneDepth / i_lightDir.y;
 		real2 causticShadow = 0.0;
+
+		// TODO - pass in to avoid reading here?
+		const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
+		const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
+
 		// As per the comment for the underwater code in ScatterColour,
 		// LOD_1 data can be missing when underwater
 		if (i_underwater)
 		{
-			const float3 uv_smallerLod = WorldToUV(shadowSurfacePosXZ, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex], _LD_SliceIndex);
+			const float3 uv_smallerLod = WorldToUV(shadowSurfacePosXZ, cascadeData0, _LD_SliceIndex);
 			SampleShadow(_LD_TexArray_Shadow, uv_smallerLod, 1.0, causticShadow);
 		}
 		else
 		{
 			// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
-			float3 uv_biggerLod = WorldToUV(shadowSurfacePosXZ, _LD_Pos_Scale[_LD_SliceIndex + 1], _LD_Params[_LD_SliceIndex + 1], _LD_SliceIndex + 1);
+			float3 uv_biggerLod = WorldToUV(shadowSurfacePosXZ, cascadeData1, _LD_SliceIndex + 1);
 			SampleShadow(_LD_TexArray_Shadow, uv_biggerLod, 1.0, causticShadow);
 		}
 		causticsStrength *= 1.0 - causticShadow.y;

@@ -1,4 +1,4 @@
-﻿// Crest Ocean System
+// Crest Ocean System
 
 // Copyright 2020 Wave Harmonic Ltd
 

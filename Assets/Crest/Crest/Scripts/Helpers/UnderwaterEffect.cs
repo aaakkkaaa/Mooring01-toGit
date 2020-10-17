@@ -2,6 +2,10 @@
 
 // Copyright 2020 Wave Harmonic Ltd
 
+// NOTE: ExecuteAlways has been removed as it causes the material to break. Keeping the implementation to be compatible
+// with ExecuteAlways as it might be re-introduced if a fix is found. It is very likely the underwater post-processing
+// branch will arrive before then though.
+
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.XR;
@@ -18,13 +22,9 @@ namespace Crest
     /// Handles effects that need to track the water surface. Feeds in wave data and disables rendering when
     /// not close to water.
     /// </summary>
-    [ExecuteAlways]
     public partial class UnderwaterEffect : MonoBehaviour
     {
         [Header("Copy params from Ocean material")]
-
-        [Tooltip("Copy ocean material settings on startup, to ensure consistent appearance between underwater effect and ocean surface."), SerializeField]
-        bool _copyParamsOnStartup = true;
         [Tooltip("Copy ocean material settings on each frame, to ensure consistent appearance between underwater effect and ocean surface. This should be turned off if you are not changing the ocean material values every frame."), SerializeField]
         bool _copyParamsEachFrame = true;
 
@@ -49,6 +49,8 @@ namespace Crest
 
         SampleHeightHelper _sampleWaterHeight = new SampleHeightHelper();
 
+        bool isMeniscus;
+
         private void Start()
         {
 #if UNITY_EDITOR
@@ -63,6 +65,8 @@ namespace Crest
             // Render before the surface mesh
             _rend.sortingOrder = _overrideSortingOrder ? _overridenSortingOrder : -LodDataMgr.MAX_LOD_COUNT - 1;
             GetComponent<MeshFilter>().sharedMesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, GEOM_HORIZ_DIVISIONS, 1);
+
+            isMeniscus = _rend.material.shader.name.Contains("Meniscus");
 
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
@@ -83,14 +87,10 @@ namespace Crest
         {
             if (OceanRenderer.Instance == null) return;
 
-#if UNITY_EDITOR
-            // This prevents the shader/material from going shader error pink.
-            if (!EditorApplication.isPlaying) return;
-#endif
-
-            if (_copyParamsOnStartup)
+            // Only execute when playing to stop CopyPropertiesFromMaterial from corrupting and breaking the material.
+            if (!isMeniscus)
             {
-                _rend.sharedMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                _rend.material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
             }
         }
 
@@ -157,9 +157,10 @@ namespace Crest
 
             if (_rend.enabled)
             {
-                if (_copyParamsEachFrame)
+                // Only execute when playing to stop CopyPropertiesFromMaterial from corrupting and breaking the material.
+                if (!isMeniscus && _copyParamsEachFrame)
                 {
-                    _rend.sharedMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                    _rend.material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
                 }
 
                 // Assign lod0 shape - trivial but bound every frame because lod transform comes from here
@@ -171,32 +172,15 @@ namespace Crest
 
                 // Underwater rendering uses displacements for intersecting the waves with the near plane, and ocean depth/shadows for ScatterColour()
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, 0);
-                OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_mpb);
 
-                if (OceanRenderer.Instance._lodDataSeaDepths != null)
-                {
-                    OceanRenderer.Instance._lodDataSeaDepths.BindResultData(_mpb);
-                }
-                else
-                {
-                    LodDataMgrSeaFloorDepth.BindNull(_mpb);
-                }
-
-                if (OceanRenderer.Instance._lodDataShadow != null)
-                {
-                    OceanRenderer.Instance._lodDataShadow.BindResultData(_mpb);
-                }
-                else
-                {
-                    LodDataMgrShadow.BindNull(_mpb);
-                }
+                LodDataMgrAnimWaves.Bind(_mpb);
+                LodDataMgrSeaFloorDepth.Bind(_mpb);
+                LodDataMgrShadow.Bind(_mpb);
 
                 _mpb.SetFloat(sp_HeightOffset, heightOffset);
 
-                _mpb.SetVector(OceanChunkRenderer.sp_InstanceData, new Vector3(OceanRenderer.Instance.ViewerAltitudeLevelAlpha, 0f, 0f));
 
                 _mpb.SetVector(sp_CameraForward, _currentCamera.transform.forward);
-
                 _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
             }
         }
@@ -323,7 +307,7 @@ namespace Crest
                 isValid = false;
             }
             else if (renderer.sharedMaterial.shader.name == "Crest/Underwater Curtain" && ocean != null && ocean.OceanMaterial
-                && (!_copyParamsEachFrame && !_copyParamsOnStartup || EditorApplication.isPlaying && !_copyParamsEachFrame))
+                && (!_copyParamsEachFrame || EditorApplication.isPlaying && !_copyParamsEachFrame))
             {
                 // Check that enabled underwater material keywords are enabled on the ocean material.
                 var keywords = renderer.sharedMaterial.shaderKeywords;
