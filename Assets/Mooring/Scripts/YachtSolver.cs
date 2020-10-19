@@ -190,19 +190,43 @@ public class YachtSolver : MonoBehaviour
     }
 
     //Вывод для контроля частоты кадров
-    private int FrameCount = 0;
-    private int FrameCount2 = 0;
-    private int FramePeriod = 50;
+    private int _FrameCount = 0;
+    private int _FrameCount2 = 0;
+    private int _FramePeriod = 50;
+    private int _PrevTime = 0;
+    private int _FirstPeriodTime = 0;
+    private float _MinFPS = 500f;
+    private float _MaxFPS = 0f;
 
     private void Update()
     {
         // Вывод для контроля частоты кадров
-        FrameCount++;
-        FrameCount2++;
-        if (FrameCount2 >= FramePeriod)
+        _FrameCount++;
+        _FrameCount2++;
+        if (_FrameCount2 >= _FramePeriod)
         {
-            FrameCount2 = 0;
-            _Record.MyLog("FPS", FrameCount.ToString());
+            int curTime = _Time.CurrentTimeMilliSec();
+            float momentFPS = _FramePeriod * 1000 / (curTime - _PrevTime);
+            float averageFPS = (_FrameCount - _FramePeriod) * 1000 / (curTime - _FirstPeriodTime);
+            if (_FrameCount == _FrameCount2)
+            {
+                _FirstPeriodTime = curTime;
+                _Record.MyLog("FPS", "Frames\tMoment\tAverage\tMin\tMax");
+            }
+            else
+            {
+                if (momentFPS < _MinFPS)
+                {
+                    _MinFPS = momentFPS;
+                }
+                else if (momentFPS > _MaxFPS)
+                {
+                    _MaxFPS = momentFPS;
+                }
+            }
+            _Record.MyLog("FPS", _FrameCount.ToString() + "\t" + momentFPS.ToString("F1") + "\t" + averageFPS.ToString("F1") + "\t" + _MinFPS.ToString("F1") +"\t" + _MaxFPS.ToString("F1"));
+            _FrameCount2 = 0;
+            _PrevTime = curTime;
         }
         //*/
 

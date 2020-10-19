@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{58A41E84-F5CF-E9A4-13AF-592ED691B901}</ProjectGuid>
+    <ProjectGuid>{57D1239B-DCEE-C5AD-B8C6-E853932BDF49}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Crest.Examples</AssemblyName>
@@ -298,10 +298,10 @@
       <HintPath>C:/Program Files (x86)/Microsoft Visual Studio Tools for Unity/16.0/Editor/SyntaxTree.VisualStudio.Unity.Bridge.dll</HintPath>
     </Reference>
     <Reference Include="Valve.Newtonsoft.Json">
-      <HintPath>C:/00/Mooring/Warehouse/Mooring29_Ocean/Assets/SteamVR/Input/Plugins/JSON.NET/Valve.Newtonsoft.Json.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring29_VRIK/Assets/SteamVR/Input/Plugins/JSON.NET/Valve.Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.NRefactory">
-      <HintPath>C:/00/Mooring/Warehouse/Mooring29_Ocean/Library/PackageCache/com.unity.render-pipelines.core@7.4.1/Editor/ShaderGenerator/ICSharpCode.NRefactory.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring29_VRIK/Library/PackageCache/com.unity.render-pipelines.core@7.4.1/Editor/ShaderGenerator/ICSharpCode.NRefactory.dll</HintPath>
     </Reference>
     <Reference Include="netstandard">
       <HintPath>C:/Program Files/Unity/Hub/Editor/2019.4.12f1/Editor/Data/NetStandard/ref/2.0.0/netstandard.dll</HintPath>
@@ -649,15 +649,15 @@
       <HintPath>C:/Program Files/Unity/Hub/Editor/2019.4.12f1/Editor/Data/NetStandard/compat/2.0.0/shims/netfx/System.Xml.Serialization.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.UI">
-      <HintPath>C:/00/Mooring/Warehouse/Mooring29_Ocean/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring29_VRIK/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>C:/00/Mooring/Warehouse/Mooring29_Ocean/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
+      <HintPath>C:/00/Mooring/Warehouse/Mooring29_VRIK/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Crest.csproj">
-      <Project>{78B7DF4C-D704-18E8-1F78-7ECB6E255E3F}</Project>
+      <Project>{3FB86BCB-17DB-39D2-7CAE-4441E35684C9}</Project>
       <Name>Crest</Name>
     </ProjectReference>
   </ItemGroup>
