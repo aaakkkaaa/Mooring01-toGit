@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.IO;
+using UnityEditor.Animations;
 //using UnityEditorInternal;
 
 public class PathWalker : MonoBehaviour
@@ -11,14 +12,15 @@ public class PathWalker : MonoBehaviour
     public List<Transform> Points;
 
     // Где мы сейчас
-    public GameObject CurPos;
+    public String CurPos; 
     // куда идти
-    public GameObject WalkTarget;
+    public String WalkTarget;
 
     // маршрутные точки, последняя - цель, там надо будет развернуться
     private List<Transform> _path;
 
     private Animator _animator;
+    public AnimatorController AnimWalk;
 
     private string _state = "";
 
@@ -47,6 +49,10 @@ public class PathWalker : MonoBehaviour
     // Для остановки корутины в конце движения
     private IEnumerator _angleCorrector;
 
+    // для сообщения о прибытии в пункт назначения
+    public delegate void Message();
+    public Message OnEndWalk;
+
     void Awake()
     {
         _animator = gameObject.GetComponent<Animator>();
@@ -54,7 +60,7 @@ public class PathWalker : MonoBehaviour
 
     void Update()
     {
-        /*
+       /*
         if (Input.GetKeyDown("g")) // сделать шаг к нужной точке
         {
             bool isRotLeft = _animator.GetCurrentAnimatorStateInfo(0).IsName("RotateLeft");
@@ -72,7 +78,8 @@ public class PathWalker : MonoBehaviour
     // определить путь и начать поворот, потом движение 
     public void WalkTo(string pointName)
     {
-        _path = DetectPath(CurPos.name, pointName);
+        //_animator.AnimatorCo
+        _path = DetectPath(CurPos, pointName);
         if(_path.Count == 0)
         {
             print("Не найден путь в " + pointName);
@@ -237,7 +244,9 @@ public class PathWalker : MonoBehaviour
             else
             {
                 _state = "";
-                CurPos = _target.gameObject;
+                CurPos = _target.gameObject.name;
+                // если делегату присвоено значение, вызываем его
+                OnEndWalk?.Invoke();
             }
 
         }

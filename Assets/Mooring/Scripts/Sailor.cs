@@ -28,6 +28,10 @@ public class Sailor : MonoBehaviour
     [NonSerialized]
     public string CurState = "IDLE";
 
+    private string _curCommand = "";
+    public string CurCommand { get {return _curCommand;} set { StartNewCommand(value); } }
+    private PathWalker _walker;
+
     // канат с которым взаимодействует перс
     public ObiRope WorkRope;
     // для восстановления после заморозки каната в руке
@@ -61,6 +65,7 @@ public class Sailor : MonoBehaviour
     {
         _animator = gameObject.GetComponent<Animator>();
         _coll = gameObject.GetComponent<Collider>();
+        _walker = gameObject.GetComponent<PathWalker>();
     }
 
     private void Start()
@@ -75,6 +80,7 @@ public class Sailor : MonoBehaviour
     {
 
         // Определить, нажата ли левая кнопка мыши
+        /*
         if (Input.GetKey("left ctrl") || Input.GetKey("right ctrl"))
         {
             if (Input.GetKeyDown("t")) // Поднять и бросить конец
@@ -96,6 +102,7 @@ public class Sailor : MonoBehaviour
                 }
             }
         }
+        */
         if (CurState == "WAIT_DISTANCE")
         {
             rContr = WorkRope.GetComponent<RopeController>();
@@ -503,6 +510,7 @@ public class Sailor : MonoBehaviour
     {
         rContr.transform.SetParent(GameObject.Find("BakedRope").transform);
         CurState = "IDLE";
+        _curCommand = "";
     }
 
     // заморозка каната путем перекладывания в руку 
@@ -525,5 +533,66 @@ public class Sailor : MonoBehaviour
         WorkRope.transform.parent = _solver.transform;
 
     }
+
+    private void StartNewCommand(string value)
+    {
+        // если идет выполнение команды, ее прерывать нельзя (пока так)
+        if (_curCommand != "") return;
+
+        if(value == "НА НОС")
+        {
+            _curCommand = value;
+            // проверим текущее положение
+            if ( _walker.CurPos == "P_06")
+            {
+                // уже стоим где надо
+                return;
+            }
+            else
+            {
+                _walker.OnEndWalk += OnStayOnFore;
+                _walker.WalkTo("P_06");
+            }
+        }
+        else if(value == "ПОДАТЬ ШВАРТОВЫ")
+        {
+            _curCommand = value;
+            // проверим положение
+            if (_walker.CurPos == "P_01")
+            {
+                // уже стоим где надо, будем кидать канат
+                OnReadyThrowRope();
+            }
+            else
+            {
+                // сначала надо перейти в рабочую точку
+                _walker.OnEndWalk += OnReadyThrowRope;
+                _walker.WalkTo("P_01");
+            }
+        }
+
+    }
+
+    // колбэк после достижения рабочей позиции для броска каната
+    private void OnReadyThrowRope()
+    {
+        _walker.OnEndWalk -= OnReadyThrowRope;
+        if (CurState == "IDLE")
+        {
+            // воспроизведение анимации
+            CurState = "FIND_ROPE";
+            // "Разжать правую руку"
+            _animator.SetTrigger("FindRope");
+            //_animator.SetLayerWeight(1, 1f);
+        }
+    }
+
+    // колбэк после перехода на нос
+    private void OnStayOnFore()
+    {
+        _walker.OnEndWalk -= OnStayOnFore;
+        _curCommand = "";
+    }
+
 
 }

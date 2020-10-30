@@ -42,7 +42,7 @@ public class sGlobalSettings : MonoBehaviour
 
         TimeSpan CurTime = DateTime.Now.TimeOfDay; // текущее время
         int Seed = (int)CurTime.TotalSeconds - (int)CurTime.TotalHours * 3600; // секунды с начала последнего часа
-        UnityEngine.Random.InitState(Seed);
+        //UnityEngine.Random.InitState(Seed);
     }
 
     // Start is called before the first frame update

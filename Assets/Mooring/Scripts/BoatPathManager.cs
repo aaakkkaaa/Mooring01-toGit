@@ -21,7 +21,8 @@ public class BoatPathManager : MonoBehaviour
 
     void Start()
     {
-        _branches = new string[15][];
+        /*
+        _branches = new string[16][];
         _branches[0] = new string[] { "P+2+3", "P+1+3", "P-1+4", "P-0.5-1" };
         _branches[1] = new string[] { "P-0.5-1", "P-1-2.4" };
         _branches[2] = new string[] { "P-0.5-1", "P+0.5-1" };
@@ -38,8 +39,14 @@ public class BoatPathManager : MonoBehaviour
         _branches[12] = new string[] { "P+4.5-4", "P+4-4"};
         _branches[13] = new string[] { "P+3-3", "P+0-3", "P+0-4" };
         _branches[14] = new string[] { "P+0-4", "P-2-4", "P-2+0", "P-1.5+0.5", "P-1-1", "P-0.5-1" };
-
+        _branches[15] = new string[] { "P+2+3.7", "P+1+4", "P+0+4", "P-1+4" };
         //CreatePath("P10");
+        */
+
+        _branches = new string[2][];
+        _branches[0] = new string[] { "P+2+3.7", "P+1+4", "P+0+4", "P+0+3" };
+        _branches[1] = new string[] { "P+2+3", "P+1+3", "P+1+4" };
+
     }
 
     public List<string> CreatePath(string cur)
@@ -89,7 +96,8 @@ public class BoatPathManager : MonoBehaviour
         }
         else
         {
-            int num = Mathf.FloorToInt(Random.Range(0, start.Count));
+            //int num = Mathf.FloorToInt(Random.Range(0, start.Count));
+            int num = Random.Range(0, start.Count);
             _curBranch = start[num];
         }
         if (_curBranch == -1)
@@ -126,15 +134,6 @@ public class BoatPathManager : MonoBehaviour
                     {
                         return true; // найдена точка ветвления
                     }
-                    /*
-                    for (int j = 0; j < _branches[i].Length; j++)
-                    {
-                        if ( branch[idx] == _branches[i][j] )
-                        {
-                            return true;    // найдена точка ветвления
-                        }
-                    }
-                    */
                 }
             }
 

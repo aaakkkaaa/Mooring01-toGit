@@ -5,12 +5,14 @@ using UnityEngine;
 
 public class BoatMoving : MonoBehaviour
 {
-    // начало движения
+    // точка начала движения
     public GameObject startPoint;
     // угловая скорость (для вращения на месте в начале)
     public float rotV = 15.0f;
     // максимальная линейная скорость
     public float maxVz = 3.0f;
+    // скорость к которой надо стремиться, если впереди ползет кто-то
+    private float _newVz;
     // Ускорение 
     public float Az = 1.5f;
     // расстояние до точки, на котором начинается поворот
@@ -20,8 +22,11 @@ public class BoatMoving : MonoBehaviour
 
     // текущая линейная скорость
     private float _Vz=0;
-    // ускорение при замедлении
+    public float Vz { get { return _Vz; } }
+    // ускорение при штатном замедлении в конце пути (вычисляется)
     private float Aslow;
+    // ускорение при замедлении при догоне
+    private float Acorrect = 1.6f;
 
     // направление на следующую точку
     private Vector3 _dirToNext;
@@ -56,9 +61,12 @@ public class BoatMoving : MonoBehaviour
     private float lOrt = 3.0f;
 
     // индекс текущей точки
-    private int _curIdx;
+    [NonSerialized] public int curIdx;
 
-    private string _state = "BEGIN";
+    private string _state = "BEGIN";    // IDLE, BEGIN, START, STRAIGHT, ROTATION
+    public string state { get { return _state; } }
+    private string _stateV = "CONST";   // RACING, SLOW, CONST
+    public string stateV { get { return _stateV; } }
 
     // класс со служебными функциями
     private sAssist _assist;
@@ -132,7 +140,7 @@ public class BoatMoving : MonoBehaviour
                 // мы стоим в предыдущей точке, куда только что приплыли, надо ее добавить в путь
                 _realPath.Insert(0, transform.position);
             }
-            _curIdx = 0;
+            curIdx = 0;
 
             /*
 
@@ -142,8 +150,9 @@ public class BoatMoving : MonoBehaviour
             */
 
             _Vz = 0;
-
+            _newVz = maxVz;
             _state = "START";
+            _stateV = "CONST";
         }
 
         if (_state == "START")
@@ -166,7 +175,8 @@ public class BoatMoving : MonoBehaviour
             else
             {
                 dAng = ang;
-                _state = "ACCELERATION";
+                _state = "STRAIGHT";
+                _stateV = "RACING";
                 //print(gameObject.name + " Заканчиваем начальный поворот  dAng = " + dAng);
             }
             Vector3 curRot = transform.eulerAngles;
@@ -174,34 +184,22 @@ public class BoatMoving : MonoBehaviour
             transform.eulerAngles = curRot;
 
         }
-        if (_state == "ACCELERATION")
-        {
-            if (_Vz < maxVz)
-            {
-                _Vz += Az * Time.fixedDeltaTime;
-            }
-            if (_Vz > maxVz)
-            {
-                _Vz = maxVz;
-                _state = "STRAIGHT";
-                //print(gameObject.name + "  Заканчиваем ускорение");
-            }
-            CorrectDirection( _realPath[_curIdx+1] );
-            MovingStep();
-        }
         if (_state == "STRAIGHT")
         {
-            CorrectDirection(_realPath[_curIdx + 1]);
+            if(_stateV != "BRAKING")
+            {
+                CorrectDirection(_realPath[curIdx + 1]);
+            }
             MovingStep();
 
             // расстояние до ближайшей точки
-            float len = (transform.position - _realPath[_curIdx + 1]).magnitude;
-            if (_curIdx == _realPath.Count - 2)
+            float len = (transform.position - _realPath[curIdx + 1]).magnitude;
+            if (curIdx == _realPath.Count - 2)
             {
                 // предпоследняя точка, проверяем, не пора ли замедляться
-                if (len < LenSlow)
+                if ( len < LenSlow && _stateV != "BRAKING" )
                 {
-                    _state = "SLOW";
+                    _stateV = "BRAKING";
                     Aslow = _Vz * _Vz / 2 / len;
                     //print(gameObject.name + "  Останавливаемся   Aslow = " + Aslow);
                 }
@@ -219,39 +217,20 @@ public class BoatMoving : MonoBehaviour
                     GameObject next2P = _points.transform.Find(path[_curIdx + 2]).gameObject;
                     Vector3 nextDir = next2P.transform.position - _nextP.transform.position;
                     */
-                    Vector3 nextDir = _realPath[_curIdx + 2] - _realPath[_curIdx + 1];
+                    Vector3 nextDir = _realPath[curIdx + 2] - _realPath[curIdx + 1];
                     nextDir.y = transform.position.y;
                     nextDir = nextDir.normalized;
                     // отступаем от следующей точки в найденном направлении на расстояние len
                     //_P2 = _nextP.transform.position + nextDir * len;
-                    _P2 = _realPath[_curIdx + 1] + nextDir * len;
+                    _P2 = _realPath[curIdx + 1] + nextDir * len;
                     _P2.y = transform.position.y;
-                    _P1 = _realPath[_curIdx + 1];
+                    _P1 = _realPath[curIdx + 1];
                     _P1.y = transform.position.y;
                     _p0q0 = 0;
                     _p0p1 = (_P1 - _P0).magnitude;
                     //print(gameObject.name + " ROTATION   _P0 = " + _P0 + "   _P1 = " + _P1 + "    _P2 = " + _P2);
 
                 }
-            }
-            return;
-        }
-        if (_state == "SLOW")
-        {
-            //CorrectDirection();
-            _Vz -= Aslow*Time.fixedDeltaTime;
-            if (_Vz <= 0)
-            {
-                _Vz = 0;
-                _state = "IDLE";
-                //print(gameObject.name + " Остановились");
-                // установить новую текущую точку
-                startPoint = _points.transform.Find(path[path.Count - 1]).gameObject;
-
-            }
-            else
-            {
-                MovingStep();
             }
         }
         if (_state == "ROTATION")
@@ -263,31 +242,85 @@ public class BoatMoving : MonoBehaviour
             {
                 _state = "STRAIGHT";
                 //_curP = _nextP;
-                _curIdx++;
+                curIdx++;
                 //_nextP = _points.transform.Find(path[_curIdx + 1]).gameObject;
             }
             else
             {
-                // первая итерация, предварительная
-                float testT = newL / _p0p1;
-                Vector3 Q0test = _P0 + (_P1 - _P0) * testT;
-                Vector3 Q1test = _P1 + (_P2 - _P1) * testT;
-                Vector3 Btest = Q0test + (Q1test - Q0test) * testT;
-                // полученное расстояние отличается от того, которое лодка проходит, вычисляем на сколько надо скорректировать
-                float correction = (Btest - transform.position).magnitude / dVz;
-                //print("correction = " + correction);
-                // вторая итерация, находим точку с учетом коррекции
-                float realL = _p0q0 + dVz / correction;
-                float realT = realL / _p0p1;
-                Vector3 Q0 = _P0 + (_P1 - _P0) * realT;
-                Vector3 Q1 = _P1 + (_P2 - _P1) * realT;
-                Vector3 Breal = Q0 + (Q1 - Q0) * realT;
-                // перемещение и разворот
-                transform.position = Breal;
-                CorrectDirection(Q1test);
-                _p0q0 += _Vz * Time.fixedDeltaTime / correction;
+                //print("ROTATION _Vz = " + _Vz);
+                if (_Vz > 0.01f)
+                {
+                    // первая итерация, предварительная
+                    float testT = newL / _p0p1;
+                    Vector3 Q0test = _P0 + (_P1 - _P0) * testT;
+                    Vector3 Q1test = _P1 + (_P2 - _P1) * testT;
+                    Vector3 Btest = Q0test + (Q1test - Q0test) * testT;
+                    // полученное расстояние отличается от того, которое лодка проходит, вычисляем на сколько надо скорректировать
+                    float correction = (Btest - transform.position).magnitude / dVz;
+                    //print("correction = " + correction);
+                    // вторая итерация, находим точку с учетом коррекции
+                    float realL = _p0q0 + dVz / correction;
+                    float realT = realL / _p0p1;
+                    Vector3 Q0 = _P0 + (_P1 - _P0) * realT;
+                    Vector3 Q1 = _P1 + (_P2 - _P1) * realT;
+                    Vector3 Breal = Q0 + (Q1 - Q0) * realT;
+                    // перемещение и разворот
+                    transform.position = Breal;
+                    CorrectDirection(Q1test);
+                    _p0q0 += _Vz * Time.fixedDeltaTime / correction;
+                }
             }
         }
+
+        if (_stateV == "RACING")
+        {
+            if (_Vz < _newVz)
+            {
+                _Vz += Az * Time.fixedDeltaTime;
+            }
+            if (_Vz > _newVz)
+            {
+                _Vz = _newVz;
+                _stateV = "CONST";
+                //print(gameObject.name + "  Заканчиваем ускорение");
+            }
+        }
+        if (_stateV == "BRAKING")
+        {
+            //CorrectDirection();
+            _Vz -= Aslow * Time.fixedDeltaTime;
+            if (_Vz <= 0)
+            {
+                _Vz = 0;
+                _state = "IDLE";
+                _stateV = "CONST";
+                //print(gameObject.name + " Остановились");
+                // установить новую текущую точку
+                startPoint = _points.transform.Find(path[path.Count - 1]).gameObject;
+            }
+        }
+        if (_stateV == "CONST")
+        {
+            if (_Vz < _newVz)
+            {
+                _Vz += Az * Time.fixedDeltaTime;
+                if (_Vz > _newVz)
+                {
+                    _Vz = _newVz;
+                }
+            }
+            else if(_Vz < _newVz)
+            {
+                _Vz -= Az * Time.fixedDeltaTime;
+                if (_Vz < _newVz)
+                {
+                    _Vz = _newVz;
+                }
+            }
+
+        }
+
+
     }
 
     // смещение на каждом шаге
@@ -313,18 +346,78 @@ public class BoatMoving : MonoBehaviour
 
     // определение угрозы столкновения
     private IEnumerator DetectDanger()
-    {
+    { 
         do
         {
             yield return new WaitForSeconds(2);
+
+            List<BoatMoving> dangerBoats = new List<BoatMoving>();
             for (int i = _myBoatidx+1; i < _boats.Length; i++)
             {
-                float dist = (transform.position - _boats[i].transform.position).magnitude;
+                BoatMoving boat = _boats[i];
+                float dist = (transform.position - boat.transform.position).magnitude;
                 if ( dist < _dangerDist)
                 {
-                    print("Опасное сближение лодок " + _myBoatidx + " и " + i);
+                    //print("Опасное сближение лодок " + _myBoatidx + " и " + i);
+                    // проверим, что эта яхта идет впереди по тому же маршруту
+                    if ( boat.path[boat.curIdx] == path[curIdx] )
+                    {
+                        if (curIdx < path.Count - 1 && boat.curIdx < boat.path.Count - 1)
+                        {
+                            if (boat.path[boat.curIdx + 1] == path[curIdx + 1])
+                            {
+                                print("СБЛИЖЕНИЕ! " + boat.name + " идет впереди по тому же маршруту");
+                                dangerBoats.Add(boat);
+                            }
+                        }
+                    }
+                    else if(curIdx < path.Count - 1 && boat.path[boat.curIdx] == path[curIdx+1])
+                    {
+                        if( boat.state == "BEGIN" || 
+                            boat.state == "START" || 
+                            boat.state == "ROTATION" || 
+                            boat.state == "IDLE" ||
+                            boat.stateV == "SLOW" )
+                        {
+                            print("СБЛИЖЕНИЕ! " + boat.name + " вращается или стоит или тормозит");
+                            dangerBoats.Add(boat);
+                        }
+                        else
+                        {
+                            if(boat.curIdx < boat.path.Count-1 && curIdx < path.Count-2)
+                            {
+                                if(boat.path[boat.curIdx+1] == path[curIdx + 2])
+                                {
+                                    print("СБЛИЖЕНИЕ! " + boat.name + " идет впереди по следующему отрезку");
+                                    dangerBoats.Add(boat);
+                                }
+                            }
+                        }
+                    }
                 }
             }
+            // проверим, надо ли замедляться или ускоряться
+            if(dangerBoats.Count > 0)
+            {
+                float minVz = maxVz;
+                for(int i=0; i< dangerBoats.Count; i++)
+                {
+                    if(minVz > dangerBoats[i].Vz)
+                    {
+                        minVz = dangerBoats[i].Vz;
+                    }
+                }
+                if(minVz < _Vz)
+                {
+                    _newVz = minVz;
+                    print( gameObject.name + "  _newVz = " + _newVz);
+                }
+            }
+            else
+            {
+                _newVz = maxVz;
+            }
+
         } while (true);
        
     }
@@ -352,7 +445,7 @@ public class BoatMoving : MonoBehaviour
             Vector3 direct2 = (p1 - p0).normalized;
             Vector3 ort2 = new Vector3(direct2.z, direct2.y, -direct2.x);
 
-            print("ort1 = " + ort1 + "  ort2 = " + ort2);
+            //print("ort1 = " + ort1 + "  ort2 = " + ort2);
             Vector3 realOrt = ((ort1 + ort2) / 2).normalized;
 
             float angel = Vector3.SignedAngle(direct1, direct2, Vector3.up)/2.0f;
@@ -403,6 +496,8 @@ public class BoatMoving : MonoBehaviour
 
         
     }
+
+
 
 }
 
