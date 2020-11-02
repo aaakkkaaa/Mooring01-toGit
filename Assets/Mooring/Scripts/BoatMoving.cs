@@ -105,7 +105,7 @@ public class BoatMoving : MonoBehaviour
 
         // запуск процесса определения опасного сближения
         _detectDanger = DetectDanger();
-        StartCoroutine(_detectDanger);
+        //StartCoroutine(_detectDanger);
     }
 
     private void FixedUpdate()

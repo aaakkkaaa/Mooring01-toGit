@@ -7,8 +7,9 @@ public class CommandManager : MonoBehaviour
     public string[] Commands = { "ПОДАТЬ ШВАРТОВЫ", "ВЫВЕСИТЬ КРАНЦЫ", "НА НОС" };
     public string CurCommand;
 
-    public GameObject Sailor1;
-    public GameObject Sailor2;
+    public Sailor Sailor1;
+    public Sailor Sailor2;
+    public Marinero Marinero;
 
     public RopeController LeftAft;
     public RopeController RightAft;
@@ -21,10 +22,9 @@ public class CommandManager : MonoBehaviour
             {
                 if (Sailor1 != null)
                 {
-                    Sailor s1 = Sailor1.GetComponent<Sailor>();
-                    if (s1.CurCommand == "")
+                    if (Sailor1.CurCommand == "")
                     {
-                        s1.CurCommand = "ПОДАТЬ ШВАРТОВЫ";
+                        Sailor1.CurCommand = "ПОДАТЬ ШВАРТОВЫ";
                     }
                 }
             }
@@ -33,10 +33,9 @@ public class CommandManager : MonoBehaviour
             {
                 if (Sailor1 != null)
                 {
-                    Sailor s1 = Sailor1.GetComponent<Sailor>();
-                    if (s1.CurCommand == "")
+                    if (Sailor1.CurCommand == "")
                     {
-                        s1.CurCommand = "НА НОС";
+                        Sailor1.CurCommand = "НА НОС";
                     }
                 }
             }

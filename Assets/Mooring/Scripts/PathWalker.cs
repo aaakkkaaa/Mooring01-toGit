@@ -20,7 +20,6 @@ public class PathWalker : MonoBehaviour
     private List<Transform> _path;
 
     private Animator _animator;
-    public AnimatorController AnimWalk;
 
     private string _state = "";
 
@@ -293,7 +292,7 @@ public class PathWalker : MonoBehaviour
 
         while ( Mathf.Abs(transform.localEulerAngles.y - corrAngle.y) > _dAngleY)
         {
-            print("transform.localEulerAngles.y = " + transform.localEulerAngles.y + "    angle.y = " + corrAngle.y);
+            //print("transform.localEulerAngles.y = " + transform.localEulerAngles.y + "    angle.y = " + corrAngle.y);
 
             if (Misc.NormalizeAngle(transform.localEulerAngles.y - corrAngle.y) > 0)
             {
@@ -308,7 +307,7 @@ public class PathWalker : MonoBehaviour
             curLocAngle.x = 0;
             curLocAngle.z = 0;
             transform.localEulerAngles = curLocAngle;
-            print("transform.localEulerAngles = " + transform.localEulerAngles);
+            //print("transform.localEulerAngles = " + transform.localEulerAngles);
             yield return new WaitForFixedUpdate(); ;
             correctRot = Quaternion.LookRotation(_target.localPosition - transform.localPosition);
             corrAngle = correctRot.eulerAngles;

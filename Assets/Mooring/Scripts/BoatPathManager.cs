@@ -21,7 +21,7 @@ public class BoatPathManager : MonoBehaviour
 
     void Start()
     {
-        /*
+        
         _branches = new string[16][];
         _branches[0] = new string[] { "P+2+3", "P+1+3", "P-1+4", "P-0.5-1" };
         _branches[1] = new string[] { "P-0.5-1", "P-1-2.4" };
@@ -41,12 +41,13 @@ public class BoatPathManager : MonoBehaviour
         _branches[14] = new string[] { "P+0-4", "P-2-4", "P-2+0", "P-1.5+0.5", "P-1-1", "P-0.5-1" };
         _branches[15] = new string[] { "P+2+3.7", "P+1+4", "P+0+4", "P-1+4" };
         //CreatePath("P10");
-        */
+        
 
+        /*
         _branches = new string[2][];
         _branches[0] = new string[] { "P+2+3.7", "P+1+4", "P+0+4", "P+0+3" };
         _branches[1] = new string[] { "P+2+3", "P+1+3", "P+1+4" };
-
+        */
     }
 
     public List<string> CreatePath(string cur)

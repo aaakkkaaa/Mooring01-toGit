@@ -11,6 +11,16 @@ public class Sailor : MonoBehaviour
     private Animator _animator;
     private RopeController rContr;
 
+    // Для ходьбы
+    [SerializeField]
+    RuntimeAnimatorController _AnimatorWalker;
+    // Для подачи швартовых
+    [SerializeField]
+    RuntimeAnimatorController _AnimatorThrowRope;
+    // Для обратной кинематики на носу
+    [SerializeField]
+    RuntimeAnimatorController _AnimatorStayOnForeLeft;
+
     [NonSerialized]
     public string[] States = {
                                "IDLE",
@@ -31,6 +41,8 @@ public class Sailor : MonoBehaviour
     private string _curCommand = "";
     public string CurCommand { get {return _curCommand;} set { StartNewCommand(value); } }
     private PathWalker _walker;
+
+    private sSailorM_IK _sailorIK;
 
     // канат с которым взаимодействует перс
     public ObiRope WorkRope;
@@ -66,6 +78,7 @@ public class Sailor : MonoBehaviour
         _animator = gameObject.GetComponent<Animator>();
         _coll = gameObject.GetComponent<Collider>();
         _walker = gameObject.GetComponent<PathWalker>();
+        _sailorIK = GetComponent<sSailorM_IK>();
     }
 
     private void Start()
@@ -550,7 +563,11 @@ public class Sailor : MonoBehaviour
             }
             else
             {
+                // подключим аниматор ходьбы
+                SetAnimatorController(_AnimatorWalker);
+                // подключим колбэк
                 _walker.OnEndWalk += OnStayOnFore;
+                // начали движение к точке
                 _walker.WalkTo("P_06");
             }
         }
@@ -561,11 +578,14 @@ public class Sailor : MonoBehaviour
             if (_walker.CurPos == "P_01")
             {
                 // уже стоим где надо, будем кидать канат
+                SetAnimatorController(_AnimatorThrowRope);
                 OnReadyThrowRope();
             }
             else
             {
                 // сначала надо перейти в рабочую точку
+                _sailorIK.ikActive = false;
+                SetAnimatorController(_AnimatorWalker);
                 _walker.OnEndWalk += OnReadyThrowRope;
                 _walker.WalkTo("P_01");
             }
@@ -576,7 +596,8 @@ public class Sailor : MonoBehaviour
     // колбэк после достижения рабочей позиции для броска каната
     private void OnReadyThrowRope()
     {
-        _walker.OnEndWalk -= OnReadyThrowRope;
+        _walker.OnEndWalk -= OnReadyThrowRope;                  // удалили колбэк
+        SetAnimatorController(_AnimatorThrowRope);              // подключили правильный контроллер анимации
         if (CurState == "IDLE")
         {
             // воспроизведение анимации
@@ -591,7 +612,17 @@ public class Sailor : MonoBehaviour
     private void OnStayOnFore()
     {
         _walker.OnEndWalk -= OnStayOnFore;
+        SetAnimatorController(_AnimatorStayOnForeLeft);              // подключили правильный контроллер анимации
+        _sailorIK.ikActive = true;
         _curCommand = "";
+    }
+
+    private void SetAnimatorController(RuntimeAnimatorController animCtrl )
+    {
+        if (_animator.runtimeAnimatorController != animCtrl)
+        {
+            _animator.runtimeAnimatorController = animCtrl;
+        }
     }
 
 
