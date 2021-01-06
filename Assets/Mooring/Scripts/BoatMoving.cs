@@ -11,7 +11,7 @@ public class BoatMoving : MonoBehaviour
     public float rotV = 15.0f;
     // максимальная линейная скорость
     public float maxVz = 3.0f;
-    // скорость к которой надо стремиться, если впереди ползет кто-то
+    // скорость к которой надо стремиться (если впереди ползет кто-то она меньше maxVz)
     private float _newVz;
     // Ускорение 
     public float Az = 1.5f;
@@ -71,9 +71,6 @@ public class BoatMoving : MonoBehaviour
     // класс со служебными функциями
     private sAssist _assist;
 
-    // для контроля за параметрами и демпфирования
-    private Rigidbody _rBody;
-
     // все самодвижущиеся лодки
     private BoatMoving[] _boats;
     // индекс данной лодки
@@ -96,8 +93,6 @@ public class BoatMoving : MonoBehaviour
 
         _assist = FindObjectsOfType<sAssist>()[0];
 
-        _rBody = GetComponent<Rigidbody>();
-
         // для определения опасного сближения подготовка данных
         _boats = FindObjectsOfType<BoatMoving>();
         _myBoatidx = Array.IndexOf(_boats, this);
@@ -105,7 +100,7 @@ public class BoatMoving : MonoBehaviour
 
         // запуск процесса определения опасного сближения
         _detectDanger = DetectDanger();
-        //StartCoroutine(_detectDanger);
+        StartCoroutine(_detectDanger);
     }
 
     private void FixedUpdate()
@@ -352,13 +347,14 @@ public class BoatMoving : MonoBehaviour
             yield return new WaitForSeconds(2);
 
             List<BoatMoving> dangerBoats = new List<BoatMoving>();
-            for (int i = _myBoatidx+1; i < _boats.Length; i++)
+            for (int i = 0; i < _boats.Length; i++)
             {
+                if (i == _myBoatidx) break;
+
                 BoatMoving boat = _boats[i];
                 float dist = (transform.position - boat.transform.position).magnitude;
                 if ( dist < _dangerDist)
                 {
-                    //print("Опасное сближение лодок " + _myBoatidx + " и " + i);
                     // проверим, что эта яхта идет впереди по тому же маршруту
                     if ( boat.path[boat.curIdx] == path[curIdx] )
                     {
