@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.IO;
-using UnityEditor.Animations;
+//using UnityEditor.Animations;
 //using UnityEditorInternal;
 
 public class PathWalker : MonoBehaviour

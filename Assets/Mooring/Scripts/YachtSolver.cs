@@ -185,8 +185,8 @@ public class YachtSolver : MonoBehaviour
             "\t_Mzz:\t" + _Mzz + "\t_Mxx:\t" + _Mxx + "\t_Jyy:\t" + _Jyy);
         _Record.MyLog("\t_Kprop1:\t" + _Kprop1 + "\t_Kprop2:\t" + _Kprop2 + "\t_Kprop3:\t" + _Kprop3 + "\t_Kprop4:\t" + _Kprop4 + "\n");
 
-        _Record.MyLog("EngineV:\tKprop4:\tFeng\tRuderValue\tFresZ\tFresX\tFrudVzZ\tFrudVzX\tMrudVzX\tFrudEnZ\tFrudEnX\tMrudEnX\tMrudResZ\tMresBody\tFengX\tMengX\tFwindZ\tFwindX\tMwind\tdVz\tVz\tdVx\tVx\tdOmegaY\tOmegaY\tBeta\tdt\tKresOmega2");
-        
+        _Record.MyLog("EngineV:\tKprop4:\tFeng\tRuderValue\tFresZ\tFresX\tFrudVzZ\tFrudVzX\tMrudVzX\tFrudEnZ\tFrudEnX\tMrudEnX\tMrudResZ\tMresBody\tFengX\tMengX\tFwindZ\tFwindX\tMwind\tvToRot\tdVz\tVz\tdVx\tVx\tdOmegaY\tOmegaY\tBeta\tdt\tKresOmega2");
+
     }
 
     //Вывод для контроля частоты кадров
@@ -341,11 +341,12 @@ public class YachtSolver : MonoBehaviour
 
     void FixedUpdate()
     {
+
         float dt = Time.fixedDeltaTime;
         Solve(dt);
     }
 
-    public void Solve( float dt )
+    public void Solve(float dt)
     {
         // поворот пера руля
         RuderValue = -steeringWheel * 35 / 540;
@@ -370,7 +371,7 @@ public class YachtSolver : MonoBehaviour
 
 
         // Сила тяги винта
-        Feng = engineValue * K_EnvalToFeng * (1 + _Kprop1 * Mathf.Abs(Vz) + _Kprop2 * Vz * Vz + _Kprop3 * Vz * Vz * Mathf.Abs(Vz) + _Kprop4 * Vz * Vz * Vz * Vz);
+        Feng = engineValue * K_EnvalToFeng * (1 + _Kprop1*Mathf.Abs(Vz) + _Kprop2 * Vz * Vz + _Kprop3 * Vz * Vz * Mathf.Abs(Vz) + _Kprop4 * Vz * Vz * Vz * Vz);
         if (Feng < 0)
         {
             _KOmegaFeng = 78.879f * engineValue * engineValue + 141.7f * engineValue + 82.266f;
@@ -386,7 +387,7 @@ public class YachtSolver : MonoBehaviour
         //_Record.MyLog(_Time.CurrentTimeSec() + "\t" + engineValue + "\t" + Vz + "\t" + Feng + "\t" + FresZ, false);
 
         // Подгонка, для реализма эффективности руля
-        if (Vz >= 0.0f)
+        if(Vz >= 0.0f)
         {
             KFrudX = 0.6f;
         }
@@ -394,11 +395,11 @@ public class YachtSolver : MonoBehaviour
         {
             KFrudX = 1.5f;
         }
-
+        
         // силы и момент на руле от движения яхты
         FrudVzZ = -Mathf.Sign(Vz) * FruderZ(RuderValue - Beta, Vz);
         FrudVzX = Mathf.Sign(RuderValue - Beta) * Mathf.Sign(Vz) * FruderX(RuderValue - Beta, Vz);
-        if (Feng > 0)
+        if(Feng >0)
         {
             FrudVzX *= KrudVzxContraEnx;    // доля влияния руля в потоке воды
         }
@@ -406,7 +407,7 @@ public class YachtSolver : MonoBehaviour
         // print("RuderValue = " + RuderValue + "   Beta = " + Beta + "   Итого = " + (RuderValue - Beta));
 
         // силы и момент на руле от работы винта - возникают НЕ только при кручении винта вперед
-
+        
         if (Feng > 0)
         {
             float VeffRud = Mathf.Sqrt(Feng / 440);
@@ -439,20 +440,22 @@ public class YachtSolver : MonoBehaviour
         else
         {
             MrudResZ = 0;
+            //MrudResZ = -(FrudVzZ + FrudEnZ) * Mathf.Sin(Beta * Mathf.PI / 180) * Lbody / 2;
         }
 
         // Момент - сопротивление вращательному движению. Не по (1), а из физических соображений
 
-        if (engineValue >= 0)
+        float VzNorm = Vz / 4f; // Нормированная скорость (деленная на эмпирический коэф.)
+        if (Vz >= 0)
         {
-            _KresOmega2 = (29.04f * engineValue * engineValue + 6.6f * engineValue) * _KresOmega1;
+            _KresOmega2 = (29.04f * VzNorm * VzNorm + 6.6f * VzNorm) * _KresOmega1;
         }
         else
         {
-            _KresOmega2 = 96.8f * engineValue * engineValue * _KresOmega1;
+            _KresOmega2 = 96.8f * VzNorm * VzNorm * _KresOmega1 * 3.0f;
         }
-
         MresBody = -Mathf.Sign(OmegaY) * _KresOmega2 * (OmegaY * Lbody) * (OmegaY * Lbody) / 8 - _KresOmega1 * (OmegaY * Lbody) / 2;
+
         // сила и момент от увеличения мощности двигателя
         float impactX = detectEngineImpact(FengOld, Feng);
         float dFengX = dt * (Kzanos * impactX - Tzanos * FengX);    // спадающая экспонента
@@ -512,7 +515,7 @@ public class YachtSolver : MonoBehaviour
             _Jyy = (1 + K66) * Jy; // момент инерции с учетом присоединенных масс
         }
         else
-        // Задний ход: при engineValue=-0,454545455 (-1000 /2200) K66=1.4; при engineValue=-0,159090909 (-350 /2200) K66=2
+            // Задний ход: при engineValue=-0,454545455 (-1000 /2200) K66=1.4; при engineValue=-0,159090909 (-350 /2200) K66=2
         {
             //K66 = 2.030769231f * engineValue + 2.323076923f;
             _Jyy = Jy; // момент инерции с учетом присоединенных масс
@@ -524,13 +527,13 @@ public class YachtSolver : MonoBehaviour
         float rotToVz = _Mxx * OmegaY * Vx * Krotvz;
         float dVz = dt * (Feng + FresZ + FrudVzZ + FrudEnZ + FwindZ + FropeZ + rotToVz) / _Mzz;
         //_Record.MyLog("\t_Mxx\t" + _Mxx + "\tOmegaY\t" + OmegaY + "\tVx\t" + Vx + "\trotToVz\t" + rotToVz + "\tFeng\t" + Feng + "\tFresZ\t" + FresZ + "\tFrudVzZ\t" + FrudVzZ + "\tFrudEnZ\t" + FrudEnZ + "\trotToVz\t" + rotToVz);
-        /*
-                if (_Time.CurrentTimeMilliSec() > _nextLogTime - 20)
-                {
-                    _Record.MyLog(_Time.CurrentTimeSec() + "\t" + Vz + "\t" + Feng + "\t" + FresZ + "\t" + FrudVzZ + "\t" + FrudEnZ + "\t" + FwindZ + "\t" + FropeZ + "\t" + rotToVz + "\t" + _Mzz + "\t" + dt + "\t" + dVz, false);
-                    _nextLogTime += 1000;
-                }
-        */
+/*
+        if (_Time.CurrentTimeMilliSec() > _nextLogTime - 20)
+        {
+            _Record.MyLog(_Time.CurrentTimeSec() + "\t" + Vz + "\t" + Feng + "\t" + FresZ + "\t" + FrudVzZ + "\t" + FrudEnZ + "\t" + FwindZ + "\t" + FropeZ + "\t" + rotToVz + "\t" + _Mzz + "\t" + dt + "\t" + dVz, false);
+            _nextLogTime += 1000;
+        }
+*/
         // Интегрируем dVx/dt - боковая скорость по X
         //        float rotToVx = -_Mzz * OmegaY * Vz;
         float rotToVx = -_Mzz * OmegaY * Vz * 0.2f;
@@ -542,17 +545,17 @@ public class YachtSolver : MonoBehaviour
 
         // Интегрируем dOmegaY/dt - момент вокруг вертикальной оси Y
         float vToRot = (_Mzz - _Mxx) * Vx * Vz * KruderMom;
-
+        
         float dOmegaY = dt * (MrudVzX + MrudEnX + MresBody + MengX + MrudResZ + Mwind + Mrope + vToRot) / _Jyy;
-        /*
-                if (_Time.CurrentTimeMilliSec() > _nextLogTime - 20)
-                {
-        //            _Record.MyLog(_Time.CurrentTimeSec() + "\t" + RuderValue + "\t" + Beta + "\t" + MrudVzX + "\t" + MrudEnX + "\t" + MresBody + "\t" + MengX + "\t" + MrudResZ + "\t" + vToRot + "\t" + dOmegaY + "\t" + OmegaY, false);
-                    _Record.MyLog(_Kprop4 + "\t" + Feng + "\t" + RuderValue + "\t" + FresZ + "\t" + FresX + "\t" + FrudVzZ + "\t" + FrudVzX + "\t" + MrudVzX + "\t" + FrudEnZ + "\t" + FrudEnX + "\t" + MrudEnX + "\t" + MrudResZ + "\t" + MresBody + "\t" + FengX + "\t" + MengX + "\t" + Vz + "\t" + Vx + "\t" + OmegaY + "\t" + Beta + "\t" + dt);
-                    _nextLogTime += 1000;
-                 }
-        */
-        _Record.MyLog(engineValue + "\t" + _Kprop4 + "\t" + Feng + "\t" + RuderValue + "\t" + FresZ + "\t" + FresX + "\t" + FrudVzZ + "\t" + FrudVzX + "\t" + MrudVzX + "\t" + FrudEnZ + "\t" + FrudEnX + "\t" + MrudEnX + "\t" + MrudResZ + "\t" + MresBody + "\t" + FengX + "\t" + MengX + "\t" + FwindZ + "\t" + FwindX + "\t" + Mwind + "\t" + dVz + "\t" + Vz + "\t" + dVx + "\t" + Vx + "\t" + dOmegaY + "\t" + OmegaY + "\t" + Beta + "\t" + dt + "\t" + _KresOmega2);
+/*
+        if (_Time.CurrentTimeMilliSec() > _nextLogTime - 20)
+        {
+//            _Record.MyLog(_Time.CurrentTimeSec() + "\t" + RuderValue + "\t" + Beta + "\t" + MrudVzX + "\t" + MrudEnX + "\t" + MresBody + "\t" + MengX + "\t" + MrudResZ + "\t" + vToRot + "\t" + dOmegaY + "\t" + OmegaY, false);
+            _Record.MyLog(_Kprop4 + "\t" + Feng + "\t" + RuderValue + "\t" + FresZ + "\t" + FresX + "\t" + FrudVzZ + "\t" + FrudVzX + "\t" + MrudVzX + "\t" + FrudEnZ + "\t" + FrudEnX + "\t" + MrudEnX + "\t" + MrudResZ + "\t" + MresBody + "\t" + FengX + "\t" + MengX + "\t" + Vz + "\t" + Vx + "\t" + OmegaY + "\t" + Beta + "\t" + dt);
+            _nextLogTime += 1000;
+         }
+*/
+        _Record.MyLog(engineValue + "\t" + _Kprop4 + "\t" + Feng + "\t" + RuderValue + "\t" + FresZ + "\t" + FresX + "\t" + FrudVzZ + "\t" + FrudVzX + "\t" + MrudVzX + "\t" + FrudEnZ + "\t" + FrudEnX + "\t" + MrudEnX + "\t" + MrudResZ + "\t" + MresBody + "\t" + FengX + "\t" + MengX + "\t" + FwindZ + "\t" + FwindX + "\t" + Mwind + "\t" + vToRot + "\t" + dVz + "\t" + Vz + "\t" + dVx + "\t" + Vx + "\t" + dOmegaY + "\t" + OmegaY + "\t" + Beta + "\t" + dt + "\t" + _KresOmega2);
 
         // Новые скорости
         Vz += dVz;
@@ -595,7 +598,6 @@ public class YachtSolver : MonoBehaviour
         {
             Beta *= KBetaBack;
         }
-
     }
 
     // сила сопротивления руля по оси Z

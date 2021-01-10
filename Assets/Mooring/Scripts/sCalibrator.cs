@@ -27,6 +27,10 @@ public class sCalibrator : MonoBehaviour
     [SerializeField]
     float _ModelEyesHeight = 1.686f;
 
+    // Начальный масштаб модели
+    [SerializeField]
+    float _ModelIniScale = 0.95f;
+
     // Время удержания рук выше головы для срабатывания команды на калибровку
     [SerializeField]
     float _WaitTime = 3;
@@ -93,7 +97,7 @@ public class sCalibrator : MonoBehaviour
         // Получить доступ к классу VRIK
         _VRIK = GetComponent<VRIK>();
 
-        // Дочерний объект камеры - таргета головы модели курсанта
+        // Дочерний объект камеры - таргет головы модели курсанта
         for (int i = 0; i < _Camera.childCount; i++)
         {
             Transform objTr = _Camera.GetChild(i);
@@ -103,6 +107,10 @@ public class sCalibrator : MonoBehaviour
                 break;
             }
         }
+
+        // Начальный масштаб модели курсанта
+        transform.localScale = Vector3.one * _ModelIniScale;
+
 
         // Начальные значения параметров калибровки рук
         _CadetHeadTargetPos0 = _VRIK.solver.spine.headTarget.localPosition;
@@ -153,7 +161,7 @@ public class sCalibrator : MonoBehaviour
         _CalibrationMode = true;
 
         // Восстановить масштаб модели курсанта
-        transform.localScale = Vector3.one;
+        transform.localScale = Vector3.one * _ModelIniScale;
         // Восстановить начальные значения параметров калибровки головы и рук
         _VRIK.solver.spine.headTarget.localPosition = _CadetHeadTargetPos0;
         _VRIK.solver.leftArm.target.localPosition = _LeftArmTargetPos0;
@@ -170,7 +178,7 @@ public class sCalibrator : MonoBehaviour
         _PatternModel.localPosition = transform.localPosition;
         _PatternModel.localRotation = transform.localRotation;
         _PatternModel.localScale = transform.localScale;
-        // Спрятать все лишнее (часы, браслет, тело)
+        // Спрятать все лишнее (часы, браслет, тело), оставить только перчатки
         //_PatternModel.Find("m019_hipoly_no-opacity").gameObject.SetActive(false);
         _PatternModel.Find("Wristwatch.006").gameObject.SetActive(false);
         _PatternModel.Find("Bip01/Bip01 Pelvis/Bip01 Spine/Bip01 Spine1/Bip01 Spine2/Bip01 Neck/Bip01 L Clavicle/Bip01 L UpperArm/Bip01 L Forearm/Wristwatch").gameObject.SetActive(false);
