@@ -30,17 +30,13 @@ public class GraphDraw : MonoBehaviour
 
     public void AddData( List<Vector2> gr, Color col )
     {
-        GraphData grData = new GraphData();
-        grData.color = col;
-        grData.points = gr;
-        Graphics.Add(grData);
-
-        print(gr.Count);
-
-        MinValue.x = MaxValue.x = gr[0].x;
-        MinValue.y = MaxValue.y = gr[0].y;
+        if(Graphics.Count == 0)
+        { 
+            MinValue.x = MaxValue.x = gr[0].x;
+            MinValue.y = MaxValue.y = gr[0].y;
+        }
         // для последующего рисования графиков определяем границы значений
-        for (int i=1; i<gr.Count; i++)
+        for (int i=0; i<gr.Count; i++)
         {
             if (gr[i].x < MinValue.x) MinValue.x = gr[i].x;
             if (gr[i].y < MinValue.y) MinValue.y = gr[i].y;
@@ -50,6 +46,11 @@ public class GraphDraw : MonoBehaviour
         }
         print("MinValue = " + MinValue);
         print("MaxValue = " + MaxValue);
+
+        GraphData grData = new GraphData();
+        grData.color = col;
+        grData.points = gr;
+        Graphics.Add(grData);
     }
 
     public void DrawAll()
@@ -74,7 +75,7 @@ public class GraphDraw : MonoBehaviour
 
     public void DrawGraphic(GraphData gd)
     {
-        print(gd.points.Count);
+        //print(gd.points.Count);
         for (int i = 1; i < gd.points.Count; i++)
         {
             DrawLine(gd.points[i - 1], gd.points[i], gd.color);

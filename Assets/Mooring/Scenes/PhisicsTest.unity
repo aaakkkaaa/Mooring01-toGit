@@ -660,7 +660,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _MainShip: {fileID: 1971845484}
   _AftGPS: {fileID: 1644779424}
-  _TaskFile: MAH00868
+  _NumFile: 00870-8
   _GraphXY: {fileID: 1003060717}
   _GraphVz: {fileID: 1420097506}
 --- !u!114 &1420874559

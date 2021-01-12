@@ -15,9 +15,9 @@ public class DynamicTest : MonoBehaviour
     [SerializeField]
     Transform _AftGPS;
 
-    // Файл для чтения задания
+    // Файл для чтения задания и чтения трека
     [SerializeField]
-    string _TaskFile = "MAH00869";
+    string _NumFile = "00869";
 
     // объект для рисования пути
     [SerializeField]
@@ -77,6 +77,10 @@ public class DynamicTest : MonoBehaviour
     //CommandPars[] _Command;
     List<CommandPars> _Command;
 
+    // Данные трекинга
+    List<Vector2> _treckPos;
+    List<Vector2> _treckV;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -92,8 +96,55 @@ public class DynamicTest : MonoBehaviour
         // Класс точного времени
         _Time = transform.GetComponent<sTime>();
 
+        // Проверим существование файла с треком и считаем его если он есть
+        string gpsFile = "GPS" + _NumFile + ".txt";
+        if (File.Exists(Path.Combine(_GlobalSettings.RecDir, gpsFile)))
+        {
+            string[] gpsData = File.ReadAllLines(Path.Combine(_GlobalSettings.RecDir, gpsFile));
+            // разбор и запись трека в списки _treckPos и _treckV
+            int gpsT;
+            int shiftT=0;
+            float gpsX, gpsY;
+            _treckPos = new List<Vector2>();
+            _treckV = new List<Vector2>();
+            for (int i = 1; i < gpsData.Length; i++)    // Первая строка - заголовки. Начинаем работать со 2-й
+            {
+                print("GPS: " + gpsData[i]);
+                string[] oneData = gpsData[i].Split('\t');
+                int.TryParse(oneData[0], out gpsT);
+                float.TryParse(oneData[1], out gpsX);
+                float.TryParse(oneData[2], out gpsY);
+                Vector2 xy = new Vector2(gpsX, gpsY);
+                _treckPos.Add(xy);
+                if(i==1)    // в первой строке начальное время, нужно будет его вычитать из всех времен
+                {
+                    shiftT = gpsT;
+                }
+                else
+                {
+                    // для всех точек кроме первой вычисляем скорость
+                    float curT = gpsT - shiftT;
+                    float dT;
+                    if ( i == 2 )
+                    {
+                        dT = curT;
+                    }
+                    else
+                    {
+                        dT = curT - _treckV[_treckV.Count-1].x;
+                    }
+                    float curV = (_treckPos[_treckPos.Count-1] - _treckPos[_treckPos.Count - 2]).magnitude / dT;
+                    Vector2 tv = new Vector2(curT, curV);
+                    _treckV.Add(tv);
+                }
+            }
+            _GraphXY.AddData(_treckPos, Color.blue);
+            _GraphVz.AddData(_treckV, Color.blue);
+        }
+
         // Открыть файл с заданием и считать все строки в массив
-        string[] TaskData = File.ReadAllLines(Path.Combine(_GlobalSettings.RecDir, _TaskFile + ".txt"));
+        string taskFile = "MAH" + _NumFile + ".txt";
+        string[] TaskData = File.ReadAllLines(Path.Combine(_GlobalSettings.RecDir, taskFile ));
 
         // Подготовить массив команд-структур
         //_Command = new CommandPars[TaskData.Length - 3];
@@ -103,7 +154,7 @@ public class DynamicTest : MonoBehaviour
         for (int i = 1; i < TaskData.Length; i++) // Первая строка - заголовки. Начинаем работать со 2-й
         {
             // Разберем строку на параметры
-            print(TaskData[i]);
+            //print(TaskData[i]);
             string[] CommandData = TaskData[i].Split('\t');
             if (i == 1) // Вторая строка - начальные параметры
             {
@@ -152,13 +203,6 @@ public class DynamicTest : MonoBehaviour
         // Отключим управление яхтой от штурвала и ручки газ-реверс (на случай, если включено)
         _YachtSolver.GameWheel = false;
 
-        /*
-        // Запускаем корутину выполнения команд
-        StartCoroutine(ExecuteTask());
-
-        // Запускаем корутину записи трека
-        StartCoroutine(RecordTrack());
-        */
 
         StartCoroutine(Modeling());
 
@@ -167,7 +211,7 @@ public class DynamicTest : MonoBehaviour
     // Корутина выполнения моделирования после задержки
     IEnumerator Modeling()
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.3f);
 
         _Record.MyLog("Track", "Время\tОбороты\tРуль\tСкорость\tКурс\tX\tY");
 
@@ -213,7 +257,7 @@ public class DynamicTest : MonoBehaviour
             {
                 _YachtSolver.engineValue = _Command[curCummand].EnVal;
                 _YachtSolver.steeringWheel = _Command[curCummand].StWh;
-                print("CurrentTime = " + curTime + " CommandTime = " + _Command[curCummand].time + ", " + _Command[curCummand].EnVal + ", " + _Command[curCummand].StWh);
+                //print("CurrentTime = " + curTime + " CommandTime = " + _Command[curCummand].time + ", " + _Command[curCummand].EnVal + ", " + _Command[curCummand].StWh);
                 curCummand++;
             }
 
@@ -237,82 +281,10 @@ public class DynamicTest : MonoBehaviour
         _GraphXY.AddData(positions, Color.red);
         _GraphVz.AddData(velocity, Color.red);
 
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.1f);
         _GraphXY.DrawAll();
         _GraphVz.DrawAll();
     }
 
-
-
-    // Корутина выполнения команд
-    IEnumerator ExecuteTask()
-    {
-        for (int i = 0; i < _Command.Count; i++)
-        {
-            // Номер текущей команды
-            _TaskCounter = i - 1;
-
-            // Ждем до начала выполнения команды (+/- 0.05 сек)
-            //print("_Time.CurrentTimeSec() = " + _Time.CurrentTimeSec() + " _Command[i].time = " + _Command[i].time);
-            while (_Time.CurrentTimeSec() < _Command[i].time - 0.05f)
-            {
-                yield return new WaitForSeconds(0.1f);
-            }
-            // Дождались. Выполняем команду.
-            if (i == 0) // Первая команда - устанавливаем начальные положение и скорость
-            {
-                // Поменяем иерархию
-                _AftGPS.parent = null;
-                _MainShip.parent = _AftGPS;
-                // Поставим яхту в начальное положение
-                Vector3 v3 = _AftGPS.position;
-                v3.x = _IniPars.x;
-                v3.z = _IniPars.z;
-                _AftGPS.position = v3;
-                // Угол
-                v3 = _AftGPS.eulerAngles;
-                v3.y = _IniPars.a;
-                _AftGPS.eulerAngles = v3;
-                // Вернем иерархию обратно
-                _MainShip.parent = null;
-                _AftGPS.parent = _MainShip;
-                // Скорость
-                _YachtSolver.Vz = _IniPars.v;
-                _YachtSolver.Vx = _IniPars.vx;
-            }
-            _YachtSolver.engineValue = _Command[i].EnVal;
-            _YachtSolver.steeringWheel = _Command[i].StWh;
-            print("CurrentTime = " + _Time.CurrentTimeSec() + " CommandTime = " + _Command[i].time + ", " + _Command[i].EnVal + ", " + _Command[i].StWh);
-
-        }
-
-        // Все команды выполнены. Остановка
-        _YachtSolver.engineValue = 0;
-        _YachtSolver.steeringWheel = 0;
-        _RecordSw = false;
-    }
-
-    // Запись трека
-    IEnumerator RecordTrack()
-    {
-        _Record.MyLog("Track", "Время\tОбороты\tРуль\tСкорость\tКурс\tX\tY");
-        while (_RecordSw)
-        {
-            while (_Time.CurrentTimeSec() < _SecCounter - 0.01f)
-            {
-                yield return new WaitForEndOfFrame();
-                //yield return new WaitForSeconds(0.1f);
-            }
-            _SecCounter++;
-            if (_TaskCounter == -1)
-            {
-                _Record.MyLog("Track", "0\t0\t0\t" + _YachtSolver.Vz + "\t" + _AftGPS.eulerAngles.y + "\t" + _AftGPS.position.x + "\t" + _AftGPS.position.z);
-            }
-            else
-            {
-                _Record.MyLog("Track", (_SecCounter + _IniPars.t - 2) + "\t" + _Command[_TaskCounter].revs + "\t" + _Command[_TaskCounter].rudder + "\t" + _YachtSolver.Vz + "\t" + _AftGPS.eulerAngles.y + "\t" + _AftGPS.position.x + "\t" + _AftGPS.position.z);
-            }
-        }
-    }
 
 }
