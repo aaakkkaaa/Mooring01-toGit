@@ -15,6 +15,7 @@ public class GraphDraw : MonoBehaviour
     // размер текстуры
     public int TexWidth = 512;
     public int TexHeight = 512;
+    public int Border = 20;
 
     private Texture2D _tex;
     private Renderer _rend;
@@ -26,6 +27,14 @@ public class GraphDraw : MonoBehaviour
     private void Start()
     {
         Graphics = new List<GraphData>();
+
+        // подготовка текстуры к рисованию
+        _rend = GetComponent<Renderer>();
+        _tex = new Texture2D(TexWidth, TexHeight);
+        _rend.material.mainTexture = _tex;
+        // коррекция для учета отступа
+        TexWidth -= (Border+Border);
+        TexHeight -= (Border+Border);
     }
 
     public void AddData( List<Vector2> gr, Color col )
@@ -55,10 +64,6 @@ public class GraphDraw : MonoBehaviour
 
     public void DrawAll()
     {
-        _rend = GetComponent<Renderer>();
-        _tex = new Texture2D(TexWidth, TexHeight);
-        _rend.material.mainTexture = _tex;
-
         _xScale = (float)TexWidth / (MaxValue.x - MinValue.x);
         _yScale = (float)TexHeight / (MaxValue.y - MinValue.y);
 
@@ -150,7 +155,7 @@ public class GraphDraw : MonoBehaviour
     // Отображает точку, (x,y) - в координатах текстуры, но с нижнего левого угла
     private void setPoint(int x, int y, Color col)
     {
-        _tex.SetPixel(TexWidth - x, TexHeight - y, col);    // видимо, текстура отсчитывается от правого верхнего
+        _tex.SetPixel(TexWidth - x + Border, TexHeight - y + Border, col);    // видимо, текстура отсчитывается от правого верхнего
     }
 
 
