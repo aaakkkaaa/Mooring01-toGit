@@ -72,6 +72,7 @@
     <Compile Include="Assets\Mooring\Scripts\CommandManager.cs" />
     <Compile Include="Assets\Mooring\Scripts\DynamicTest.cs" />
     <Compile Include="Assets\Mooring\Scripts\GraphDraw.cs" />
+    <Compile Include="Assets\Mooring\Scripts\KeywordScript.cs" />
     <Compile Include="Assets\Mooring\Scripts\Kranec.cs" />
     <Compile Include="Assets\Mooring\Scripts\Marinero.cs" />
     <Compile Include="Assets\Mooring\Scripts\MenuController.cs" />
