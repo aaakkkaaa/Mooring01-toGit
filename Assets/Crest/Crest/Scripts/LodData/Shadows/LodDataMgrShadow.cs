@@ -3,6 +3,7 @@
 // Copyright 2020 Wave Harmonic Ltd
 
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.XR;
@@ -18,13 +19,12 @@ namespace Crest
     public class LodDataMgrShadow : LodDataMgr
     {
         public override string SimName { get { return "Shadow"; } }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RG16; } }
+        protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R8G8_UNorm;
         protected override bool NeedToReadWriteTextureData { get { return true; } }
 
         public static bool s_processData = true;
 
         Light _mainLight;
-        Camera _cameraMain;
 
         // URP version needs access to this externally, hence public get
         public CommandBuffer BufCopyShadowMap { get; private set; }
@@ -85,9 +85,6 @@ namespace Crest
                 Debug.LogError("To support shadowing, a Custom renderer must be configured on the pipeline asset, and this custom renderer data must have the Sample Shadows feature added.", GraphicsSettings.renderPipelineAsset);
             }
 
-            // Setup the camera.
-            UpdateCameraMain();
-
 #if UNITY_EDITOR
             if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_SHADOWS_ON"))
             {
@@ -109,7 +106,7 @@ namespace Crest
             base.InitData();
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
-            var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
+            var desc = new RenderTextureDescriptor(resolution, resolution, CompatibleTextureFormat, 0);
             _sources = CreateLodDataTextures(desc, SimName + "_1", NeedToReadWriteTextureData);
 
             TextureArrayHelpers.ClearToBlack(_sources);
@@ -197,12 +194,6 @@ namespace Crest
                 return;
             }
 
-            // Update the camera if it has changed.
-            if (_cameraMain.transform != OceanRenderer.Instance.Viewpoint)
-            {
-                UpdateCameraMain();
-            }
-
             Swap(ref _sources, ref _targets);
 
             BufCopyShadowMap.Clear();
@@ -217,6 +208,14 @@ namespace Crest
 #endif
             {
                 TextureArrayHelpers.ClearToBlack(_targets);
+            }
+
+            // Cache the camera for further down.
+            var camera = OceanRenderer.Instance.ViewCamera;
+            if (camera == null)
+            {
+                // We want to return early after clear.
+                return;
             }
 
             // TODO - this is in SRP, so i can't ifdef it? what is a good plan here - wait for it to be removed completely?
@@ -235,7 +234,7 @@ namespace Crest
                     var scale = OceanRenderer.Instance.CalcLodScale(lodIdx);
                     _renderMaterial[lodIdx].SetVector(sp_Scale, new Vector3(scale, 1f, scale));
                     _renderMaterial[lodIdx].SetVector(sp_JitterDiameters_CurrentFrameWeights, new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
-                    _renderMaterial[lodIdx].SetMatrix(sp_MainCameraProjectionMatrix, _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);
+                    _renderMaterial[lodIdx].SetMatrix(sp_MainCameraProjectionMatrix, GL.GetGPUProjectionMatrix(camera.projectionMatrix, renderIntoTexture: true) * camera.worldToCameraMatrix);
                     _renderMaterial[lodIdx].SetFloat(sp_SimDeltaTime, Time.deltaTime);
 
                     // compute which lod data we are sampling previous frame shadows from. if a scale change has happened this can be any lod up or down the chain.
@@ -252,7 +251,7 @@ namespace Crest
                 // Disable single pass double-wide stereo rendering for these commands since we are rendering to
                 // rendering texture. Otherwise, it will render double. Single pass instanced is broken here, but that
                 // appears to be a Unity bug only for the legacy VR system.
-                if (_cameraMain.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
+                if (camera.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
                 {
                     BufCopyShadowMap.SetSinglePassStereo(SinglePassStereoMode.None);
                     BufCopyShadowMap.DisableShaderKeyword("UNITY_SINGLE_PASS_STEREO");
@@ -266,7 +265,7 @@ namespace Crest
                 }
 
                 // Restore single pass double-wide as we cannot rely on remaining pipeline to do it for us.
-                if (_cameraMain.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
+                if (camera.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
                 {
                     BufCopyShadowMap.SetSinglePassStereo(SinglePassStereoMode.SideBySide);
                     BufCopyShadowMap.EnableShaderKeyword("UNITY_SINGLE_PASS_STEREO");
@@ -274,19 +273,6 @@ namespace Crest
 
                 // Set the target texture as to make sure we catch the 'pong' each frame
                 Shader.SetGlobalTexture(GetParamIdSampler(), _targets);
-            }
-        }
-
-        void UpdateCameraMain()
-        {
-            var viewpoint = OceanRenderer.Instance.Viewpoint;
-            _cameraMain = viewpoint != null ? viewpoint.GetComponent<Camera>() : null;
-
-            if (_cameraMain == null)
-            {
-                Debug.LogError("Could not find main camera, disabling shadow data", _ocean);
-                enabled = false;
-                return;
             }
         }
 

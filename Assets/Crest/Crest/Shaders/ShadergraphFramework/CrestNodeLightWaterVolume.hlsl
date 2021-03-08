@@ -2,6 +2,7 @@
 
 // Copyright 2020 Wave Harmonic Ltd
 
+#include "OceanGraphConstants.hlsl"
 #include "../OceanConstants.hlsl"
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"

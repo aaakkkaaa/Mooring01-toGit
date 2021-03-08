@@ -306,7 +306,7 @@ public class sDevices : MonoBehaviour
 
         // Штурвал
         myVect = _HelmWheel.localEulerAngles;
-        myVect.z = _YachtSolver.steeringWheel + 30;
+        myVect.z = _YachtSolver.steeringWheel;
         //myVect.z = - Mathf.Lerp(-540, 540, (steeringWheel + 35) / 70.0f);
         _HelmWheel.localEulerAngles = _HelmWheel2.localEulerAngles = myVect;
 

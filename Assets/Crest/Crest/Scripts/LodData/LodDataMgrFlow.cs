@@ -3,6 +3,7 @@
 // Copyright 2020 Wave Harmonic Ltd
 
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace Crest
@@ -15,7 +16,7 @@ namespace Crest
     public class LodDataMgrFlow : LodDataMgr
     {
         public override string SimName { get { return "Flow"; } }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
+        protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R16G16_SFloat;
         protected override bool NeedToReadWriteTextureData { get { return false; } }
 
         bool _targetsClear = false;

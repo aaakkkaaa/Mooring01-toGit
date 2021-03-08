@@ -2,14 +2,8 @@
 
 // Copyright 2020 Wave Harmonic Ltd
 
-// Three different versions of this:
-// - Built-in pipeline - PopulateCache() called from Start()
-// - URP/LWRP - RenderSingleCamera() API is used. Requires a RenderContext, so happens in BeginCameraRendering
-// - HDRP - No RenderSingleCamera API it seems, and I dont think calling PopulateCache() on Start() worked, so PopulateCache() called from Update()
-
 using System;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 #if UNITY_EDITOR
@@ -23,6 +17,7 @@ namespace Crest
     /// This should be used for static geometry, dynamic objects should be tagged with the Render Ocean Depth component.
     /// </summary>
     [ExecuteAlways]
+    [HelpURL("https://github.com/wave-harmonic/crest/blob/master/USERGUIDE.md#shorelines-and-shallow-water")]
     public partial class OceanDepthCache : MonoBehaviour
     {
         public enum OceanDepthCacheType
@@ -33,7 +28,7 @@ namespace Crest
 
         public enum OceanDepthCacheRefreshMode
         {
-            OnFirstRender,
+            OnStart,
             OnDemand,
         }
 
@@ -42,11 +37,8 @@ namespace Crest
         public OceanDepthCacheType Type => _type;
 
         [Tooltip("Ignored if baked. On Start = cache will populate in Start(), On Demand = call PopulateCache() manually via scripting."), SerializeField]
-        OceanDepthCacheRefreshMode _refreshMode = OceanDepthCacheRefreshMode.OnFirstRender;
+        OceanDepthCacheRefreshMode _refreshMode = OceanDepthCacheRefreshMode.OnStart;
         public OceanDepthCacheRefreshMode RefreshMode => _refreshMode;
-
-        [Tooltip("Hides the depth cache camera, for cleanliness. Disable to make it visible in the Hierarchy."), SerializeField]
-        bool _hideDepthCacheCam = true;
 
         [Tooltip("The layers to render into the depth cache.")]
         public string[] _layerNames = new string[0];
@@ -62,6 +54,9 @@ namespace Crest
 #pragma warning disable 414
         bool _forceAlwaysUpdateDebug = false;
 #pragma warning restore 414
+
+        [Tooltip("Hides the depth cache camera, for cleanliness. Disable to make it visible in the Hierarchy."), SerializeField]
+        bool _hideDepthCacheCam = true;
 
         [Tooltip("Baked depth cache. Baking button available in play mode."), SerializeField]
 #pragma warning disable 649
@@ -100,19 +95,21 @@ namespace Crest
             {
                 InitCacheQuad();
             }
-        }
-
-        private void OnEnable()
-        {
-            if (_type == OceanDepthCacheType.Realtime && _refreshMode == OceanDepthCacheRefreshMode.OnFirstRender)
+            else if (_type == OceanDepthCacheType.Realtime && _refreshMode == OceanDepthCacheRefreshMode.OnStart)
             {
-                RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
+                PopulateCache();
             }
         }
-        private void OnDisable()
+
+#if UNITY_EDITOR
+        void Update()
         {
-            RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
+            if (_forceAlwaysUpdateDebug)
+            {
+                PopulateCache();
+            }
         }
+#endif
 
         RenderTexture MakeRT(bool depthStencilTarget)
         {
@@ -202,6 +199,7 @@ namespace Crest
                 // Stops behaviour from changing in VR. I tried disabling XR before/after camera render but it makes the editor
                 // go bonkers with split windows.
                 _camDepthCache.cameraType = CameraType.Reflection;
+                // I'd prefer to destroy the camera object, but I found sometimes (on first start of editor) it will fail to render.
                 _camDepthCache.gameObject.SetActive(false);
 
                 var additionalCameraData = _camDepthCache.gameObject.AddComponent<UniversalAdditionalCameraData>();
@@ -258,39 +256,28 @@ namespace Crest
             qr.enabled = false;
         }
 
-        // We populate the cache here because we need a ScriptableRenderContext in order to populate the cache. Pain in the neck!
-        public void BeginCameraRendering(ScriptableRenderContext context, Camera camera)
+        public void PopulateCache()
         {
-            // BeginCameraRendering is called outside of this object's lifetime so we need to guard here.
-            if (this == null)
-            {
-                RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
-                return;
-            }
-
-            if (_type == OceanDepthCacheType.Baked)
-            {
-                RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
-                return;
-            }
-
             // Make sure we have required objects
             if (!InitObjects())
             {
-                enabled = false;
-                RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
                 return;
             }
 
-            // Render scene, saving depths in depth buffer
-            UnityEngine.Rendering.Universal.UniversalRenderPipeline.RenderSingleCamera(context, _camDepthCache);
+            // Render scene, saving depths in depth buffer.
+            _camDepthCache.Render();
 
             if (_copyDepthMaterial == null)
             {
                 _copyDepthMaterial = new Material(Shader.Find("Crest/Copy Depth Buffer Into Cache"));
             }
 
-            _copyDepthMaterial.SetVector("_OceanCenterPosWorld", OceanRenderer.Instance.Root.position);
+            // Shader needs sea level to determine water depth. Ocean instance might not be available in prefabs.
+            var centerPoint = Vector3.zero;
+            centerPoint.y = OceanRenderer.Instance != null
+                ? OceanRenderer.Instance.Root.position.y : transform.position.y;
+
+            _copyDepthMaterial.SetVector("_OceanCenterPosWorld", centerPoint);
 
             _copyDepthMaterial.SetTexture("_CamDepthBuffer", _camDepthCache.targetTexture);
 
@@ -312,7 +299,6 @@ namespace Crest
             if (!leaveEnabled)
             {
                 _camDepthCache.targetTexture = null;
-                RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
 
 #if UNITY_EDITOR
                 if (EditorApplication.isPlaying)
@@ -322,13 +308,6 @@ namespace Crest
                     enabled = false;
                 }
             }
-        }
-
-        public void PopulateCache()
-        {
-            // Register for render callback which will trigger population
-            RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
-            RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
         }
 
 #if UNITY_EDITOR

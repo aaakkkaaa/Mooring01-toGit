@@ -35,14 +35,14 @@ public class CameraDrone : MonoBehaviour
     float _HorSpeedDivider = 0.2f;
     float _HorSpeedParentDivider = 1.0f;
 
-    //[SerializeField]
-    //float _JoystickHorSpeed = 1f;
+    [SerializeField]
+    float _JoystickHorSpeed = 0.05f;
 
-    //[SerializeField]
-    //float _JoystickVertSpeed = 1f;
+    [SerializeField]
+    float _JoystickVertSpeed = 0.01f;
 
-    //[SerializeField]
-    //float _JoystickYawSpeed = 1f;
+    [SerializeField]
+    float _JoystickYawSpeed = 1f;
 
     [SerializeField]
     float _HMin = 0f;
@@ -188,16 +188,23 @@ public class CameraDrone : MonoBehaviour
 
                 // Сначала получим сигналы от джойстика
                 // Сигналы от осей джойстика
-                //x = Input.GetAxis("Horizontal");
-                //z = Input.GetAxis("Vertical");
-                //y = Input.GetAxis("Throttle");
-                //w = Input.GetAxis("Twist");
-                //float myCameraPitch = Input.GetAxis("Hat_Vert");
+                x = Input.GetAxis("HorizontalJoy") * transform.position.y * _JoystickHorSpeed;
+                z = Input.GetAxis("VerticalJoy") * transform.position.y * _JoystickHorSpeed;
+                y = - Input.GetAxis("Throttle") * transform.position.y * _JoystickVertSpeed;
+                w = Input.GetAxis("Twist") * _JoystickYawSpeed;
+                float myCameraPitch = Input.GetAxis("Hat_Vert");
+
+                /*
+                if(x!=0f || y!=0f || z!=0f || w!=0f || myCameraPitch != 0)
+                {
+                    print("x=" + x + " y=" + y + " z=" + z + " w=" + w + " myCameraPitch=" + myCameraPitch);
+                }
+                */
 
                 // Наклонить камеру по тангажу - отработаем сразу. Работает только если VR не активен (проект запущен без маски VR)
-                //Vector3 myCamEu = _referenceCamera.transform.localEulerAngles;
-                //myCamEu.x = myCamEu.x + myCameraPitch;
-                //_referenceCamera.transform.localEulerAngles = myCamEu;
+                Vector3 myCamEu = _referenceCamera.transform.localEulerAngles;
+                myCamEu.x = myCamEu.x + myCameraPitch;
+                _referenceCamera.transform.localEulerAngles = myCamEu;
 
                 // Клавиатура и мышь - сигналы суммируются (и с джойстиком). Исключение - нажатая левая кнопка мыши отрабатывается сразу, независимо от других сигналов (то есть, по сути, тоже суммируется)
 

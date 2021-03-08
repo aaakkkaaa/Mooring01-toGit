@@ -7,8 +7,6 @@
 // branch will arrive before then though.
 
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.XR;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -46,10 +44,13 @@ namespace Crest
         Renderer _rend;
 
         readonly int sp_HeightOffset = Shader.PropertyToID("_HeightOffset");
+        static readonly int sp_CameraForward = Shader.PropertyToID("_CameraForward");
 
         SampleHeightHelper _sampleWaterHeight = new SampleHeightHelper();
 
         bool isMeniscus;
+
+        Camera _camera;
 
         private void Start()
         {
@@ -61,6 +62,8 @@ namespace Crest
             }
 #endif
             _rend = GetComponent<Renderer>();
+
+            _camera = transform.parent.GetComponent<Camera>();
 
             // Render before the surface mesh
             _rend.sortingOrder = _overrideSortingOrder ? _overridenSortingOrder : -LodDataMgr.MAX_LOD_COUNT - 1;
@@ -94,34 +97,6 @@ namespace Crest
             }
         }
 
-        private void OnEnable()
-        {
-            RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
-        }
-
-        private void OnDisable()
-        {
-            RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
-        }
-
-        static Camera _currentCamera = null;
-        static readonly int sp_CameraForward = Shader.PropertyToID("_CameraForward");
-
-        private void BeginCameraRendering(ScriptableRenderContext scriptableRenderContext, Camera camera)
-        {
-            _currentCamera = camera;
-        }
-
-        // Called when visible to a camera
-        void OnWillRenderObject()
-        {
-            // check if built-in pipeline being used
-            if (Camera.current != null)
-            {
-                _currentCamera = Camera.current;
-            }
-        }
-
         private void LateUpdate()
         {
 #if UNITY_EDITOR
@@ -138,8 +113,9 @@ namespace Crest
                 return;
             }
 
-            if (_currentCamera == null)
+            if (_camera == null)
             {
+                // We expect this script to have a camera component as its parent.
                 return;
             }
 
@@ -180,7 +156,7 @@ namespace Crest
                 _mpb.SetFloat(sp_HeightOffset, heightOffset);
 
 
-                _mpb.SetVector(sp_CameraForward, _currentCamera.transform.forward);
+                _mpb.SetVector(sp_CameraForward, _camera.transform.forward);
                 _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
             }
         }

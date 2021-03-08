@@ -33,7 +33,7 @@ public class YachtSolver : MonoBehaviour
     private float maxV = 4.1f;               // 4.1 м/с = 8 узлов
 //    private float Ca = 0.97f;                // адмиралтейский коэффициент после перевода рассчетов в Си
     private float Ca = 16f;                // адмиралтейский коэффициент после перевода рассчетов в Си
-    private float Lbody = 11.99f;            // длинна корпуса
+    private float Lbody = 11.99f;            // длина корпуса
 //    private float M0 = 8680f;                // водоизмещение = вес яхты в кг
     private float M0 = 12000f;                // водоизмещение = вес яхты в кг
     private float Jy = 35000f;               // момент инерции относительно вертикальной оси
@@ -115,14 +115,14 @@ public class YachtSolver : MonoBehaviour
     // Группа величин для обработки сигнала от ручки газа
     [HideInInspector]
     public float ThrottleSignal;
-    private float _middleThrottle = 0.46f;
+    private float _middleThrottle = 0.45f;
     private float _ZeroThrottle = 0.02f;
     private float _PositiveMultiplier;
     private float _NegativeMultiplier;
-    private float _ForwardGear = 0.56f; // Сигнал на ручке при включении переднего хода
-    private float _BackwardGear = -0.64f; // Сигнал на ручке при включении заднего хода
-    private float _ForwardGearEV = 0.12f; // Мощность двигателя при включении переднего хода (~264 об./мин.)
-    private float _BackwardGearEV = -0.12f; // Мощность двигателя при включении заднего хода
+    private float _ForwardGear = 0.43f; // Сигнал на ручке при включении переднего хода
+    private float _BackwardGear = -0.41f; // Сигнал на ручке при включении заднего хода
+    private float _ForwardGearEV = 0.1f; // Мощность двигателя при включении переднего хода (~264 об./мин.)
+    private float _BackwardGearEV = -0.1f; // Мощность двигателя при включении заднего хода
     private bool _ThrottleCalibrationMode = false;
     private int _ThrottleCalibrationStep = 0;
 
@@ -145,7 +145,7 @@ public class YachtSolver : MonoBehaviour
         //_KresZ1 = 248f;
         //_KresZ2 = 81f;
         _KresZ1 = 200f;
-        _KresZ2 = 35f;
+        _KresZ2 = 38f;
         print("_KresZ1 = " + _KresZ1 + " _KresZ2 = " + _KresZ2);
 
         _KresX2 = _KresZ2 * 20;               // подбором
@@ -164,7 +164,7 @@ public class YachtSolver : MonoBehaviour
 
         // Группа величин для обработки сигнала от ручки газа
         // При запуске программы должна стоять в среднем положении
-        float middleThrottle = Input.GetAxis("VerticalJoy");
+        float middleThrottle = Input.GetAxis("ShipThrottle");
         print("Положение ручки в центре (middleThrottle) = " + middleThrottle);
         if (middleThrottle < 0.4f || middleThrottle > 0.6f)
         {
@@ -271,7 +271,7 @@ public class YachtSolver : MonoBehaviour
             return;
         }
 
-        // Control + z : включить режим калибровки ручки газ-реверс
+        // Control + q : включить режим калибровки ручки газ-реверс
         if (Input.GetKeyDown("q"))
         {
             if (Input.GetKey("left ctrl") || Input.GetKey("right ctrl"))
@@ -295,7 +295,7 @@ public class YachtSolver : MonoBehaviour
         if (GameWheel) // получить управление от руля
         {
             // Положение штурвала
-            steeringWheel = Mathf.Lerp(-540.0f, 540.0f, (Input.GetAxis("HorizontalJoy") + 1.0f) / 2.0f);
+            steeringWheel = Mathf.Lerp(-540.0f, 540.0f, (Input.GetAxis("HelmWheel") + 1.0f) / 2.0f);
 
             // Положение ручки газа. Приводится из диапазона 0/1 в диапазон -1/1
             ThrottleSignal = ThrottleValue();
@@ -317,7 +317,7 @@ public class YachtSolver : MonoBehaviour
     // Положение ручки газа. Приводится из диапазона 0/1 в диапазон -1/1
     float ThrottleValue()
     {
-        float TS = Input.GetAxis("VerticalJoy") - _middleThrottle;
+        float TS = Input.GetAxis("ShipThrottle") - _middleThrottle;
 
         // Малые значения обнуляем
         if (Mathf.Abs(TS) < _ZeroThrottle)
@@ -372,7 +372,7 @@ public class YachtSolver : MonoBehaviour
 
         // Сила тяги винта
         Feng = engineValue * K_EnvalToFeng * (1 + _Kprop1*Mathf.Abs(Vz) + _Kprop2 * Vz * Vz + _Kprop3 * Vz * Vz * Mathf.Abs(Vz) + _Kprop4 * Vz * Vz * Vz * Vz);
-        if (Feng < 0)
+        if (engineValue < 0)
         {
             _KOmegaFeng = 78.879f * engineValue * engineValue + 141.7f * engineValue + 82.266f;
             Feng = Feng * engBack / (1 + Mathf.Abs(OmegaY) * _KOmegaFeng);
@@ -382,6 +382,13 @@ public class YachtSolver : MonoBehaviour
         // сила сопротивления корпуса
         FresZ = -Mathf.Sign(Vz) * _KresZ2 * Vz * Vz - _KresZ1 * Vz;
         FresX = -Mathf.Sign(Vx) * _KresX2 * Vx * Vx - _KresX1 * Vx;
+        // Усиление сопротивления на малой скорости при выключенном двигателе
+        float VzAbs = Mathf.Abs(Vz);
+        if (Feng == 0f && VzAbs < 2f)
+        {
+            FresZ *= -VzAbs * 2.5f + 6;
+        }
+
         //print("Квадрат: " + (-Mathf.Sign(Vz) * _KresZ2 * Vz * Vz) + "   Линейное: " + (-_KresZ1 * Vz) );
 
         //_Record.MyLog(_Time.CurrentTimeSec() + "\t" + engineValue + "\t" + Vz + "\t" + Feng + "\t" + FresZ, false);
@@ -453,8 +460,15 @@ public class YachtSolver : MonoBehaviour
         else
         {
             _KresOmega2 = 96.8f * VzNorm * VzNorm * _KresOmega1 * 3.0f;
+
         }
         MresBody = -Mathf.Sign(OmegaY) * _KresOmega2 * (OmegaY * Lbody) * (OmegaY * Lbody) / 8 - _KresOmega1 * (OmegaY * Lbody) / 2;
+
+        // Если задний ход и двигаетель выключен
+        //if (Vz < 0 && engineValue == 0)
+        //{
+        //    MresBody *= 0.5f;
+        //}
 
         // сила и момент от увеличения мощности двигателя
         float impactX = detectEngineImpact(FengOld, Feng);

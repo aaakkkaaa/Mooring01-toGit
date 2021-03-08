@@ -2,6 +2,7 @@
 
 // Copyright 2020 Wave Harmonic Ltd
 
+#include "OceanGraphConstants.hlsl"
 #include "../OceanConstants.hlsl"
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
@@ -21,7 +22,7 @@ void CrestNodeSampleOceanData_float
 	out half o_foam,
 	out half2 o_shadow,
 	out half2 o_flow,
-	out half o_sss
+	out half o_sss // Unused
 )
 {
 	o_displacement = 0.0;
@@ -37,7 +38,7 @@ void CrestNodeSampleOceanData_float
 
 	CascadeParams cascadeData0 = MakeCascadeParams(i_oceanPosScale0, i_oceanParams0);
 	CascadeParams cascadeData1 = MakeCascadeParams(i_oceanPosScale1, i_oceanParams1);
-	
+
 	// Sample displacement textures, add results to current displacement/ normal / foam
 
 	// Data that needs to be sampled at the undisplaced position
@@ -46,7 +47,7 @@ void CrestNodeSampleOceanData_float
 		const float3 uv_slice_smallerLod = WorldToUV(i_positionXZWS, cascadeData0, i_sliceIndex0);
 
 //#if !_DEBUGDISABLESHAPETEXTURES_ON
-		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, o_displacement, o_sss);
+		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, o_displacement);
 //#endif
 
 //#if _FOAM_ON
@@ -62,7 +63,7 @@ void CrestNodeSampleOceanData_float
 		const float3 uv_slice_biggerLod = WorldToUV(i_positionXZWS, cascadeData1, i_sliceIndex0 + 1.0);
 
 //#if !_DEBUGDISABLESHAPETEXTURES_ON
-		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, o_displacement, o_sss);
+		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, o_displacement);
 //#endif
 
 //#if _FOAM_ON
@@ -123,7 +124,7 @@ void CrestNodeSampleOceanDataSingle_float
 	out half o_foam,
 	out half2 o_shadow,
 	out half2 o_flow,
-	out half o_sss
+	out half o_sss // Unused
 )
 {
 	o_displacement = 0.0;
@@ -134,7 +135,7 @@ void CrestNodeSampleOceanDataSingle_float
 	o_oceanDepth = CREST_OCEAN_DEPTH_BASELINE;
 
 	CascadeParams cascadeData = MakeCascadeParams(i_oceanPosScale, i_oceanParams);
-	
+
 	// Sample displacement texture, add results to current world pos / normal / foam
 
 	// Data that needs to be sampled at the undisplaced position
@@ -142,7 +143,7 @@ void CrestNodeSampleOceanDataSingle_float
 		const float3 uv_slice = WorldToUV(i_positionXZWS, cascadeData, i_sliceIndex);
 
 		//#if !_DEBUGDISABLESHAPETEXTURES_ON
-		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, 1.0, o_displacement, o_sss);
+		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, 1.0, o_displacement);
 		//#endif
 
 		//#if _FOAM_ON

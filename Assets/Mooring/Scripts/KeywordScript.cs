@@ -13,6 +13,10 @@ public class KeywordScript : MonoBehaviour
 
     private KeywordRecognizer m_Recognizer;
 
+    [SerializeField]
+    private Sailor _Sailor1;
+
+
     void Start()
     {
         //var language = new Windows.Globalization.Language("en-US");
@@ -40,6 +44,25 @@ public class KeywordScript : MonoBehaviour
         builder.AppendFormat("\tTimestamp: {0}{1}", args.phraseStartTime, Environment.NewLine);
         builder.AppendFormat("\tDuration: {0} seconds{1}", args.phraseDuration.TotalSeconds, Environment.NewLine);
         Debug.Log(builder.ToString());
+
+        if (_Sailor1 != null)
+        {
+            if (_Sailor1.CurCommand == "")
+            {
+                switch (args.text)
+                {
+                    case "forecastle":
+                        _Sailor1.CurCommand = "НА НОС";
+                        break;
+                    case "give the stern line":
+                    case "give the stern rope":
+                    case "give the aft line":
+                    case "give the aft rope":
+                        _Sailor1.CurCommand = "ПОДАТЬ ШВАРТОВЫ";
+                        break;
+                }
+            }
+        }
     }
 
     private void OnApplicationQuit()

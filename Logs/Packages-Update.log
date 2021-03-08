@@ -110,3 +110,19 @@ Update Mode: updateDependencies
 
 The following packages were updated:
   com.unity.test-framework from version 1.1.19 to 1.1.20
+
+=== Thu Feb 25 04:07:39 2021
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were updated:
+  com.unity.test-framework from version 1.1.20 to 1.1.22
+
+=== Thu Feb 25 06:46:00 2021
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were updated:
+  com.unity.timeline from version 1.2.12 to 1.2.18

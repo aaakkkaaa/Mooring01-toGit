@@ -34,7 +34,7 @@ half3 ScatterColour(
 		// Pick lower res data for shadowing, helps to smooth out artifacts slightly
 		const float minSliceIndex = 4.0;
 		uint slice0, slice1; float lodAlpha;
-		PosToSliceIndices(samplePoint, minSliceIndex, i_meshScaleLerp, i_scaleBase, slice0, slice1, lodAlpha);
+		PosToSliceIndices(samplePoint, minSliceIndex, i_scaleBase, slice0, slice1, lodAlpha);
 
 		half2 shadowSoftHard = 0.0;
 		{
@@ -103,10 +103,9 @@ void ApplyCaustics(in const float3 scenePos, in const half3 i_lightCol, in const
 	// underwater caustics - dedicated to P
 	const float3 scenePosUV = WorldToUV(scenePos.xz, cascadeData1, _LD_SliceIndex + 1);
 	half3 disp = 0.;
-	half sss = 0.;
 	// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
 	// because i dont know it at scene pos.
-	SampleDisplacements(_LD_TexArray_AnimatedWaves, scenePosUV, 1.0, disp, sss);
+	SampleDisplacements(_LD_TexArray_AnimatedWaves, scenePosUV, 1.0, disp);
 	half waterHeight = _OceanCenterPosWorld.y + disp.y;
 	half sceneDepth = waterHeight - scenePos.y;
 	// Compute mip index manually, with bias based on sea floor depth. We compute it manually because if it is computed automatically it produces ugly patches
@@ -164,7 +163,7 @@ void ApplyCaustics(in const float3 scenePos, in const half3 i_lightCol, in const
 
 
 half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const half3 i_lightCol, in const float3 i_lightDir,
-	in const real3 i_grabPosXYW, in const float i_pixelZ, in const half2 i_uvDepth, in const float i_sceneZ, in const float i_sceneZ01,
+	in const real3 i_grabPosXYW, in const float i_pixelZ, in const half2 i_uvDepth, in const float i_sceneZ,
 	in const half3 i_bubbleCol, in sampler2D i_normals, in const bool i_underwater, in const half3 i_scatterCol,
 	in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
 {
@@ -188,8 +187,9 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const ha
 		const half2 refractOffset = _RefractionStrength * i_n_pixel.xz * min(1.0, 0.5*(i_sceneZ - i_pixelZ)) / i_sceneZ;
 		half2 uvBackgroundRefract = uvBackground + refractOffset;
 
+		// Raw depth is logarithmic for perspective, and linear (0-1) for orthographic.
 		const float sceneZRefractDevice = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(i_uvDepth + refractOffset)).x;
-		const float sceneZRefract = LinearEyeDepth(sceneZRefractDevice, _ZBufferParams);
+		const float sceneZRefract = CrestLinearEyeDepth(sceneZRefractDevice);
 
 		float2 scenePosNDC = uvBackground;
 

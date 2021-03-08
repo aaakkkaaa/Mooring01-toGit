@@ -3,6 +3,7 @@
 // Copyright 2020 Wave Harmonic Ltd
 
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace Crest
 {
@@ -17,7 +18,7 @@ namespace Crest
         protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); } }
 
         public override string SimName { get { return "DynamicWaves"; } }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
+        protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R16G16_SFloat;
 
         public bool _rotateLaplacian = true;
 

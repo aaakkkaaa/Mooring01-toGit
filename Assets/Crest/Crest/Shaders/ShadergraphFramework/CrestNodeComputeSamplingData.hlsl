@@ -2,6 +2,7 @@
 
 // Copyright 2020 Wave Harmonic Ltd
 
+#include "OceanGraphConstants.hlsl"
 #include "../OceanConstants.hlsl"
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
@@ -19,8 +20,8 @@ void CrestComputeSamplingData_half
 	out float slice1
 )
 {
-	PosToSliceIndices(worldXZ, 0.0, _CrestCascadeData[0]._scale, _CrestCascadeData[0]._scale, slice0, slice1, lodAlpha);
-	
+	PosToSliceIndices(worldXZ, 0.0, _CrestCascadeData[0]._scale, slice0, slice1, lodAlpha);
+
 	uint si0 = (uint)slice0;
 	uint si1 = si0 + 1;
 

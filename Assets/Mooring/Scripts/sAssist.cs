@@ -34,11 +34,9 @@ public class sAssist : MonoBehaviour
     // Класс для записи в файл
     sRecord _Record;
 
-
     // Start is called before the first frame update
     void Start()
     {
-
         // Класс для записи в файл
         _Record = transform.GetComponent<sRecord>();
 
@@ -145,26 +143,14 @@ public class sAssist : MonoBehaviour
         print("_ConsoleTracker.localPosition.y = " + _ConsoleTracker.localPosition.y);
         if (_ConsoleTracker.localPosition.y != 0.0f) // если VR работает
         {
-            // Положение трекера на консоли штурвала
-            //_Record.MyLog("Положение трекера на консоли (локальное): localPos=\t" + tab(_ConsoleTracker.localPosition, "F3") + "\tlocalEu =\t" + tab(_ConsoleTracker.localEulerAngles, "F1"));
-            //_Record.MyLog("Положение трекера на консоли (глобальное): globalPos=\t" + tab(_ConsoleTracker.position, "F3") + "\tglobalEu =\t" + tab(_ConsoleTracker.eulerAngles, "F1"));
-            //_Record.MyLog("Место для трекера на консоли (локальное): localPos=\t" + tab(_ConsoleTrackerPose.localPosition, "F3") + "\tlocalEu =\t" + tab(_ConsoleTrackerPose.localEulerAngles, "F1"));
-            //_Record.MyLog("Место для трекера на консоли (глобальное): globalPos=\t" + tab(_ConsoleTrackerPose.position, "F3") + "\tglobalEu =\t" + tab(_ConsoleTrackerPose.eulerAngles, "F1"));
+            // Высота машинки газ-реверс в модели яхты - на одной высоте с трекером, закрепленным на консоли в реальном пространстве (_ConsoleTracker)
 
-            Transform Console = _ConsoleTrackerPose.parent;
-            Vector3 ConcolePos = Console.localPosition;
-
-            // Высота консоли в модели яхты
-
-            //_Record.MyLog("Положение консоли было (локальное): localPos=\t" + tab(ConcolePos, "F3") + "\tlocalEu =\t" + tab(Console.localEulerAngles, "F1"));
-            //_Record.MyLog("Положение консоли было (глобальное): globalPos=\t" + tab(Console.position, "F3") + "\tglobalEu =\t" + tab(Console.eulerAngles, "F1"));
-
-            print("Высота установки консоли была: " + ConcolePos.y);
-            ConcolePos.y += _ConsoleTracker.position.y - _ConsoleTrackerPose.position.y;
-            print("Высота установки консоли стала: " + ConcolePos.y);
-            Console.localPosition = ConcolePos;
-            //_Record.MyLog("Положение консоли стало (локальное): localPos=\t" + tab(ConcolePos, "F3") + "\tlocalEu =\t" + tab(Console.localEulerAngles, "F1"));
-            //_Record.MyLog("Положение консоли стало (глобальное): globalPos=\t" + tab(Console.position, "F3") + "\tglobalEu =\t" + tab(Console.eulerAngles, "F1"));
+            Transform GasReverse = _ConsoleTrackerPose.parent.Find("GasReverse").transform;
+            Vector3 GasReversePos = GasReverse.position;
+            print("Высота установки газ-реверс была: " + GasReversePos.y);
+            GasReversePos.y = _ConsoleTracker.position.y;
+            print("Высота установки газ-реверс стала: " + GasReversePos.y);
+            GasReverse.position = GasReversePos;
 
             // Выставить положение [Camera Rig] в виртуальном пространстве по положению трекера консоли в рельном пространстве (только положение, не углы)
 
@@ -173,6 +159,7 @@ public class sAssist : MonoBehaviour
             _TrackerTempPose.SetParent(MainShip); // Вспомогательный объект для коррекции положения [Camera Rig] - перевести в дети корабля
             CameraRig.SetParent(_TrackerTempPose); // [Camera Rig] - перевести в дети вспомогательного объекта
             _TrackerTempPose.position = _ConsoleTrackerPose.position; // // Переместить вспомогательный объект с детьми ([Camera Rig]) в точку, где должен находиться _ConsoleTracker в виртуальном пространстве
+            _TrackerTempPose.position += Vector3.up * 0.05f; // дополнительная коррекция высоты
             CameraRig.SetParent(MainShip); // Вернуть [Camera Rig] в дети корабля
             _TrackerTempPose.SetParent(_ConsoleTracker); // Вернуть вспомогательный объект в дети _ConsoleTracker
             _TrackerTempPose.position = Vector3.zero;

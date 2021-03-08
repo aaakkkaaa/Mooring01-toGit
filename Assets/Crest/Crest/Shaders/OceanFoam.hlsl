@@ -10,6 +10,8 @@ half3 AmbientLight()
 	return half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
 }
 
+#if _FOAM_ON
+
 half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced, half lodVal, in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
 {
 	half ft = lerp(
@@ -93,9 +95,11 @@ void ComputeFoamWithFlow(half2 flow, half i_foam, float2 i_worldXZUndisplaced, f
 
 	ComputeFoam(i_foam, i_worldXZUndisplaced - (flow * sample1_offset), i_worldXZ, i_n, i_pixelZ, i_sceneZ, i_view, i_lightDir, i_lightCol, i_shadow, lodVal, o_bubbleCol1, o_whiteFoamCol1, cascadeData0, cascadeData1);
 	ComputeFoam(i_foam, i_worldXZUndisplaced - (flow * sample2_offset), i_worldXZ, i_n, i_pixelZ, i_sceneZ, i_view, i_lightDir, i_lightCol, i_shadow, lodVal, o_bubbleCol2, o_whiteFoamCol2, cascadeData0, cascadeData1);
-	
+
 	o_bubbleCol = (sample1_weight * o_bubbleCol1) + (sample2_weight * o_bubbleCol2);
 	o_whiteFoamCol = (sample1_weight * o_whiteFoamCol1) + (sample2_weight * o_whiteFoamCol2);
 }
+
+#endif // _FOAM_ON
 
 #endif // CREST_OCEAN_FOAM_INCLUDED
