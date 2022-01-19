@@ -1,2 +1,0 @@
-3049	Frames	Moment	Average	Min	Max
-3049	50	16,0	0,0	500,0	0,0

@@ -1,0 +1,17 @@
+{
+    "name": "NWH.Common.SceneManagement",
+    "references": [
+        "GUID:29f59c061700f574297724b3a8af873c",
+        "GUID:d31e991413537f04bb57584d46519b51",
+        "GUID:65104abdae76eb547b3fe1f2509bb923"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

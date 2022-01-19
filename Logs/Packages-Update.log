@@ -1,13 +1,13 @@
 
-=== Mon Mar 16 12:53:45 2020
+=== Thu Jan  6 23:08:59 2022
 
 Packages were changed.
 Update Mode: mergeDefaultDependencies
 
 The following packages were added:
-  com.unity.collab-proxy@1.2.16
-  com.unity.ide.rider@1.1.4
-  com.unity.ide.vscode@1.1.4
+  com.unity.ide.rider@3.0.7
+  com.unity.ide.visualstudio@2.0.12
+  com.unity.ide.vscode@1.2.4
   com.unity.modules.ai@1.0.0
   com.unity.modules.androidjni@1.0.0
   com.unity.modules.animation@1.0.0
@@ -39,90 +39,19 @@ The following packages were added:
   com.unity.modules.vr@1.0.0
   com.unity.modules.wind@1.0.0
   com.unity.modules.xr@1.0.0
-  com.unity.test-framework@1.1.11
-  com.unity.textmeshpro@2.0.1
-  com.unity.timeline@1.2.12
-  com.unity.ugui@1.0.0
+  com.unity.test-framework@1.1.29
+  com.unity.visualscripting@1.7.6
+The following packages were updated:
+  com.unity.collab-proxy from version 1.13.5 to 1.15.4
+  com.unity.timeline from version 1.6.2 to 1.6.3
 
-=== Tue Apr  7 13:11:10 2020
+=== Thu Jan  6 23:15:00 2022
 
 Packages were changed.
-Update Mode: updateDependencies
+Update Mode: mergeDefaultDependencies
 
-The following packages were updated:
-  com.unity.render-pipelines.universal from version 7.1.8 to 7.3.1
-  com.unity.test-framework from version 1.1.11 to 1.1.13
-
-=== Mon May 11 00:11:45 2020
-
-Packages were changed.
-Update Mode: updateDependencies
-
-The following packages were updated:
-  com.unity.ide.vscode from version 1.1.4 to 1.2.0
-
-=== Thu May 21 23:47:55 2020
-
-Packages were changed.
-Update Mode: updateDependencies
-
-The following packages were updated:
-  com.unity.test-framework from version 1.1.13 to 1.1.14
-
-=== Tue Jun 23 22:02:09 2020
-
-Packages were changed.
-Update Mode: updateDependencies
-
-The following packages were updated:
-  com.unity.ide.vscode from version 1.2.0 to 1.2.1
-
-=== Fri Aug 14 00:27:00 2020
-
-Packages were changed.
-Update Mode: updateDependencies
-
-The following packages were updated:
-  com.unity.test-framework from version 1.1.14 to 1.1.16
-
-=== Thu Oct 29 06:53:51 2020
-
-Packages were changed.
-Update Mode: updateDependencies
-
-The following packages were updated:
-  com.unity.ide.vscode from version 1.2.1 to 1.2.2
-  com.unity.test-framework from version 1.1.16 to 1.1.18
-
-=== Thu Dec 10 19:46:41 2020
-
-Packages were changed.
-Update Mode: updateDependencies
-
-The following packages were updated:
-  com.unity.ide.vscode from version 1.2.2 to 1.2.3
-  com.unity.test-framework from version 1.1.18 to 1.1.19
-
-=== Fri Jan 15 00:52:18 2021
-
-Packages were changed.
-Update Mode: updateDependencies
-
-The following packages were updated:
-  com.unity.test-framework from version 1.1.19 to 1.1.20
-
-=== Thu Feb 25 04:07:39 2021
-
-Packages were changed.
-Update Mode: updateDependencies
-
-The following packages were updated:
-  com.unity.test-framework from version 1.1.20 to 1.1.22
-
-=== Thu Feb 25 06:46:00 2021
-
-Packages were changed.
-Update Mode: updateDependencies
-
-The following packages were updated:
-  com.unity.timeline from version 1.2.12 to 1.2.18
+The following packages were added:
+  com.unity.burst@1.4.4
+  com.unity.inputsystem@1.0.2
+  com.unity.mathematics@1.2.4
+  com.unity.toolchain.win-x86_64-linux-x86_64@0.1.21-preview

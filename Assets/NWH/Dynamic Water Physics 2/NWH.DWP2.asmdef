@@ -1,0 +1,24 @@
+{
+    "name": "NWH.DWP2",
+    "references": [
+        "GUID:671a31995d850174caa91d9c48cece7f",
+        "GUID:002659bdf192dcc48b665aab9acee7f4",
+        "GUID:dabfa476cbf2b1243a9ee9145014525e",
+        "GUID:db90c25115be896428a4ea89549b9767",
+        "GUID:29f59c061700f574297724b3a8af873c",
+        "GUID:d31e991413537f04bb57584d46519b51",
+        "GUID:75469ad4d38634e559750d17036d5f7c",
+        "GUID:e3eb20b049b35744c814e6644c665dc8",
+        "GUID:7a780e8359a1b0244aac09fccb21df25",
+        "GUID:65104abdae76eb547b3fe1f2509bb923"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

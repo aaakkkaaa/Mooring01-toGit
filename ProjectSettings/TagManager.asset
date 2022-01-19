@@ -4,9 +4,8 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - Pier
   - Ship
-  - dontDestroy
+  - ShipCamera
   layers:
   - Default
   - TransparentFX
@@ -16,8 +15,8 @@ TagManager:
   - UI
   - 
   - 
-  - PostProcessing
-  - Terrain
+  - 
+  - 
   - 
   - 
   - 
